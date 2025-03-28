@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Calendar } from "../components/ui/calendar";
 import { Textarea } from "../components/ui/textarea";
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+export const DAY_MS = 24 * 60 * 60 * 1000;
 
 export type Transaction = {
 	name: string;
@@ -107,7 +107,7 @@ export default function Home() {
 				className="rounded-md border shadow"
 			/>
 
-			<h2>Value on day:</h2>
+			<h2>Value on {endDate?.toLocaleDateString() ?? "--"}:</h2>
 			{calcValue({ startValue, startDate, endDate, transactions })}
 
 			<h2>Transactions:</h2>
@@ -134,24 +134,29 @@ function calcValue({
 	endDate?: Date;
 	transactions: Transaction[];
 }) {
-	if (!startDate || !endDate) {
+	if (!startDate || !endDate || endDate < startDate) {
 		return "--";
 	}
 
 	return transactions
-		.filter((tx) => tx.date >= startDate.getTime() || tx.recurringEveryXDays)
+		.filter(
+			(tx) =>
+				(new Date(tx.date).setHours(0, 0, 0, 0) >= startDate.getTime() || tx.recurringEveryXDays) &&
+				new Date(tx.date).setHours(0, 0, 0, 0) <= endDate.getTime(),
+		)
 		.reduce((net, tx) => {
 			const occurrences = !tx.recurringEveryXDays
 				? 1
 				: (() => {
 						let occurrences = 0;
-						let nextOccurrence = tx.date;
+						let nextOccurrence = new Date(tx.date).setHours(0, 0, 0, 0);
 
 						while (nextOccurrence < startDate.getTime()) {
 							nextOccurrence += tx.recurringEveryXDays! * DAY_MS;
 						}
 
-						while (nextOccurrence < endDate.getTime()) {
+						// inclusive
+						while (nextOccurrence <= endDate.getTime()) {
 							occurrences++;
 							nextOccurrence += tx.recurringEveryXDays! * DAY_MS;
 						}

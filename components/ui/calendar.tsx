@@ -3,10 +3,11 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
+import merge from "deepmerge";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import { Transaction } from "../../app/page";
+import { DAY_MS, Transaction } from "../../app/page";
 
 function Calendar({
 	className,
@@ -15,10 +16,29 @@ function Calendar({
 	...props
 }: { transactions: Transaction[] } & React.ComponentProps<typeof DayPicker>) {
 	const transactionsKeyedByDay = props.transactions.reduce((map, tx) => {
-		// todo recurring
-		// keyed by day
-		const key = new Date(tx.date).setHours(0, 0, 0, 0);
-		return { ...map, [key]: [...(map[key] ?? []), tx] };
+		if (!tx.recurringEveryXDays) {
+			return merge(map, { [new Date(tx.date).setHours(0, 0, 0, 0)]: [tx] });
+		}
+
+		/**
+		 * Recurring, fill in from a month ago to end of calendar year
+		 * could be improved to hook into rendering and only do the displayed month
+		 */
+		const daysFromRecurring: Record<number, Transaction[]> = {};
+		let nextOccurrence = tx.date;
+
+		while (nextOccurrence < Date.now() - 31 * DAY_MS) {
+			nextOccurrence += tx.recurringEveryXDays * DAY_MS;
+		}
+
+		const endOfYear = new Date(new Date().getFullYear() + 1, 0, 1).getTime();
+		while (nextOccurrence < endOfYear) {
+			const key = new Date(nextOccurrence).setHours(0, 0, 0, 0);
+			daysFromRecurring[key] = [tx];
+			nextOccurrence += tx.recurringEveryXDays * DAY_MS;
+		}
+
+		return merge(map, daysFromRecurring);
 	}, {} as Record<number, Transaction[]>);
 
 	return (
