@@ -1,103 +1,166 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Calendar } from "../components/ui/calendar";
+import { Textarea } from "../components/ui/textarea";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+export type Transaction = {
+	name: string;
+	date: number;
+	type: "incoming" | "outgoing";
+	amount: number;
+	recurringEveryXDays?: number;
+};
+const transactions: Transaction[] = [
+	{
+		name: "Starbucks",
+		date: Date.now() - 5 * DAY_MS,
+		type: "outgoing",
+		amount: 5,
+		recurringEveryXDays: 3,
+	},
+	{
+		name: "Paycheck",
+		date: Date.now() - 3 * DAY_MS,
+		type: "incoming",
+		amount: 2500,
+		recurringEveryXDays: 14,
+	},
+	{
+		name: "Chair refund",
+		date: Date.now() + 5 * DAY_MS,
+		type: "incoming",
+		amount: 200,
+	},
+	{
+		name: "Netflix",
+		date: Date.now() + 12 * DAY_MS,
+		type: "outgoing",
+		amount: 24.99,
+		recurringEveryXDays: 30,
+	},
+	{
+		name: "eBay sales",
+		date: Date.now() + 10 * DAY_MS,
+		type: "incoming",
+		amount: 279.83,
+	},
+	{
+		name: "Discover card payment",
+		date: Date.now() + 7 * DAY_MS,
+		type: "outgoing",
+		amount: 452.33,
+		recurringEveryXDays: 30,
+	},
+	{
+		name: "Capital One card payment",
+		date: Date.now() + 12 * DAY_MS,
+		type: "outgoing",
+		amount: 242.8,
+		recurringEveryXDays: 30,
+	},
+	{
+		name: "McDonald's",
+		date: Date.now() + 12 * DAY_MS,
+		type: "outgoing",
+		amount: 30,
+		recurringEveryXDays: 4,
+	},
+	{
+		name: "Groceries",
+		date: Date.now() + 1 * DAY_MS,
+		type: "outgoing",
+		amount: 150,
+		recurringEveryXDays: 14,
+	},
+];
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+	const [startValue, setStartValue] = useState(5000);
+	const [startDate, setStartDate] = useState<Date | undefined>(new Date());
+	const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+	return (
+		<div>
+			<h1>Green</h1>
+
+			<h2>Enter your start value:</h2>
+			<Textarea onChange={(e) => setStartValue(Number(e.target.value))} value={startValue} />
+
+			<h2>Select your start date:</h2>
+			<Calendar
+				transactions={transactions}
+				mode="single"
+				selected={startDate}
+				onSelect={setStartDate}
+				className="rounded-md border shadow"
+			/>
+
+			<h2>Select your end date:</h2>
+			<Calendar
+				transactions={transactions}
+				mode="single"
+				selected={endDate}
+				onSelect={setEndDate}
+				className="rounded-md border shadow"
+			/>
+
+			<h2>Value on day:</h2>
+			{calcValue({ startValue, startDate, endDate, transactions })}
+
+			<h2>Transactions:</h2>
+			<ul>
+				{transactions.map((tx) => (
+					<li>
+						{new Date(tx.date).toISOString()} - {tx.amount} - {tx.type} - {tx.name}
+						{tx.recurringEveryXDays && ` - Recurring every ${tx.recurringEveryXDays} days`}
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+}
+
+function calcValue({
+	startValue,
+	startDate,
+	endDate,
+	transactions,
+}: {
+	startValue: number;
+	startDate?: Date;
+	endDate?: Date;
+	transactions: Transaction[];
+}) {
+	if (!startDate || !endDate) {
+		return "--";
+	}
+
+	return transactions
+		.filter((tx) => tx.date >= startDate.getTime() || tx.recurringEveryXDays)
+		.reduce((net, tx) => {
+			const occurrences = !tx.recurringEveryXDays
+				? 1
+				: (() => {
+						let occurrences = 0;
+						let nextOccurrence = tx.date;
+
+						while (nextOccurrence < startDate.getTime()) {
+							nextOccurrence += tx.recurringEveryXDays! * DAY_MS;
+						}
+
+						while (nextOccurrence < endDate.getTime()) {
+							occurrences++;
+							nextOccurrence += tx.recurringEveryXDays! * DAY_MS;
+						}
+
+						return occurrences;
+				  })();
+
+			const totalAmount = occurrences * tx.amount;
+
+			return tx.type == "incoming" ? net + totalAmount : net - totalAmount;
+		}, startValue);
 }
