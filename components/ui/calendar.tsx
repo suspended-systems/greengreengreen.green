@@ -27,7 +27,8 @@ function Calendar({
 		const daysFromRecurring: Record<number, Transaction[]> = {};
 		let nextOccurrence = tx.date;
 
-		while (nextOccurrence < Date.now() - 31 * DAY_MS) {
+		const aMonthAgo = Date.now() - 31 * DAY_MS;
+		while (nextOccurrence < aMonthAgo) {
 			nextOccurrence += tx.recurringEveryXDays * DAY_MS;
 		}
 

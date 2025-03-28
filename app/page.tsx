@@ -86,10 +86,10 @@ export default function Home() {
 		<div>
 			<h1>Green</h1>
 
-			<h2>Enter your start value:</h2>
+			<h2>Enter your starting value:</h2>
 			<Textarea onChange={(e) => setStartValue(Number(e.target.value))} value={startValue} />
 
-			<h2>Select your start date:</h2>
+			<h2>Select your starting date:</h2>
 			<Calendar
 				transactions={transactions}
 				mode="single"
@@ -98,7 +98,7 @@ export default function Home() {
 				className="rounded-md border shadow"
 			/>
 
-			<h2>Select your end date:</h2>
+			<h2>Select the day you want to see your projected value on:</h2>
 			<Calendar
 				transactions={transactions}
 				mode="single"
@@ -107,8 +107,8 @@ export default function Home() {
 				className="rounded-md border shadow"
 			/>
 
-			<h2>Value on {endDate?.toLocaleDateString() ?? "--"}:</h2>
-			{calcValue({ startValue, startDate, endDate, transactions })}
+			<h2>Projected value on {endDate?.toLocaleDateString() ?? "--"}:</h2>
+			{calcProjectedValue({ startValue, startDate, endDate, transactions })}
 
 			<h2>Transactions:</h2>
 			<ul>
@@ -123,7 +123,7 @@ export default function Home() {
 	);
 }
 
-function calcValue({
+function calcProjectedValue({
 	startValue,
 	startDate,
 	endDate,
