@@ -1,0 +1,7 @@
+- assign happiness points to transactions
+
+- categorize transactions
+
+- toggle transaction enabled
+
+- change begin day selection to be simple different box date component

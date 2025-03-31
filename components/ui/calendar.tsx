@@ -7,15 +7,19 @@ import merge from "deepmerge";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
-import { DAY_MS, Transaction } from "../../app/page";
+import { calcProjectedValue, Transaction } from "../../app/transactions";
+import { DAY_MS } from "../../app/utils";
 
 function Calendar({
 	className,
 	classNames,
 	showOutsideDays = true,
 	...props
-}: { transactions: Transaction[] } & React.ComponentProps<typeof DayPicker>) {
-	const transactionsKeyedByDay = props.transactions.reduce((map, tx) => {
+}: { startValue?: number; startDate?: Date; endDate?: Date; transactions?: Transaction[] } & React.ComponentProps<
+	typeof DayPicker
+>) {
+	const { startValue, startDate, endDate, transactions } = props;
+	const transactionsKeyedByDay = (transactions ?? []).reduce((map, tx) => {
 		if (!tx.recurringEveryXDays) {
 			return merge(map, { [new Date(tx.date).setHours(0, 0, 0, 0)]: [tx] });
 		}
@@ -42,6 +46,8 @@ function Calendar({
 		return merge(map, daysFromRecurring);
 	}, {} as Record<number, Transaction[]>);
 
+	const cellModifier = 16;
+
 	return (
 		<DayPicker
 			showOutsideDays={showOutsideDays}
@@ -60,7 +66,7 @@ function Calendar({
 				nav_button_next: "absolute right-1",
 				table: "w-full border-collapse space-x-1",
 				head_row: "flex",
-				head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
+				head_cell: `text-muted-foreground rounded-md w-${cellModifier} font-normal text-[0.8rem]`,
 				row: "flex w-full mt-2",
 				cell: cn(
 					"relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-range-end)]:rounded-r-md",
@@ -68,7 +74,7 @@ function Calendar({
 						? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
 						: "[&:has([aria-selected])]:rounded-md",
 				),
-				day: cn(buttonVariants({ variant: "ghost" }), "size-8 p-0 font-normal aria-selected:opacity-100"),
+				day: cn(buttonVariants({ variant: "ghost" }), `size-${cellModifier} p-0 font-normal aria-selected:opacity-100`),
 				day_range_start: "day-range-start aria-selected:bg-primary aria-selected:text-primary-foreground",
 				day_range_end: "day-range-end aria-selected:bg-primary aria-selected:text-primary-foreground",
 				day_selected:
@@ -84,15 +90,89 @@ function Calendar({
 				DayContent: (props) => {
 					const dayTransactions = transactionsKeyedByDay[props.date.getTime()];
 
+					const projectedValue =
+						startValue &&
+						startDate &&
+						transactions &&
+						calcProjectedValue({ startValue, startDate, endDate: props.date, transactions });
+
+					const expenses = calcProjectedValue({
+						startValue: 0,
+						startDate: props.date,
+						endDate: props.date,
+						transactions: (transactions ?? []).filter((tx) => tx.amount < 0),
+					}) as number;
+
+					const incomes = calcProjectedValue({
+						startValue: 0,
+						startDate: props.date,
+						endDate: props.date,
+						transactions: (transactions ?? []).filter((tx) => tx.amount > -1),
+					}) as number;
+
+					// todo: get the transactions occuring on day by:
+					// check any non recurring that have this day date
+					// check any recurring which fall on this day date
+					// instead of using `dayTransactions`
+
 					return (
 						<span style={{ position: "relative", overflow: "visible" }}>
 							<p>{props.date.getDate()}</p>
 							{dayTransactions && (
-								<ul>
-									{dayTransactions.map((tx) => (
-										<li>{tx.name}</li>
+								<ul
+									style={{
+										fontFamily: "Monospace",
+										fontSize: 4,
+										fontWeight: "bolder",
+										letterSpacing: 3,
+										marginRight: -3, // counter act last letter spacing
+									}}
+								>
+									{dayTransactions.map((tx, i) => (
+										<li style={{ display: "inline" }} key={`transaction:${i}:${tx.name}`}>
+											{tx.amount > -1 ? "🟩" : "🔴"}
+										</li>
 									))}
 								</ul>
+							)}
+
+							{projectedValue && (
+								<div
+									style={{
+										fontFamily: "Monospace",
+										fontSize: 12,
+										fontWeight: "bolder",
+										color: projectedValue === "--" ? "inheret" : projectedValue > -1 ? "green" : "red",
+									}}
+								>
+									{projectedValue}
+								</div>
+							)}
+
+							{incomes > 0 && (
+								<div
+									style={{
+										fontFamily: "Monospace",
+										fontSize: 12,
+										fontWeight: "bolder",
+										color: "green",
+									}}
+								>
+									+{incomes}
+								</div>
+							)}
+
+							{expenses < 0 && (
+								<div
+									style={{
+										fontFamily: "Monospace",
+										fontSize: 12,
+										fontWeight: "bolder",
+										color: "red",
+									}}
+								>
+									{expenses}
+								</div>
 							)}
 						</span>
 					);
