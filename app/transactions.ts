@@ -157,31 +157,31 @@ export const myTransactions: Transaction[] = [
 	 */
 	{
 		name: "Rent",
-		date: Date.now() * DAY_MS,
+		date: Date.now(),
 		amount: -3200,
 		recurringEveryXDays: 30,
 	},
 	{
 		name: "Prosper",
-		date: Date.now() * DAY_MS,
+		date: Date.now(),
 		amount: -1000,
 		recurringEveryXDays: 30,
 	},
 	{
 		name: "Water",
-		date: Date.now() * DAY_MS,
+		date: Date.now(),
 		amount: -150,
 		recurringEveryXDays: 30,
 	},
 	{
 		name: "Power",
-		date: Date.now() * DAY_MS,
+		date: Date.now(),
 		amount: -100,
 		recurringEveryXDays: 30,
 	},
 	{
 		name: "Sonic Internet",
-		date: Date.now() * DAY_MS,
+		date: Date.now(),
 		amount: -80,
 		recurringEveryXDays: 30,
 	},

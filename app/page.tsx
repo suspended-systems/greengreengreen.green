@@ -5,15 +5,27 @@ import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "../components/ui/calendar";
-import { Textarea } from "../components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+	Table,
+	TableBody,
+	TableCaption,
+	TableCell,
+	TableFooter,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+
 import { calcProjectedValue, myTransactions } from "./transactions";
+import { DAY_MS } from "./utils";
 
 export default function Home() {
 	const [startValue, setStartValue] = useState(5000);
-	const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-	const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
+	const [endDate, setEndDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0) + 7 * DAY_MS));
 
 	const today = new Date();
 	const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -41,6 +53,7 @@ export default function Home() {
 				</PopoverTrigger>
 				<PopoverContent className="w-auto p-0" align="start">
 					<Calendar
+						big={false}
 						mode="single"
 						selected={startDate}
 						onSelect={setStartDate}
@@ -50,11 +63,14 @@ export default function Home() {
 				</PopoverContent>
 			</Popover>
 
+			<br />
+			<br />
 			<div style={{ display: "flex", flex: 1, gap: 32 }}>
 				<div>
-					<h2>Select the day you want to see your projected value on:</h2>
+					<h2>Select a day to view full detail.</h2>
 					<Calendar
 						{...{ startValue, startDate, endDate, transactions: myTransactions }}
+						big
 						mode="single"
 						selected={endDate}
 						onSelect={setEndDate}
@@ -68,7 +84,24 @@ export default function Home() {
 						{calcProjectedValue({ startValue, startDate, endDate, transactions: myTransactions })}
 					</div>
 
+					<div>
+						<h2>Transactions on {endDate?.toLocaleDateString() ?? "--"}:</h2>
+						todo
+					</div>
+
 					<div style={{ marginTop: "auto" }}>
+						<div>
+							<h2>
+								{firstOfMonth.toLocaleDateString()}-{lastOfMonth.toLocaleDateString()} income:
+							</h2>
+							+
+							{calcProjectedValue({
+								startValue: 0,
+								startDate: firstOfMonth,
+								endDate: lastOfMonth,
+								transactions: myTransactions.filter(({ amount }) => amount > -1),
+							})}
+						</div>
 						<div>
 							<h2>
 								{firstOfMonth.toLocaleDateString()}-{lastOfMonth.toLocaleDateString()} expenses:
@@ -80,34 +113,34 @@ export default function Home() {
 								transactions: myTransactions.filter(({ amount }) => amount < 0),
 							})}
 						</div>
-
-						<div>
-							<h2>
-								{firstOfMonth.toLocaleDateString()}-{lastOfMonth.toLocaleDateString()} income:
-							</h2>
-							{calcProjectedValue({
-								startValue: 0,
-								startDate: firstOfMonth,
-								endDate: lastOfMonth,
-								transactions: myTransactions.filter(({ amount }) => amount > -1),
-							})}
-						</div>
 					</div>
 				</div>
 			</div>
 
 			<br />
 			<br />
-			<h2>Transactions:</h2>
-			<ul>
-				{myTransactions.map((tx) => (
-					<li>
-						{new Date(tx.date).toLocaleDateString()} - {tx.amount} - {tx.amount > -1 ? "Incoming" : "Outgoing"} -{" "}
-						{tx.name}
-						{tx.recurringEveryXDays && ` - Recurring every ${tx.recurringEveryXDays} days`}
-					</li>
-				))}
-			</ul>
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead className="w-[100px]">Transaction</TableHead>
+						<TableHead>Date</TableHead>
+						<TableHead>Type</TableHead>
+						<TableHead className="text-right">Amount</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{myTransactions.map((tx, i) => (
+						<TableRow key={`td:${i}:${tx.name}`}>
+							<TableCell className="font-medium">{tx.name}</TableCell>
+							<TableCell>{new Date(tx.date).toLocaleDateString()}</TableCell>
+							<TableCell>{tx.amount > -1 ? "Incoming" : "Outgoing"}</TableCell>
+							<TableCell className="text-right" style={{ color: tx.amount > -1 ? "green" : "red" }}>
+								{tx.amount > -1 ? "+" : "-"}${Math.abs(tx.amount)}
+							</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }
