@@ -1,0 +1,14 @@
+.input-symbol {
+	position: relative;
+}
+.input-symbol input {
+	padding-left: 32px;
+}
+.input-symbol:before {
+	position: absolute;
+	content: "$";
+	top: 6px;
+	left: 12px;
+	font-size: 14px;
+	line-height: 24px;
+}
