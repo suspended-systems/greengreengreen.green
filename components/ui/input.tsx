@@ -1,12 +1,9 @@
 import * as React from "react";
 
-import "./input.css";
-
 import { cn } from "@/lib/utils";
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
 	return (
-		<span className="input-symbol">
 			<input
 				type={type}
 				data-slot="input"
@@ -18,7 +15,6 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
 				)}
 				{...props}
 			/>
-		</span>
 	);
 }
 

@@ -1,13 +1,32 @@
-import { DAY_MS } from "./utils";
+import { partition } from "lodash";
+import { Frequency, RRule } from "rrule";
 
+import { DAY_MS } from "./utils";
 export type Transaction = {
 	name: string;
 	date: number;
 	amount: number;
-	recurringEveryXDays?: number;
+	freq?: Frequency;
+	interval?: number;
 	disabled?: boolean;
 	assignedHappinessPoints?: number;
 };
+
+export const txRRule = (tx: Transaction) =>
+	new RRule({ freq: tx.freq, interval: tx.interval ?? 1, dtstart: new Date(tx.date) });
+
+export function getTransactionsOnDay(date: Date, transactions: Transaction[]) {
+	const targetDay = date.setHours(0, 0, 0, 0);
+
+	const [recurring, nonrecurring] = partition(transactions, (tx) => tx.freq);
+
+	const nonrecurringOnDay = nonrecurring.filter((tx) => new Date(tx.date).setHours(0, 0, 0, 0) === targetDay);
+
+	const recurringOnDay = recurring.filter(
+		(tx) => txRRule(tx).between(new Date(targetDay), new Date(targetDay + DAY_MS)).length,
+	);
+	return [...nonrecurringOnDay, ...recurringOnDay];
+}
 
 export function calcProjectedValue({
 	startValue,
@@ -21,47 +40,23 @@ export function calcProjectedValue({
 	transactions: Transaction[];
 }) {
 	if (!startDate || !endDate || endDate < startDate) {
-		return "--";
+		return 0;
 	}
 
 	return transactions
 		.filter(
 			(tx) =>
-				(new Date(tx.date).setHours(0, 0, 0, 0) >= startDate.getTime() || tx.recurringEveryXDays) &&
+				(new Date(tx.date).setHours(0, 0, 0, 0) >= startDate.getTime() || tx.freq) &&
 				new Date(tx.date).setHours(0, 0, 0, 0) <= endDate.getTime(),
 		)
 		.reduce((net, tx) => {
-			const occurrences = !tx.recurringEveryXDays
-				? 1
-				: (() => {
-						let occurrences = 0;
-						let nextOccurrence = new Date(tx.date).setHours(0, 0, 0, 0);
-
-						while (nextOccurrence < startDate.getTime()) {
-							nextOccurrence += tx.recurringEveryXDays! * DAY_MS;
-						}
-
-						// inclusive
-						while (nextOccurrence <= endDate.getTime()) {
-							occurrences++;
-							nextOccurrence += tx.recurringEveryXDays! * DAY_MS;
-						}
-
-						return occurrences;
-				  })();
+			const occurrences = !tx.freq ? 1 : txRRule(tx).between(startDate, endDate).length;
 
 			const totalAmount = occurrences * tx.amount;
 
 			return net + totalAmount;
 		}, startValue);
 }
-
-// todo functionally process a day's
-// - transactions (incl recurring)
-// - net value
-// would be cool to then use to calculate for a day range by just processing each day
-// in the calendar display a background of days when your net is positive (green) or negative (red)
-export function getDayData(time: number) {}
 
 export const myTransactions: Transaction[] = [
 	/**
@@ -71,14 +66,15 @@ export const myTransactions: Transaction[] = [
 		name: "Corpo paycheck",
 		date: Date.now(),
 		amount: 4375,
-		recurringEveryXDays: 14,
+		freq: Frequency.WEEKLY,
+		interval: 2,
 		disabled: true,
 	},
 	{
 		name: "GS",
 		date: Date.now(),
 		amount: 1000,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 	},
 
 	/**
@@ -88,29 +84,30 @@ export const myTransactions: Transaction[] = [
 		name: "DoorDash",
 		date: Date.now(),
 		amount: -30,
-		recurringEveryXDays: 7,
+		freq: Frequency.WEEKLY,
 		assignedHappinessPoints: 100,
 	},
 	{
 		name: "McDelivery",
 		date: Date.now(),
 		amount: -25,
-		recurringEveryXDays: 7,
+		freq: Frequency.WEEKLY,
 		assignedHappinessPoints: 100,
 	},
 	{
 		name: "Lekda Wellness Thai Massage",
 		date: Date.now() - 2 * DAY_MS,
 		amount: -250,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 		assignedHappinessPoints: 100,
 		disabled: true,
 	},
 	{
-		name: "Kintsu Medspa Laser Hair Removal",
+		name: "Kintsu Medspa",
 		date: Date.now() - 2 * DAY_MS,
 		amount: -500,
-		recurringEveryXDays: 60,
+		freq: Frequency.MONTHLY,
+		interval: 2,
 		assignedHappinessPoints: 100,
 		disabled: true,
 	},
@@ -122,7 +119,7 @@ export const myTransactions: Transaction[] = [
 		name: "Netflix",
 		date: Date.now() + 12 * DAY_MS,
 		amount: -24.99,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 		assignedHappinessPoints: 100,
 		disabled: true,
 	},
@@ -130,7 +127,7 @@ export const myTransactions: Transaction[] = [
 		name: "HBO Max",
 		date: Date.now() + 12 * DAY_MS,
 		amount: -16.99,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 		assignedHappinessPoints: 100,
 		disabled: true,
 	},
@@ -138,7 +135,7 @@ export const myTransactions: Transaction[] = [
 		name: "YouTube TV",
 		date: Date.now() + 12 * DAY_MS,
 		amount: -69.99,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 		assignedHappinessPoints: 100,
 		disabled: true,
 	},
@@ -159,106 +156,39 @@ export const myTransactions: Transaction[] = [
 		name: "Rent",
 		date: Date.now(),
 		amount: -3200,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 	},
 	{
 		name: "Prosper",
 		date: Date.now(),
 		amount: -1000,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 	},
 	{
 		name: "Water",
 		date: Date.now(),
 		amount: -150,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 	},
 	{
 		name: "Power",
 		date: Date.now(),
 		amount: -100,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 	},
 	{
 		name: "Sonic Internet",
 		date: Date.now(),
 		amount: -80,
-		recurringEveryXDays: 30,
+		freq: Frequency.MONTHLY,
 	},
 	{
 		name: "Groceries",
 		date: Date.now(),
 		amount: -150,
-		recurringEveryXDays: 14,
-	},
-].filter(({ disabled }) => !disabled);
-
-export const exampleTransactions: Transaction[] = [
-	{
-		name: "Starbucks",
-		date: Date.now() - 5 * DAY_MS,
-		amount: -5,
-		recurringEveryXDays: 3,
-		assignedHappinessPoints: 5,
-	},
-	{
-		name: "Paycheck",
-		date: Date.now() - 3 * DAY_MS,
-		amount: 2500,
-		recurringEveryXDays: 14,
-	},
-	{
-		name: "Chair refund",
-		date: Date.now() + 5 * DAY_MS,
-		amount: 200,
-	},
-	{
-		name: "Netflix",
-		date: Date.now() + 12 * DAY_MS,
-		amount: -24.99,
-		recurringEveryXDays: 30,
-		assignedHappinessPoints: 100,
-	},
-	{
-		name: "eBay sales",
-		date: Date.now() + 10 * DAY_MS,
-		amount: 279.83,
-	},
-	{
-		name: "Discover card payment",
-		date: Date.now() + 7 * DAY_MS,
-		amount: -452.33,
-		recurringEveryXDays: 30,
-	},
-	{
-		name: "Capital One card payment",
-		date: Date.now() + 12 * DAY_MS,
-		amount: -242.8,
-		recurringEveryXDays: 30,
-	},
-	{
-		name: "McDonald's",
-		date: Date.now() + 12 * DAY_MS,
-		amount: -30,
-		recurringEveryXDays: 4,
-		assignedHappinessPoints: 10,
-	},
-	{
-		name: "Groceries",
-		date: Date.now() + 1 * DAY_MS,
-		amount: -150,
-		recurringEveryXDays: 14,
-	},
-	{
-		name: "Massage",
-		date: Date.now() - 2 * DAY_MS,
-		amount: -250,
-		recurringEveryXDays: 30,
-	},
-	{
-		name: "Laser hair removal",
-		date: Date.now() - 2 * DAY_MS,
-		amount: -500,
-		recurringEveryXDays: 60,
+		freq: Frequency.WEEKLY,
+		interval: 2,
 	},
 ];
+
+export const myTransactionsOnlyEnabled: Transaction[] = myTransactions.filter(({ disabled }) => !disabled);

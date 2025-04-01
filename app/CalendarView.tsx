@@ -1,29 +1,34 @@
 "use client";
 
+import "./input.css";
+
 import { useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { CalendarCustomized } from "@/components/ui/calendar-customized";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { calcProjectedValue, myTransactions } from "./transactions";
-import { DAY_MS } from "./utils";
+import { calcProjectedValue, getTransactionsOnDay, myTransactionsOnlyEnabled } from "./transactions";
+import { DAY_MS, formatMoney } from "./utils";
 
 export default function CalendarView() {
 	const [startValue, setStartValue] = useState(5000);
 	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
 	const [endDate, setEndDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0) + 7 * DAY_MS));
 
-	const today = new Date();
+	const today = endDate || new Date();
 	const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 	const lastOfMonth = new Date(today.getFullYear(), today.getMonth(), 31);
 
+	const dayTransactions = endDate && getTransactionsOnDay(endDate, myTransactionsOnlyEnabled);
+
 	return (
 		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 32 }}>
-			<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
+			<div className="container mx-auto" style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
 				Enter your starting date and value:
 				<div style={{ display: "flex", flex: 1, gap: 16 }}>
 					<Popover>
@@ -38,7 +43,6 @@ export default function CalendarView() {
 						</PopoverTrigger>
 						<PopoverContent className="w-auto p-0" align="start">
 							<Calendar
-								big={false}
 								mode="single"
 								selected={startDate}
 								onSelect={setStartDate}
@@ -48,16 +52,17 @@ export default function CalendarView() {
 						</PopoverContent>
 					</Popover>
 
-					<Input type={"number"} onChange={(e) => setStartValue(Number(e.target.value))} value={startValue} />
+					<span className="input-symbol">
+						<Input type={"number"} onChange={(e) => setStartValue(Number(e.target.value))} value={startValue} />
+					</span>
 				</div>
 			</div>
-			<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
+			<div className="container mx-auto" style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
 				View your projected value across days of the month:
 				<div style={{ display: "flex", flex: 1, gap: 16 }}>
 					<div>
-						<Calendar
-							{...{ startValue, startDate, endDate, transactions: myTransactions }}
-							big
+						<CalendarCustomized
+							{...{ startValue, startDate, endDate, transactions: myTransactionsOnlyEnabled }}
 							mode="single"
 							selected={endDate}
 							onSelect={setEndDate}
@@ -65,35 +70,63 @@ export default function CalendarView() {
 						/>
 					</div>
 
-					<div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-						<p>
-							Projected value on {endDate?.toLocaleDateString() ?? "--"}:
-							{calcProjectedValue({ startValue, startDate, endDate, transactions: myTransactions })}
-						</p>
-						<p>
-							Transactions on {endDate?.toLocaleDateString() ?? "--"}:{"todo"}
-						</p>
-						<div style={{ marginTop: "auto" }}>
+					<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
+						<div>
+							<p>{endDate?.toLocaleDateString() ?? "--"}</p>
+							<p>Projected value:</p>
 							<p>
-								{firstOfMonth.toLocaleDateString()}-{lastOfMonth.toLocaleDateString()} income: +
-								{calcProjectedValue({
-									startValue: 0,
-									startDate: firstOfMonth,
-									endDate: lastOfMonth,
-									transactions: myTransactions.filter(({ amount }) => amount > -1),
-								})}
-							</p>
-							<p>
-								{firstOfMonth.toLocaleDateString()}-{lastOfMonth.toLocaleDateString()} expenses:{" "}
-								{calcProjectedValue({
-									startValue: 0,
-									startDate: firstOfMonth,
-									endDate: lastOfMonth,
-									transactions: myTransactions.filter(({ amount }) => amount < 0),
-								})}
+								{formatMoney(
+									calcProjectedValue({
+										startValue,
+										startDate,
+										endDate,
+										transactions: myTransactionsOnlyEnabled,
+									}),
+								)}
 							</p>
 						</div>
+
+						{dayTransactions && dayTransactions.length > 0 && (
+							<div>
+								<p>Transactions:</p>
+								<ul>
+									{dayTransactions.map((tx, i) => (
+										<li key={`li:${i}:${tx.name}`}>
+											{tx.name} {formatMoney(tx.amount)}
+										</li>
+									))}
+								</ul>
+							</div>
+						)}
 					</div>
+				</div>
+				<div>
+					<p>
+						{firstOfMonth.toLocaleDateString()}-{lastOfMonth.toLocaleDateString()}
+					</p>
+					<p>Income: </p>
+					<p>
+						+
+						{formatMoney(
+							calcProjectedValue({
+								startValue: 0,
+								startDate: firstOfMonth,
+								endDate: lastOfMonth,
+								transactions: myTransactionsOnlyEnabled.filter(({ amount }) => amount > -1),
+							}),
+						)}
+					</p>
+					<p>Expenses: </p>
+					<p>
+						{formatMoney(
+							calcProjectedValue({
+								startValue: 0,
+								startDate: firstOfMonth,
+								endDate: lastOfMonth,
+								transactions: myTransactionsOnlyEnabled.filter(({ amount }) => amount < 0),
+							}),
+						)}
+					</p>
 				</div>
 			</div>
 		</div>
