@@ -18,13 +18,18 @@ import { DAY_MS, formatMoney } from "./utils";
 export default function CalendarView({
 	startValue,
 	setStartValue,
+	startDate,
+	setStartDate,
+	endDate,
+	setEndDate,
 }: {
 	startValue: number;
 	setStartValue: Dispatch<SetStateAction<number>>;
+	startDate: Date | undefined;
+	setStartDate: Dispatch<SetStateAction<Date | undefined>>;
+	endDate: Date | undefined;
+	setEndDate: Dispatch<SetStateAction<Date | undefined>>;
 }) {
-	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
-	const [endDate, setEndDate] = useState<Date | undefined>();
-
 	const today = endDate || new Date();
 	const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 	const lastOfMonth = new Date(today.getFullYear(), today.getMonth(), 31);

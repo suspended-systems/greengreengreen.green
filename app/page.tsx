@@ -8,6 +8,8 @@ import { useState } from "react";
 
 export default function Home() {
 	const [startValue, setStartValue] = useState(5000);
+	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
+	const [endDate, setEndDate] = useState<Date | undefined>();
 
 	return (
 		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 32 }}>
@@ -18,7 +20,7 @@ export default function Home() {
 					<TabsTrigger value="transactions">Transactions</TabsTrigger>
 				</TabsList>
 				<TabsContent value="calendar">
-					<CalendarView {...{ startValue, setStartValue }} />
+					<CalendarView {...{ startValue, setStartValue, startDate, setStartDate, endDate, setEndDate, }} />
 				</TabsContent>
 				<TabsContent value="transactions">
 					<TransactionsView />
