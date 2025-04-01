@@ -66,10 +66,11 @@ function CalendarCustomized({
 					const dayTransactions = getTransactionsOnDay(props.date, transactions ?? []);
 
 					const projectedValue =
-						startValue &&
-						startDate &&
-						transactions &&
-						calcProjectedValue({ startValue, startDate, endDate: props.date, transactions });
+						(startValue &&
+							startDate &&
+							transactions &&
+							calcProjectedValue({ startValue, startDate, endDate: props.date, transactions })) ||
+						undefined;
 
 					const expenses = calcProjectedValue({
 						startValue: 0,
@@ -97,7 +98,12 @@ function CalendarCustomized({
 									position: "relative",
 									overflow: "visible",
 									width: "100%",
-									background: projectedValue === 0 ? "inherit" : projectedValue! > -1 ? "green" : "red",
+									background:
+										projectedValue === undefined || projectedValue === 0
+											? "inherit"
+											: projectedValue! > -1
+											? "green"
+											: "red",
 								}}
 							>
 								<p>{props.date.getDate()}</p>
@@ -106,7 +112,7 @@ function CalendarCustomized({
 							<div
 								style={{ position: "absolute", top: 72, opacity: props.activeModifiers.outside ? "0.5" : "inherit" }}
 							>
-								{projectedValue != undefined && (
+								{projectedValue && (
 									<div
 										style={{
 											marginTop: -16,

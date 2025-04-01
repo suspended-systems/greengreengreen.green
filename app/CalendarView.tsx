@@ -18,7 +18,7 @@ import { DAY_MS, formatMoney } from "./utils";
 export default function CalendarView() {
 	const [startValue, setStartValue] = useState(5000);
 	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
-	const [endDate, setEndDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0) + 7 * DAY_MS));
+	const [endDate, setEndDate] = useState<Date | undefined>();
 
 	const today = endDate || new Date();
 	const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
