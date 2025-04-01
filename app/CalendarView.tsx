@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { calcProjectedValue, getTransactionsOnDay, myTransactionsOnlyEnabled } from "./transactions";
-import { DAY_MS, formatMoney } from "./utils";
+import { formatMoney } from "./utils";
 
 export default function CalendarView({
 	startValue,
