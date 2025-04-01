@@ -14,7 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Transaction } from "./transactions";
+import { myTransactions, Transaction } from "./transactions";
 import { formatMoney } from "./utils";
 import { Frequency } from "rrule";
 
@@ -34,10 +34,10 @@ export const columns: ColumnDef<Transaction>[] = [
 		cell: ({ row }) => (
 			<Switch
 				checked={!row.getValue("disabled")}
-				onCheckedChange={(value) => {
-					// todo
+				onCheckedChange={(isToggled) => {
+					// todo update table data
 				}}
-				aria-label="Select row"
+				aria-label="Toggle transaction"
 			/>
 		),
 	},
