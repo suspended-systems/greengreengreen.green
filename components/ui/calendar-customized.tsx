@@ -65,24 +65,31 @@ function CalendarCustomized({
 				DayContent: (props) => {
 					const dayTransactions = getTransactionsOnDay(props.date, transactions ?? []);
 
+					const endOfDay = new Date(props.date.getTime() + DAY_MS - 1);
+
 					const projectedValue =
 						(startValue &&
 							startDate &&
 							transactions &&
-							calcProjectedValue({ startValue, startDate, endDate: props.date, transactions })) ||
+							calcProjectedValue({
+								startValue,
+								startDate,
+								endDate: endOfDay,
+								transactions,
+							})) ||
 						undefined;
 
 					const expenses = calcProjectedValue({
 						startValue: 0,
 						startDate: props.date,
-						endDate: new Date(props.date.getTime() + DAY_MS - 1),
+						endDate: endOfDay,
 						transactions: (transactions ?? []).filter((tx) => tx.amount < 0),
 					}) as number;
 
 					const incomes = calcProjectedValue({
 						startValue: 0,
 						startDate: props.date,
-						endDate: new Date(props.date.getTime() + DAY_MS - 1),
+						endDate: endOfDay,
 						transactions: (transactions ?? []).filter((tx) => tx.amount > -1),
 					}) as number;
 
