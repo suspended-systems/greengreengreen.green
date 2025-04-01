@@ -23,7 +23,7 @@ export function getTransactionsOnDay(date: Date, transactions: Transaction[]) {
 	const nonrecurringOnDay = nonrecurring.filter((tx) => new Date(tx.date).setHours(0, 0, 0, 0) === targetDay);
 
 	const recurringOnDay = recurring.filter(
-		(tx) => txRRule(tx).between(new Date(targetDay), new Date(targetDay + DAY_MS)).length,
+		(tx) => txRRule(tx).between(new Date(targetDay), new Date(targetDay + DAY_MS - 1)).length,
 	);
 	return [...nonrecurringOnDay, ...recurringOnDay];
 }
@@ -117,19 +117,19 @@ export const myTransactions: Transaction[] = [
 	 */
 	{
 		name: "Netflix",
-		date: Date.now() + 12 * DAY_MS,
+		date: Date.now() + 10 * DAY_MS,
 		amount: -24.99,
 		freq: Frequency.MONTHLY,
 		assignedHappinessPoints: 100,
-		disabled: true,
+		// disabled: true,
 	},
 	{
 		name: "HBO Max",
-		date: Date.now() + 12 * DAY_MS,
+		date: Date.now() + 11 * DAY_MS,
 		amount: -16.99,
 		freq: Frequency.MONTHLY,
 		assignedHappinessPoints: 100,
-		disabled: true,
+		// disabled: true,
 	},
 	{
 		name: "YouTube TV",
@@ -137,7 +137,7 @@ export const myTransactions: Transaction[] = [
 		amount: -69.99,
 		freq: Frequency.MONTHLY,
 		assignedHappinessPoints: 100,
-		disabled: true,
+		// disabled: true,
 	},
 
 	/**
@@ -160,7 +160,7 @@ export const myTransactions: Transaction[] = [
 	},
 	{
 		name: "Prosper",
-		date: Date.now(),
+		date: Date.now() + DAY_MS * 3,
 		amount: -1000,
 		freq: Frequency.MONTHLY,
 	},
@@ -184,7 +184,7 @@ export const myTransactions: Transaction[] = [
 	},
 	{
 		name: "Groceries",
-		date: Date.now(),
+		date: Date.now() + DAY_MS + 1,
 		amount: -150,
 		freq: Frequency.WEEKLY,
 		interval: 2,

@@ -75,14 +75,14 @@ function CalendarCustomized({
 					const expenses = calcProjectedValue({
 						startValue: 0,
 						startDate: props.date,
-						endDate: props.date,
+						endDate: new Date(props.date.getTime() + DAY_MS - 1),
 						transactions: (transactions ?? []).filter((tx) => tx.amount < 0),
 					}) as number;
 
 					const incomes = calcProjectedValue({
 						startValue: 0,
 						startDate: props.date,
-						endDate: props.date,
+						endDate: new Date(props.date.getTime() + DAY_MS - 1),
 						transactions: (transactions ?? []).filter((tx) => tx.amount > -1),
 					}) as number;
 

@@ -4,8 +4,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import CalendarView from "./CalendarView";
 import TransactionsView from "./TransactionsView";
+import { useState } from "react";
 
 export default function Home() {
+	const [startValue, setStartValue] = useState(5000);
+
 	return (
 		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 32 }}>
 			Green
@@ -15,7 +18,7 @@ export default function Home() {
 					<TabsTrigger value="transactions">Transactions</TabsTrigger>
 				</TabsList>
 				<TabsContent value="calendar">
-					<CalendarView />
+					<CalendarView {...{ startValue, setStartValue }} />
 				</TabsContent>
 				<TabsContent value="transactions">
 					<TransactionsView />

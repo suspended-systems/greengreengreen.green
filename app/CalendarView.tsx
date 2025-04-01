@@ -2,7 +2,7 @@
 
 import "./input.css";
 
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -15,8 +15,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { calcProjectedValue, getTransactionsOnDay, myTransactionsOnlyEnabled } from "./transactions";
 import { DAY_MS, formatMoney } from "./utils";
 
-export default function CalendarView() {
-	const [startValue, setStartValue] = useState(5000);
+export default function CalendarView({
+	startValue,
+	setStartValue,
+}: {
+	startValue: number;
+	setStartValue: Dispatch<SetStateAction<number>>;
+}) {
 	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
 	const [endDate, setEndDate] = useState<Date | undefined>();
 
