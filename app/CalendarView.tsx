@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { calcProjectedValue, getTransactionsOnDay, myTransactionsOnlyEnabled } from "./transactions";
-import { formatMoney } from "./utils";
+import { DAY_MS, formatMoney } from "./utils";
 
 export default function CalendarView({
 	startValue,
@@ -89,7 +89,7 @@ export default function CalendarView({
 									calcProjectedValue({
 										startValue,
 										startDate,
-										endDate,
+										endDate: endDate && new Date(endDate.getTime() + DAY_MS - 1),
 										transactions: myTransactionsOnlyEnabled,
 									}),
 								)}
