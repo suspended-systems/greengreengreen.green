@@ -93,7 +93,7 @@ export default function CalendarView({
 						className="rounded-md border shadow"
 					/>
 				</div>
-				<div className="flex justify-center" style={{ minHeight: 300, padding: 16 }}>
+				<div className="flex justify-center" style={{ minHeight: 300 }}>
 					{endDate && (
 						<>
 							{dayTransactions && dayTransactions.length > 0 ? (
