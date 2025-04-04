@@ -43,7 +43,7 @@ function CalendarCustomized({
 				nav_button_previous: "absolute left-1",
 				nav_button_next: "absolute right-1",
 				table: "w-full border-collapse space-x-1",
-				head_row: "flex",
+				head_row: "flex py-4",
 				head_cell: `text-muted-foreground rounded-md w-24 font-normal text-[0.8rem]`,
 				row: "flex w-full",
 				cell: cn(
@@ -52,7 +52,7 @@ function CalendarCustomized({
 						? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
 						: "[&:has([aria-selected])]:rounded-md",
 				),
-				day: cn(buttonVariants({ variant: "ghost" }), `size-24 p-0 font-normal aria-selected:opacity-100 border`),
+				day: cn(buttonVariants({ variant: "ghost" }), `size-24 p-0 font-normal aria-selected:opacity-100`),
 				day_range_start: "day-range-start aria-selected:bg-primary aria-selected:text-primary-foreground",
 				day_range_end: "day-range-end aria-selected:bg-primary aria-selected:text-primary-foreground",
 				day_selected:
@@ -82,129 +82,26 @@ function CalendarCustomized({
 							})) ||
 						undefined;
 
-					// const expenses = calcProjectedValue({
-					// 	startValue: 0,
-					// 	startDate: props.date,
-					// 	endDate: endOfDay,
-					// 	transactions: (transactions ?? []).filter((tx) => tx.amount < 0),
-					// }) as number;
-
-					// const incomes = calcProjectedValue({
-					// 	startValue: 0,
-					// 	startDate: props.date,
-					// 	endDate: endOfDay,
-					// 	transactions: (transactions ?? []).filter((tx) => tx.amount > -1),
-					// }) as number;
-
 					const incomeTransactions = dayTransactions.filter((tx) => tx.amount > -1);
 					const incomesTotal = incomeTransactions.reduce((sum, tx) => sum + tx.amount, 0);
 
 					const expenseTransactions = dayTransactions.filter((tx) => tx.amount < 0);
 					const expensesTotal = expenseTransactions.reduce((sum, tx) => sum + tx.amount, 0);
 
-					const TxTable = () => {
-						const totals = [incomesTotal, expensesTotal].filter(Boolean);
-
-						return (
-							totals.length > 0 && (
-								<table style={props.activeModifiers.selected ? { zIndex: 999, background: "black" } : {}}>
-									<thead>
-										<tr>
-											{totals.map((total, col) => {
-												const isIncome = total > -1;
-
-												return (
-													<>
-														{isIncome && <th key={`spacer:th:col${col}:`}></th>}
-														<th
-															key={`total:th:col${col}:`}
-															style={{
-																color: isIncome ? "green" : "red",
-																textAlign: isIncome ? "right" : "left",
-															}}
-														>
-															{isIncome && "+"}
-															{formatMoney(total)}
-														</th>
-														{!isIncome && <th key={`spacer:th:col${col}:`}></th>}
-													</>
-												);
-											})}
-										</tr>
-									</thead>
-									{props.activeModifiers.selected && (
-										<tbody>
-											{Array.from({ length: Math.max(incomeTransactions.length, expenseTransactions.length) }).map(
-												(_, row) => {
-													return (
-														<tr key={`tr:row${row}`}>
-															{totals.map((total, offset) => {
-																const isIncome = total > -1;
-
-																const tx = isIncome ? incomeTransactions[row] : expenseTransactions[row];
-
-																const NameCell = () => (
-																	<td key={`tx-name:th:row${row}:col${offset}:`}>
-																		{tx?.amount && (
-																			<div style={{ textAlign: isIncome ? "right" : "left" }}>{tx?.name}</div>
-																		)}
-																	</td>
-																);
-
-																const ValueCell = () => (
-																	<td key={`tx-value:th:row${row}:col${offset}:`}>
-																		{tx?.amount && (
-																			<div style={{ textAlign: isIncome ? "right" : "left" }}>
-																				<span style={{ color: isIncome ? "green" : "red" }}>
-																					{isIncome && "+"}
-																					{formatMoney(tx.amount)}
-																				</span>
-																			</div>
-																		)}
-																	</td>
-																);
-
-																return isIncome ? (
-																	<>
-																		<NameCell />
-																		<ValueCell />
-																	</>
-																) : (
-																	<>
-																		<ValueCell />
-																		<NameCell />
-																	</>
-																);
-															})}
-														</tr>
-													);
-												},
-											)}
-										</tbody>
-									)}
-								</table>
-							)
-						);
-					};
-
-					// todo: get the transactions occuring on day by:
-					// check any non recurring that have this day date
-					// check any recurring which fall on this day date
-					// instead of using `dayTransactions`
+					const isOutOfRange = !startDate || props.date.setHours(0, 0, 0, 0) < startDate.setHours(0, 0, 0, 0);
 
 					return (
 						<>
-							<span
+							<div
 								style={{
 									alignSelf: "start",
-									position: "relative",
-									paddingRight: "16px",
-									textAlign: "right",
-									overflow: "visible",
+									position: "absolute",
+									top: 18,
+									height: 3,
 									width: "100%",
 									background:
 										projectedValue === undefined || projectedValue === 0
-											? "inherit"
+											? "none"
 											: projectedValue! > -1
 											? props.activeModifiers.outside
 												? "#7fbf7f"
@@ -213,8 +110,18 @@ function CalendarCustomized({
 											? "#ff7f7f"
 											: "red",
 								}}
+							/>
+							<span
+								style={{
+									overflow: "visible",
+									alignSelf: "start",
+									position: "relative",
+									paddingRight: "16px",
+									width: "100%",
+									textAlign: "right",
+								}}
 							>
-								<span>{props.date.getDate()}</span>
+								{props.date.getDate()}
 							</span>
 
 							<div
@@ -222,36 +129,15 @@ function CalendarCustomized({
 									position: "absolute",
 									// 16 day height + 5 spacing
 									top: 21,
-									opacity: props.activeModifiers.outside ? "0.5" : "inherit",
+									opacity: isOutOfRange ? 0.25 : props.activeModifiers.outside ? 0.5 : "inherit",
 								}}
 							>
-								{projectedValue && (
-									<div
-										style={{
-											// fontFamily: "Monospace",
-											fontSize: 12,
-											// fontWeight: "bolder",
-											// color: projectedValue === "--" ? "inherit" : projectedValue > -1 ? "green" : "red",
-										}}
-									>
-										{formatMoney(projectedValue)}
-									</div>
-								)}
+								{projectedValue && <div style={{ fontSize: 12 }}>{formatMoney(projectedValue)}</div>}
 
-								<TxTable />
-
-								{/* {expenses < 0 && (
-									<span
-										style={{
-											// fontFamily: "Monospace",
-											fontSize: 12,
-											fontWeight: "bolder",
-											color: "red",
-										}}
-									>
-										-${Math.abs(expenses)}
-									</span>
-								)} */}
+								<div style={{ fontWeight: "bold" }}>
+									{incomesTotal > 0 && <p style={{ color: "green" }}>+{formatMoney(incomesTotal)}</p>}
+									{expensesTotal < 0 && <p style={{ color: "red" }}>{formatMoney(expensesTotal)}</p>}
+								</div>
 							</div>
 						</>
 					);

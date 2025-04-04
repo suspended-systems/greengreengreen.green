@@ -19,3 +19,12 @@
 
 
 -- replace emoji dots with just actual transactions listed in small font below the total when multiple from ea column. then show the expanded detail IN the cell that grows when clicking in
+
+
+
+...
+
+
+- tx checkbox enable/disable
+- add transaction form
+- open app and enter start values form thingy

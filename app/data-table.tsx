@@ -14,6 +14,7 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
+import { EyeOff as EyeOffIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -27,16 +28,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
-	data: TData[];
+	transactions: TData[];
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, transactions }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
 
 	const table = useReactTable({
-		data,
+		data: transactions,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
@@ -53,8 +54,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 	});
 
 	return (
-		<div>
-			<div className="flex items-center py-4">
+		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
+			<div className="flex items-center">
 				<Input
 					placeholder="Filter transactions..."
 					value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -64,7 +65,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button variant="outline" className="ml-auto">
-							Columns
+							<EyeOffIcon />
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
@@ -124,12 +125,12 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
 					</TableBody>
 				</Table>
 			</div>
-			<div className="flex items-center justify-end space-x-2 py-4">
+			<div className="flex items-center justify-end space-x-2">
 				<Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-					Previous
+					<ChevronLeftIcon />
 				</Button>
 				<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-					Next
+					<ChevronRightIcon />
 				</Button>
 			</div>
 		</div>
