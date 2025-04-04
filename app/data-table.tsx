@@ -5,6 +5,7 @@ import * as React from "react";
 import {
 	ColumnDef,
 	ColumnFiltersState,
+	PaginationState,
 	SortingState,
 	VisibilityState,
 	flexRender,
@@ -21,17 +22,30 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
+import { formatMoney } from "./utils";
+import { myTransactions, Transaction } from "./transactions";
+
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	transactions: TData[];
+	pagination: PaginationState;
+	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
 }
 
-export function DataTable<TData, TValue>({ columns, transactions }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({
+	columns,
+	transactions,
+	pagination,
+	setPagination,
+}: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -46,11 +60,14 @@ export function DataTable<TData, TValue>({ columns, transactions }: DataTablePro
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		onPaginationChange: setPagination,
 		state: {
+			pagination,
 			sorting,
 			columnFilters,
 			columnVisibility,
 		},
+		autoResetPageIndex: false,
 	});
 
 	return (

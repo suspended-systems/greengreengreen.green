@@ -1,17 +1,32 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
 import CalendarView from "./CalendarView";
 import TransactionsView from "./TransactionsView";
-import { useState } from "react";
-import { myTransactions } from "./transactions";
+
+import { columns as columnsData } from "./columns";
+import { myTransactions, Transaction } from "./transactions";
 
 export default function Home() {
 	const [startValue, setStartValue] = useState(15000);
 	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
 	const [endDate, setEndDate] = useState<Date | undefined>();
 	const [transactions, setTransactions] = useState(myTransactions);
+
+	const columns: ColumnDef<Transaction>[] = useMemo(() => columnsData(setTransactions), [setTransactions]);
+
+	const [month, onMonthChange] = useState(new Date());
+
+	const [pagination, setPagination] = useState({
+		pageIndex: 0,
+		pageSize: 10,
+	} as PaginationState);
+
+	console.log("pagination", pagination);
 
 	return (
 		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 32 }}>
@@ -22,11 +37,21 @@ export default function Home() {
 				</TabsList>
 				<TabsContent value="calendar" style={{ marginLeft: "auto", marginRight: "auto" }}>
 					<CalendarView
-						{...{ transactions, startValue, setStartValue, startDate, setStartDate, endDate, setEndDate }}
+						{...{
+							month,
+							onMonthChange,
+							transactions,
+							startValue,
+							setStartValue,
+							startDate,
+							setStartDate,
+							endDate,
+							setEndDate,
+						}}
 					/>
 				</TabsContent>
 				<TabsContent value="transactions">
-					<TransactionsView {...{ transactions, setTransactions }} />
+					<TransactionsView {...{ columns, transactions, setTransactions, pagination, setPagination }} />
 				</TabsContent>
 			</Tabs>
 		</div>

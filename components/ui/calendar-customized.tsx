@@ -15,6 +15,8 @@ function CalendarCustomized({
 	showOutsideDays = true,
 	...props
 }: {
+	month: Date;
+	onMonthChange: React.Dispatch<React.SetStateAction<Date>>;
 	startValue?: number;
 	startDate?: Date;
 	endDate?: Date;
@@ -129,7 +131,7 @@ function CalendarCustomized({
 									position: "absolute",
 									// 16 day height + 5 spacing
 									top: 21,
-									opacity: isOutOfRange ? 0.25 : props.activeModifiers.outside ? 0.5 : "inherit",
+									opacity: isOutOfRange ? 0.15 : props.activeModifiers.outside ? 0.5 : "inherit",
 								}}
 							>
 								{projectedValue && <div style={{ fontSize: 12 }}>{formatMoney(projectedValue)}</div>}

@@ -16,6 +16,8 @@ import { getTransactionsOnDay, myTransactionsOnlyEnabled, Transaction } from "./
 import { formatMoney } from "./utils";
 
 export default function CalendarView({
+	month,
+	onMonthChange,
 	transactions,
 	startValue,
 	setStartValue,
@@ -24,6 +26,8 @@ export default function CalendarView({
 	endDate,
 	setEndDate,
 }: {
+	month: Date;
+	onMonthChange: Dispatch<SetStateAction<Date>>;
 	transactions: Transaction[];
 	startValue: number;
 	setStartValue: Dispatch<SetStateAction<number>>;
@@ -36,12 +40,15 @@ export default function CalendarView({
 	const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 	const lastOfMonth = new Date(today.getFullYear(), today.getMonth(), 31);
 
-	const dayTransactions = endDate && getTransactionsOnDay(endDate, myTransactionsOnlyEnabled);
+	const enabledTransactions = transactions.filter((tx) => !tx.disabled);
+
+	const dayTransactions = endDate && getTransactionsOnDay(endDate, enabledTransactions);
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
 		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
-			<div style={{ display: "flex", flex: 1, gap: 16 }}>
+			<div style={{ display: "flex", flex: 1, gap: 16, alignItems: "center" }}>
+				Starting on
 				<Popover>
 					<PopoverTrigger asChild>
 						<Button
@@ -66,33 +73,33 @@ export default function CalendarView({
 						/>
 					</PopoverContent>
 				</Popover>
-
+				with
 				<span className="input-symbol">
 					<Input
 						type={"number"}
 						onChange={(e) => setStartValue(Number(e.target.value))}
 						value={startValue}
-						placeholder="Select a start value"
+						placeholder="Enter a start value"
 					/>
 				</span>
 			</div>
 			<div className="container mx-auto" style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
 				<div style={{ display: "flex", flex: 1, gap: 16 }}>
 					<CalendarCustomized
-						{...{ startValue, startDate, endDate, transactions: transactions.filter((tx) => !tx.disabled) }}
+						{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions }}
 						mode="single"
 						selected={endDate}
 						onSelect={setEndDate}
 						className="rounded-md border shadow"
 					/>
 				</div>
-				<div className="flex justify-center" style={{ minHeight: 200, padding: 20 }}>
+				<div className="flex justify-center" style={{ minHeight: 300, padding: 16 }}>
 					{endDate && (
 						<>
 							{dayTransactions && dayTransactions.length > 0 ? (
 								<ul style={{ display: "inline-block", margin: "0 auto", fontWeight: 500 }}>
 									{dayTransactions?.map((tx, i) => (
-										<li key={`tx:${i}`}>
+										<li key={`tx:${i}`} className="py-1">
 											<span style={{ color: tx.amount > -1 ? "green" : "red" }}>
 												{tx.amount > -1 ? "+" : ""}
 												{formatMoney(tx.amount)}

@@ -25,6 +25,13 @@
 ...
 
 
-- tx checkbox enable/disable
+###- tx checkbox enable/disable
+- tx rename/set date/recurring/amount inline 
 - add transaction form
 - open app and enter start values form thingy
+
+
+
+stretch:
+- nicer money input
+- put column filters into state

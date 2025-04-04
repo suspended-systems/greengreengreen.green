@@ -14,29 +14,22 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { myTransactions, Transaction } from "./transactions";
+import { Transaction, txRRule } from "./transactions";
 import { formatMoney } from "./utils";
-import { Frequency } from "rrule";
+import { Dispatch, SetStateAction } from "react";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-// export type Payment = {
-// 	id: string;
-// 	amount: number;
-// 	status: "pending" | "processing" | "success" | "failed";
-// 	email: string;
-// };
-
-export const columns: ColumnDef<Transaction>[] = [
+export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>): ColumnDef<Transaction>[] => [
 	{
 		accessorKey: "disabled",
 		header: "",
 		cell: ({ row }) => (
 			<Switch
 				checked={!row.getValue("disabled")}
-				onCheckedChange={(isToggled) => {
-					// todo update table data
-				}}
+				onCheckedChange={(isToggled) =>
+					setTransactions((value) =>
+						value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, disabled: !isToggled } : tx)),
+					)
+				}
 				aria-label="Toggle transaction"
 			/>
 		),
@@ -58,12 +51,12 @@ export const columns: ColumnDef<Transaction>[] = [
 		cell: ({ row }) => <div>{new Date(row.getValue("date")).toLocaleDateString()}</div>,
 	},
 	{
-		accessorFn: ({ freq, interval }) => {
-			if (!freq) {
+		accessorFn: (tx) => {
+			if (!tx.freq) {
 				return;
 			}
 
-			return `Every ${interval ?? ""} ${Frequency[freq]}`;
+			return txRRule(tx).toText();
 		},
 		header: "Recurring",
 	},
