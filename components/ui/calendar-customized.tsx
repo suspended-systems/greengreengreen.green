@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Table } from "lucide-react";
 import { DayPicker } from "react-day-picker";
-import merge from "deepmerge";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -25,6 +24,10 @@ function CalendarCustomized({
 
 	return (
 		<DayPicker
+			formatters={{
+				formatWeekdayName: (date) =>
+					["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()],
+			}}
 			showOutsideDays={showOutsideDays}
 			className={cn("p-3", className)}
 			classNames={{
@@ -42,14 +45,14 @@ function CalendarCustomized({
 				table: "w-full border-collapse space-x-1",
 				head_row: "flex",
 				head_cell: `text-muted-foreground rounded-md w-24 font-normal text-[0.8rem]`,
-				row: "flex w-full mt-2",
+				row: "flex w-full",
 				cell: cn(
 					"relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-range-end)]:rounded-r-md",
 					props.mode === "range"
 						? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
 						: "[&:has([aria-selected])]:rounded-md",
 				),
-				day: cn(buttonVariants({ variant: "ghost" }), `size-24 p-0 font-normal aria-selected:opacity-100`),
+				day: cn(buttonVariants({ variant: "ghost" }), `size-24 p-0 font-normal aria-selected:opacity-100 border`),
 				day_range_start: "day-range-start aria-selected:bg-primary aria-selected:text-primary-foreground",
 				day_range_end: "day-range-end aria-selected:bg-primary aria-selected:text-primary-foreground",
 				day_selected:
@@ -79,19 +82,110 @@ function CalendarCustomized({
 							})) ||
 						undefined;
 
-					const expenses = calcProjectedValue({
-						startValue: 0,
-						startDate: props.date,
-						endDate: endOfDay,
-						transactions: (transactions ?? []).filter((tx) => tx.amount < 0),
-					}) as number;
+					// const expenses = calcProjectedValue({
+					// 	startValue: 0,
+					// 	startDate: props.date,
+					// 	endDate: endOfDay,
+					// 	transactions: (transactions ?? []).filter((tx) => tx.amount < 0),
+					// }) as number;
 
-					const incomes = calcProjectedValue({
-						startValue: 0,
-						startDate: props.date,
-						endDate: endOfDay,
-						transactions: (transactions ?? []).filter((tx) => tx.amount > -1),
-					}) as number;
+					// const incomes = calcProjectedValue({
+					// 	startValue: 0,
+					// 	startDate: props.date,
+					// 	endDate: endOfDay,
+					// 	transactions: (transactions ?? []).filter((tx) => tx.amount > -1),
+					// }) as number;
+
+					const incomeTransactions = dayTransactions.filter((tx) => tx.amount > -1);
+					const incomesTotal = incomeTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+
+					const expenseTransactions = dayTransactions.filter((tx) => tx.amount < 0);
+					const expensesTotal = expenseTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+
+					const TxTable = () => {
+						const totals = [incomesTotal, expensesTotal].filter(Boolean);
+
+						return (
+							totals.length > 0 && (
+								<table style={props.activeModifiers.selected ? { zIndex: 999, background: "black" } : {}}>
+									<thead>
+										<tr>
+											{totals.map((total, col) => {
+												const isIncome = total > -1;
+
+												return (
+													<>
+														{isIncome && <th key={`spacer:th:col${col}:`}></th>}
+														<th
+															key={`total:th:col${col}:`}
+															style={{
+																color: isIncome ? "green" : "red",
+																textAlign: isIncome ? "right" : "left",
+															}}
+														>
+															{isIncome && "+"}
+															{formatMoney(total)}
+														</th>
+														{!isIncome && <th key={`spacer:th:col${col}:`}></th>}
+													</>
+												);
+											})}
+										</tr>
+									</thead>
+									{props.activeModifiers.selected && (
+										<tbody>
+											{Array.from({ length: Math.max(incomeTransactions.length, expenseTransactions.length) }).map(
+												(_, row) => {
+													return (
+														<tr key={`tr:row${row}`}>
+															{totals.map((total, offset) => {
+																const isIncome = total > -1;
+
+																const tx = isIncome ? incomeTransactions[row] : expenseTransactions[row];
+
+																const NameCell = () => (
+																	<td key={`tx-name:th:row${row}:col${offset}:`}>
+																		{tx?.amount && (
+																			<div style={{ textAlign: isIncome ? "right" : "left" }}>{tx?.name}</div>
+																		)}
+																	</td>
+																);
+
+																const ValueCell = () => (
+																	<td key={`tx-value:th:row${row}:col${offset}:`}>
+																		{tx?.amount && (
+																			<div style={{ textAlign: isIncome ? "right" : "left" }}>
+																				<span style={{ color: isIncome ? "green" : "red" }}>
+																					{isIncome && "+"}
+																					{formatMoney(tx.amount)}
+																				</span>
+																			</div>
+																		)}
+																	</td>
+																);
+
+																return isIncome ? (
+																	<>
+																		<NameCell />
+																		<ValueCell />
+																	</>
+																) : (
+																	<>
+																		<ValueCell />
+																		<NameCell />
+																	</>
+																);
+															})}
+														</tr>
+													);
+												},
+											)}
+										</tbody>
+									)}
+								</table>
+							)
+						);
+					};
 
 					// todo: get the transactions occuring on day by:
 					// check any non recurring that have this day date
@@ -102,29 +196,39 @@ function CalendarCustomized({
 						<>
 							<span
 								style={{
+									alignSelf: "start",
 									position: "relative",
+									paddingRight: "16px",
+									textAlign: "right",
 									overflow: "visible",
 									width: "100%",
 									background:
 										projectedValue === undefined || projectedValue === 0
 											? "inherit"
 											: projectedValue! > -1
-											? "green"
+											? props.activeModifiers.outside
+												? "#7fbf7f"
+												: "green"
+											: props.activeModifiers.outside
+											? "#ff7f7f"
 											: "red",
 								}}
 							>
-								<p>{props.date.getDate()}</p>
+								<span>{props.date.getDate()}</span>
 							</span>
 
 							<div
-								style={{ position: "absolute", top: 72, opacity: props.activeModifiers.outside ? "0.5" : "inherit" }}
+								style={{
+									position: "absolute",
+									// 16 day height + 5 spacing
+									top: 21,
+									opacity: props.activeModifiers.outside ? "0.5" : "inherit",
+								}}
 							>
 								{projectedValue && (
 									<div
 										style={{
-											marginTop: -16,
-											marginBottom: 5,
-											fontFamily: "Monospace",
+											// fontFamily: "Monospace",
 											fontSize: 12,
 											// fontWeight: "bolder",
 											// color: projectedValue === "--" ? "inherit" : projectedValue > -1 ? "green" : "red",
@@ -134,60 +238,12 @@ function CalendarCustomized({
 									</div>
 								)}
 
-								{dayTransactions && (
-									<div
-										style={{
-											// position: "absolute",
-											// top: -16,
-											// marginTop: -16,
-											// marginBottom: 5,
-											// textAlign: "left",
-											fontFamily: "Monospace",
-											fontSize: 7,
-											fontWeight: "bolder",
-											letterSpacing: 3,
-											marginRight: -3, // counter act last letter spacing
-										}}
-									>
-										<ul style={{ display: "inline", marginBottom: 5 }}>
-											{dayTransactions
-												.filter((tx) => tx.amount > -1)
-												.map((tx, i) => (
-													<li style={{ display: "inline" }} key={`transaction:${i}:${tx.name}`}>
-														🟩
-													</li>
-												))}
-										</ul>
-										<ul style={{ display: "inline" }}>
-											{dayTransactions
-												.filter((tx) => tx.amount < 0)
-												.map((tx, i) => (
-													<li style={{ display: "inline" }} key={`transaction:${i}:${tx.name}`}>
-														🔴
-													</li>
-												))}
-										</ul>
-									</div>
-								)}
+								<TxTable />
 
-								{incomes > 0 && (
+								{/* {expenses < 0 && (
 									<span
 										style={{
-											marginRight: 5,
-											fontFamily: "Monospace",
-											fontSize: 12,
-											fontWeight: "bolder",
-											color: "green",
-										}}
-									>
-										+${incomes}
-									</span>
-								)}
-
-								{expenses < 0 && (
-									<span
-										style={{
-											fontFamily: "Monospace",
+											// fontFamily: "Monospace",
 											fontSize: 12,
 											fontWeight: "bolder",
 											color: "red",
@@ -195,7 +251,7 @@ function CalendarCustomized({
 									>
 										-${Math.abs(expenses)}
 									</span>
-								)}
+								)} */}
 							</div>
 						</>
 					);

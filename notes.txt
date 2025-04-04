@@ -5,3 +5,17 @@
 - toggle transaction enabled
 
 - change begin day selection to be simple different box date component
+
+
+..
+
+
+
+- separate page for initially entering starting values and transactions (you can enter them how ever you please and AI plugin will parse them OR enter in form so textbox vs form input) then show calendar UI
+
+
+
+...
+
+
+-- replace emoji dots with just actual transactions listed in small font below the total when multiple from ea column. then show the expanded detail IN the cell that grows when clicking in

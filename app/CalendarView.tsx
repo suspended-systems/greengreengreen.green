@@ -79,36 +79,6 @@ export default function CalendarView({
 							className="rounded-md border shadow"
 						/>
 					</div>
-
-					<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
-						<div>
-							<p>{endDate?.toLocaleDateString() ?? "--"}</p>
-							<p>Projected value:</p>
-							<p>
-								{formatMoney(
-									calcProjectedValue({
-										startValue,
-										startDate,
-										endDate: endDate && new Date(endDate.getTime() + DAY_MS - 1),
-										transactions: myTransactionsOnlyEnabled,
-									}),
-								)}
-							</p>
-						</div>
-
-						{dayTransactions && dayTransactions.length > 0 && (
-							<div>
-								<p>Transactions:</p>
-								<ul>
-									{dayTransactions.map((tx, i) => (
-										<li key={`li:${i}:${tx.name}`}>
-											{tx.name} {formatMoney(tx.amount)}
-										</li>
-									))}
-								</ul>
-							</div>
-						)}
-					</div>
 				</div>
 				<div>
 					<p>
