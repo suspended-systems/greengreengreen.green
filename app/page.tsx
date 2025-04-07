@@ -26,8 +26,6 @@ export default function Home() {
 		pageSize: 10,
 	} as PaginationState);
 
-	console.log("pagination", pagination);
-
 	return (
 		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 32 }}>
 			<Tabs defaultValue="calendar">

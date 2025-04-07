@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { Dispatch, SetStateAction } from "react";
+import { ArrowUpDown, MoreHorizontal, Calendar as CalendarIcon } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
-
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
+import { Calendar } from "@/components/ui/calendar";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -14,9 +15,12 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+
 import { Transaction, txRRule } from "./transactions";
 import { formatMoney } from "./utils";
-import { Dispatch, SetStateAction } from "react";
 
 export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>): ColumnDef<Transaction>[] => [
 	{
@@ -37,6 +41,18 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	{
 		accessorKey: "name",
 		header: "Transaction",
+		cell: ({ row }) => (
+			<Input
+				type={"text"}
+				onChange={(event) => {
+					const name = event.target.value;
+
+					setTransactions((value) => value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, name } : tx)));
+				}}
+				value={row.getValue("name")}
+				placeholder="Enter a transaction name..."
+			/>
+		),
 	},
 	{
 		accessorKey: "date",
@@ -48,7 +64,41 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 				</Button>
 			);
 		},
-		cell: ({ row }) => <div>{new Date(row.getValue("date")).toLocaleDateString()}</div>,
+		cell: ({ row }) => (
+			<Popover>
+				<PopoverTrigger asChild>
+					<Button
+						variant={"outline"}
+						className={cn(
+							"w-[240px] justify-start text-left font-normal",
+							!row.getValue("date") && "text-muted-foreground",
+						)}
+					>
+						<CalendarIcon />
+						{new Date(row.getValue("date")) ? (
+							new Date(row.getValue("date")).toLocaleDateString()
+						) : (
+							<span>Select a start date</span>
+						)}
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent className="w-auto p-0" align="start">
+					<Calendar
+						mode="single"
+						selected={new Date(row.getValue("date"))}
+						onSelect={(day) => {
+							if (!day) return;
+
+							setTransactions((value) =>
+								value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, date: day.setHours(0, 0, 0, 0) } : tx)),
+							);
+						}}
+						initialFocus
+						className="rounded-md border shadow"
+					/>
+				</PopoverContent>
+			</Popover>
+		),
 	},
 	{
 		accessorFn: (tx) => {
@@ -62,18 +112,33 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		accessorKey: "amount",
-		header: () => <div className="text-right">Amount</div>,
+		// header: () => <div className="text-right">Amount</div>,
+		header: "Amount",
 		cell: ({ row }) => {
 			const amount = parseFloat(row.getValue("amount"));
 			const formatted = formatMoney(amount);
 
 			return (
-				<div
-					className="text-right font-medium"
-					style={{ color: parseFloat(row.getValue("amount")) > -1 ? "green" : "red" }}
-				>
-					{formatted}
-				</div>
+				// <div
+				// 	className="text-right font-medium"
+				// 	style={{ color: parseFloat(row.getValue("amount")) > -1 ? "green" : "red" }}
+				// >
+				// 	{formatted}
+				// </div>
+				<span className="input-symbol">
+					<Input
+						type={"number"}
+						onChange={(event) => {
+							const amount = Number(event.target.value);
+
+							setTransactions((value) =>
+								value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
+							);
+						}}
+						value={row.getValue("amount")}
+						placeholder="Enter a start value..."
+					/>
+				</span>
 			);
 		},
 	},

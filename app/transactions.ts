@@ -23,7 +23,7 @@ export function getTransactionsOnDay(date: Date, transactions: Transaction[]) {
 	const nonrecurringOnDay = nonrecurring.filter((tx) => new Date(tx.date).setHours(0, 0, 0, 0) === targetDay);
 
 	const recurringOnDay = recurring.filter(
-		(tx) => txRRule(tx).between(new Date(targetDay), new Date(targetDay + DAY_MS - 1)).length,
+		(tx) => txRRule(tx).between(new Date(targetDay), new Date(targetDay + DAY_MS - 1), true).length,
 	);
 	return [...nonrecurringOnDay, ...recurringOnDay];
 }

@@ -36,10 +36,6 @@ export default function CalendarView({
 	endDate: Date | undefined;
 	setEndDate: Dispatch<SetStateAction<Date | undefined>>;
 }) {
-	const today = endDate || new Date();
-	const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-	const lastOfMonth = new Date(today.getFullYear(), today.getMonth(), 31);
-
 	const enabledTransactions = transactions.filter((tx) => !tx.disabled);
 
 	const dayTransactions = endDate && getTransactionsOnDay(endDate, enabledTransactions);
@@ -79,7 +75,7 @@ export default function CalendarView({
 						type={"number"}
 						onChange={(e) => setStartValue(Number(e.target.value))}
 						value={startValue}
-						placeholder="Enter a start value"
+						placeholder="Enter a start value..."
 					/>
 				</span>
 			</div>
@@ -97,17 +93,36 @@ export default function CalendarView({
 					{endDate && (
 						<>
 							{dayTransactions && dayTransactions.length > 0 ? (
-								<ul style={{ display: "inline-block", margin: "0 auto", fontWeight: 500 }}>
-									{dayTransactions?.map((tx, i) => (
-										<li key={`tx:${i}`} className="py-1">
-											<span style={{ color: tx.amount > -1 ? "green" : "red" }}>
-												{tx.amount > -1 ? "+" : ""}
-												{formatMoney(tx.amount)}
-											</span>{" "}
-											{tx.name}
-										</li>
-									))}
-								</ul>
+								// <ul style={{ display: "inline-block", margin: "0 auto", fontWeight: 500 }}>
+								// 	{dayTransactions?.map((tx, i) => (
+								// 		<li key={`tx:${i}`} className="flex gap-2 py-2">
+								// 			<span style={{ color: tx.amount > -1 ? "green" : "red" }}>
+								// 				{tx.amount > -1 ? "+" : ""}
+								// 				{formatMoney(tx.amount)}
+								// 			</span>
+								// 			<span>{tx.name}</span>
+								// 		</li>
+								// 	))}
+								// </ul>
+								<table
+									className="border border-transparent border-spacing-4"
+									style={{ height: "100%", borderCollapse: "separate", borderSpacing: 8 }}
+								>
+									<tbody>
+										{dayTransactions.map((tx, i) => (
+											<tr key={`tx:${i}`}>
+												<td
+													className="text-right"
+													style={{ color: tx.amount > -1 ? "green" : "red", fontWeight: "bold" }}
+												>
+													{tx.amount > -1 ? "+" : ""}
+													{formatMoney(tx.amount)}
+												</td>
+												<td className="">{tx.name}</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
 							) : (
 								<p style={{ opacity: 0.5, alignSelf: "center" }}>No transactions on {endDate.toLocaleDateString()}</p>
 							)}

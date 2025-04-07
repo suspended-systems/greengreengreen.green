@@ -28,7 +28,7 @@ function CalendarCustomized({
 		<DayPicker
 			formatters={{
 				formatWeekdayName: (date) =>
-					["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()],
+					["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()].slice(0, 1),
 			}}
 			showOutsideDays={showOutsideDays}
 			className={cn("p-3", className)}
