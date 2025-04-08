@@ -42,8 +42,8 @@ export default function CalendarView({
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
-		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
-			<div style={{ display: "flex", flex: 1, gap: 16, alignItems: "center" }}>
+		<div className="flex flex-col gap-4">
+			<div className="flex gap-2 items-center">
 				Starting on
 				<Popover>
 					<PopoverTrigger asChild>
@@ -79,17 +79,15 @@ export default function CalendarView({
 					/>
 				</span>
 			</div>
-			<div className="container mx-auto" style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
-				<div style={{ display: "flex", flex: 1, gap: 16 }}>
-					<CalendarCustomized
-						{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions }}
-						mode="single"
-						selected={endDate}
-						onSelect={setEndDate}
-						className="rounded-md border shadow"
-					/>
-				</div>
-				<div className="flex justify-center" style={{ minHeight: 300 }}>
+			<div className="container mx-auto">
+				<CalendarCustomized
+					{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions }}
+					mode="single"
+					selected={endDate}
+					onSelect={setEndDate}
+					className="rounded-md border"
+				/>
+				<div className="flex justify-center p-4" style={{ minHeight: 300 }}>
 					{endDate && (
 						<>
 							{dayTransactions && dayTransactions.length > 0 ? (
@@ -118,7 +116,7 @@ export default function CalendarView({
 													{tx.amount > -1 ? "+" : ""}
 													{formatMoney(tx.amount)}
 												</td>
-												<td className="">{tx.name}</td>
+												<td style={{ fontWeight: 500 }}>{tx.name}</td>
 											</tr>
 										))}
 									</tbody>

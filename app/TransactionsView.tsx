@@ -21,7 +21,7 @@ export default function TransactionsView({
 	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
 }) {
 	return (
-		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
+		<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 			<div className="container mx-auto">
 				<DataTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
 			</div>

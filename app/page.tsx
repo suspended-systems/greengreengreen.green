@@ -27,7 +27,7 @@ export default function Home() {
 	} as PaginationState);
 
 	return (
-		<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 32 }}>
+		<div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
 			<Tabs defaultValue="calendar">
 				<TabsList className="grid w-full grid-cols-2">
 					<TabsTrigger value="calendar">Calendar</TabsTrigger>

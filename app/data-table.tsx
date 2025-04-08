@@ -32,7 +32,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	transactions: TData[];
@@ -72,7 +71,7 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<>
-			<div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 16 }}>
+			<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 				<div className="flex">
 					<Input
 						placeholder="Filter transactions..."
