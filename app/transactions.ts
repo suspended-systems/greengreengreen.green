@@ -190,5 +190,3 @@ export const myTransactions: Transaction[] = [
 		interval: 2,
 	},
 ];
-
-export const myTransactionsOnlyEnabled: Transaction[] = myTransactions.filter(({ disabled }) => !disabled);

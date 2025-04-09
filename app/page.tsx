@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
@@ -27,31 +28,34 @@ export default function Home() {
 	} as PaginationState);
 
 	return (
-		<div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-			<Tabs defaultValue="calendar">
-				<TabsList className="grid w-full grid-cols-2">
-					<TabsTrigger value="calendar">Calendar</TabsTrigger>
-					<TabsTrigger value="transactions">Transactions</TabsTrigger>
-				</TabsList>
-				<TabsContent value="calendar" style={{ marginLeft: "auto", marginRight: "auto" }}>
-					<CalendarView
-						{...{
-							month,
-							onMonthChange,
-							transactions,
-							startValue,
-							setStartValue,
-							startDate,
-							setStartDate,
-							endDate,
-							setEndDate,
-						}}
-					/>
-				</TabsContent>
-				<TabsContent value="transactions">
-					<TransactionsView {...{ columns, transactions, setTransactions, pagination, setPagination }} />
-				</TabsContent>
-			</Tabs>
-		</div>
+		<>
+			<div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+				<Tabs defaultValue="calendar">
+					<TabsList className="grid w-full grid-cols-2">
+						<TabsTrigger value="calendar">Calendar</TabsTrigger>
+						<TabsTrigger value="transactions">Transactions</TabsTrigger>
+					</TabsList>
+					<TabsContent value="calendar" style={{ marginLeft: "auto", marginRight: "auto" }}>
+						<CalendarView
+							{...{
+								month,
+								onMonthChange,
+								transactions,
+								startValue,
+								setStartValue,
+								startDate,
+								setStartDate,
+								endDate,
+								setEndDate,
+							}}
+						/>
+					</TabsContent>
+					<TabsContent value="transactions">
+						<TransactionsView {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+					</TabsContent>
+				</Tabs>
+			</div>
+			<Toaster />
+		</>
 	);
 }

@@ -12,7 +12,7 @@ import { CalendarCustomized } from "@/components/ui/calendar-customized";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { getTransactionsOnDay, myTransactionsOnlyEnabled, Transaction } from "./transactions";
+import { getTransactionsOnDay, Transaction } from "./transactions";
 import { formatMoney } from "./utils";
 
 export default function CalendarView({
@@ -48,7 +48,7 @@ export default function CalendarView({
 				<Popover>
 					<PopoverTrigger asChild>
 						<Button
-							variant={"outline"}
+							variant="outline"
 							className={cn("w-[240px] justify-start text-left font-normal", !startDate && "text-muted-foreground")}
 						>
 							<CalendarIcon />
@@ -72,7 +72,7 @@ export default function CalendarView({
 				with
 				<span className="input-symbol">
 					<Input
-						type={"number"}
+						type="number"
 						onChange={(e) => setStartValue(Number(e.target.value))}
 						value={startValue}
 						placeholder="Enter a start value..."

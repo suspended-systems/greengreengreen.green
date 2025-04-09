@@ -36,9 +36,23 @@
 ...
 
 
-- add transaction form
-- open app and enter start values form thingy
--tx recurring inline editing
+###- add transaction form
+
+...
+
+
+###- fix calendar popover not opening in form
+
+###- add form inputs for date/freq/amount
+
+...
+
+
+-tx recurring frequency inline editing
+
+
+
+- open app and enter start values form thingy/onboarding form thingy
 
 
 ...
@@ -46,5 +60,6 @@
 
 
 stretch:
+- column sorting headers. only show arrow where actually sorting
 - nicer money input
 - put column filters into state

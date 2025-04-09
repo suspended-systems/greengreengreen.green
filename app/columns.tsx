@@ -1,20 +1,12 @@
 "use client";
 
 import { Dispatch, SetStateAction } from "react";
-import { ArrowUpDown, MoreHorizontal, Calendar as CalendarIcon } from "lucide-react";
+import { ArrowUpDown, Calendar as CalendarIcon, Trash as TrashIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
@@ -43,7 +35,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		header: "Transaction",
 		cell: ({ row }) => (
 			<Input
-				type={"text"}
+				type="text"
 				onChange={(event) => {
 					const name = event.target.value;
 
@@ -68,7 +60,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			<Popover>
 				<PopoverTrigger asChild>
 					<Button
-						variant={"outline"}
+						variant="outline"
 						className={cn(
 							"w-[240px] justify-start text-left font-normal",
 							!row.getValue("date") && "text-muted-foreground",
@@ -127,7 +119,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 				// </div>
 				<span className="input-symbol">
 					<Input
-						type={"number"}
+						type="number"
 						onChange={(event) => {
 							const amount = Number(event.target.value);
 
@@ -149,23 +141,12 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 
 			return (
 				<div className="text-right">
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="ghost" className="h-8 w-8 p-0">
-								<span className="sr-only">Open menu</span>
-								<MoreHorizontal className="h-4 w-4" />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuLabel>Actions</DropdownMenuLabel>
-							{/* <DropdownMenuItem onClick={() => navigator.clipboard.writeText(payment.id)}>
-							Copy payment ID
-						</DropdownMenuItem> */}
-							{/* <DropdownMenuSeparator /> */}
-							{/* <DropdownMenuItem>View customer</DropdownMenuItem> */}
-							{/* <DropdownMenuItem>View payment details</DropdownMenuItem> */}
-						</DropdownMenuContent>
-					</DropdownMenu>
+					<Button
+						variant="outline"
+						onClick={() => setTransactions((value) => value.filter((tx) => tx.name !== row.getValue("name")))}
+					>
+						<TrashIcon />
+					</Button>
 				</div>
 			);
 		},

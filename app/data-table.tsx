@@ -123,8 +123,14 @@ export function DataTable<TData, TValue>({
 										data-state={row.getIsSelected() && "selected"}
 										style={{ opacity: row.getValue("disabled") ? "0.5" : "inherit" }}
 									>
-										{row.getVisibleCells().map((cell) => (
-											<TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+										{row.getVisibleCells().map((cell, i) => (
+											<TableCell
+												key={cell.id}
+												// Prevent clicks on a disabled row. But do allow clicks on the switch to enable the row (0th column).
+												style={{ pointerEvents: row.getValue("disabled") && i !== 0 ? "none" : "inherit" }}
+											>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</TableCell>
 										))}
 									</TableRow>
 								))
