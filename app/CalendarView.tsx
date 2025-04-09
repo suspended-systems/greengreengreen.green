@@ -122,11 +122,11 @@ export default function CalendarView({
 									</tbody>
 								</table>
 							) : (
-								<p style={{ opacity: 0.5, alignSelf: "center" }}>No transactions on {endDate.toLocaleDateString()}</p>
+								<p style={{ opacity: 0.5 }}>No transactions on {endDate.toLocaleDateString()}</p>
 							)}
 						</>
 					)}
-					{!endDate && <p style={{ opacity: 0.5, alignSelf: "center" }}>Select a date to view its transactions</p>}
+					{!endDate && <p style={{ opacity: 0.5 }}>Select a date to view its transactions</p>}
 				</div>
 			</div>
 		</div>

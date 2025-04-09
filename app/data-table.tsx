@@ -2,12 +2,7 @@
 
 import * as React from "react";
 
-import {
-	EyeOff as EyeOffIcon,
-	ChevronLeft as ChevronLeftIcon,
-	ChevronRight as ChevronRightIcon,
-	Plus as PlusIcon,
-} from "lucide-react";
+import { EyeOff as EyeOffIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from "lucide-react";
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -156,21 +151,6 @@ export function DataTable<TData, TValue>({
 						<ChevronRightIcon />
 					</Button>
 				</div>
-			</div>
-			<div
-				style={{
-					position: "fixed",
-					bottom: 32,
-					right: 32,
-				}}
-			>
-				<Button
-					size="icon"
-					className="inline-flex h-12 w-12 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2"
-				>
-					<PlusIcon />
-					<span className="sr-only">Add transaction</span>
-				</Button>
 			</div>
 		</>
 	);
