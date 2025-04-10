@@ -48,18 +48,11 @@
 ...
 
 
--tx recurring frequency inline editing
+###-tx recurring frequency inline editing
+...
 
 
 
 - open app and enter start values form thingy/onboarding form thingy
 
-
-...
-
-
-
-stretch:
 - column sorting headers. only show arrow where actually sorting
-- nicer money input
-- put column filters into state

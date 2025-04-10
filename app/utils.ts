@@ -1,3 +1,5 @@
+import { Frequency } from "rrule";
+
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const formatMoney = (amount: number) =>
@@ -5,3 +7,6 @@ export const formatMoney = (amount: number) =>
 		style: "currency",
 		currency: "USD",
 	}).format(amount);
+
+export const frequenciesStrings = ["days", "weeks", "months", "years"];
+export const frequencies = [Frequency.DAILY, Frequency.WEEKLY, Frequency.MONTHLY, Frequency.YEARLY];

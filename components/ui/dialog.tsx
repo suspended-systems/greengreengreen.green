@@ -39,14 +39,16 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<t
 	return (
 		<DialogPortal data-slot="dialog-portal">
 			<DialogOverlay
-				style={{
-					backgroundColor: "rgba(0, 0, 0, 0.5)",
-					position: "fixed",
-					top: 0,
-					right: 0,
-					bottom: 0,
-					left: 0,
-				}}
+			// style={
+			// 	{
+			// 		backgroundColor: "rgba(0, 0, 0, 0.5)",
+			// 		position: "fixed",
+			// 		top: 0,
+			// 		right: 0,
+			// 		bottom: 0,
+			// 		left: 0,
+			// 	}
+			// }
 			/>
 			<DialogPrimitive.Content
 				data-slot="dialog-content"
@@ -54,18 +56,20 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<t
 					"container mx-auto bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 w-fit",
 					className,
 				)}
-				style={{
-					backgroundColor: "white",
-					borderRadius: 6,
-					padding: 20,
-					// Centering technique: fixed positioning & transform
-					position: "fixed",
-					top: "50%",
-					left: "50%",
-					transform: "translate(-50%, -50%)",
-					// Drop shadow styling
-					boxShadow: "hsl(206 22% 7% / 35%) 0px 10px 38px -10px, hsl(206 22% 7% / 20%) 0px 10px 20px -15px",
-				}}
+				// style={
+				// 	{
+				// 		backgroundColor: "white",
+				// 		borderRadius: 6,
+				// 		padding: 20,
+				// 		// Centering technique: fixed positioning & transform
+				// 		position: "fixed",
+				// 		top: "50%",
+				// 		left: "50%",
+				// 		transform: "translate(-50%, -50%)",
+				// 		// Drop shadow styling
+				// 		boxShadow: "hsl(206 22% 7% / 35%) 0px 10px 38px -10px, hsl(206 22% 7% / 20%) 0px 10px 20px -15px",
+				// 	}
+				// }
 				{...props}
 			>
 				{children}
@@ -105,7 +109,7 @@ function DialogTitle({ className, ...props }: React.ComponentProps<typeof Dialog
 	return (
 		<DialogPrimitive.Title
 			data-slot="dialog-title"
-			className={cn("text-lg leading-none font-semibold", className)}
+			className={cn("text-center text-lg leading-none font-semibold", className)}
 			{...props}
 		/>
 	);

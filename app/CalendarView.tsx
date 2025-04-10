@@ -73,13 +73,16 @@ export default function CalendarView({
 				<span className="input-symbol">
 					<Input
 						type="number"
-						onChange={(e) => setStartValue(Number(e.target.value))}
+						onChange={(e) => setStartValue(parseFloat(e.target.value))}
 						value={startValue}
 						placeholder="Enter a start value..."
+						style={{
+							color: startValue > 0 ? "green" : startValue < 0 ? "red" : "inherit",
+						}}
 					/>
 				</span>
 			</div>
-			<div className="container mx-auto">
+			<div className="container">
 				<CalendarCustomized
 					{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions }}
 					mode="single"

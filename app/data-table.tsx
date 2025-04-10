@@ -2,7 +2,12 @@
 
 import * as React from "react";
 
-import { EyeOff as EyeOffIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from "lucide-react";
+import {
+	EyeOff as EyeOffIcon,
+	ChevronLeft as ChevronLeftIcon,
+	ChevronRight as ChevronRightIcon,
+	Plus as PlusIcon,
+} from "lucide-react";
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -18,6 +23,7 @@ import {
 } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -26,6 +32,30 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+import { TransactionForm } from "./TransactionForm";
+
+const AddTransaction = () => (
+	<Dialog modal>
+		<DialogTrigger asChild>
+			<Button variant="outline" style={{ width: "fit-content" }}>
+				<PlusIcon />
+				Add Transaction
+				<span className="sr-only">Add transaction</span>
+			</Button>
+		</DialogTrigger>
+		<DialogContent>
+			<DialogHeader>
+				<DialogTitle>Add Transaction</DialogTitle>
+				{/* <DialogDescription>Make changes to your profile here. Click save when you're done.</DialogDescription> */}
+			</DialogHeader>
+			<TransactionForm />
+			{/* <DialogFooter>
+				<Button type="submit">Submit</Button>
+			</DialogFooter> */}
+		</DialogContent>
+	</Dialog>
+);
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -67,7 +97,8 @@ export function DataTable<TData, TValue>({
 	return (
 		<>
 			<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-				<div className="flex">
+				<div className="flex gap-4">
+					<AddTransaction />
 					<Input
 						placeholder="Filter transactions..."
 						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -93,7 +124,16 @@ export function DataTable<TData, TValue>({
 											checked={column.getIsVisible()}
 											onCheckedChange={(value) => column.toggleVisibility(!!value)}
 										>
-											{column.id}
+											{
+												{
+													disabled: "Toggle",
+													name: "Name",
+													date: "Date",
+													freq: "Recurrence",
+													amount: "Amount",
+													actions: "Delete",
+												}[column.id]
+											}
 										</DropdownMenuCheckboxItem>
 									);
 								})}

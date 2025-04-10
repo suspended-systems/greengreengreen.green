@@ -1,18 +1,25 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
-import { ArrowUpDown, Calendar as CalendarIcon, Trash as TrashIcon } from "lucide-react";
+import { Dispatch, SetStateAction, useState } from "react";
+import { ArrowUpDown, Calendar as CalendarIcon, Trash as TrashIcon, Plus as PlusIcon, X as XIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 
 import { Transaction, txRRule } from "./transactions";
-import { formatMoney } from "./utils";
+import { formatMoney, frequencies, frequenciesStrings } from "./utils";
+import { Frequency } from "rrule";
 
 export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>): ColumnDef<Transaction>[] => [
 	{
@@ -43,6 +50,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 				}}
 				value={row.getValue("name")}
 				placeholder="Enter a transaction name..."
+				style={{ width: "fit-content" }}
 			/>
 		),
 	},
@@ -65,6 +73,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 							"w-[240px] justify-start text-left font-normal",
 							!row.getValue("date") && "text-muted-foreground",
 						)}
+						style={{ width: "fit-content" }}
 					>
 						<CalendarIcon />
 						{new Date(row.getValue("date")) ? (
@@ -93,14 +102,99 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		),
 	},
 	{
-		accessorFn: (tx) => {
-			if (!tx.freq) {
-				return;
-			}
+		accessorKey: "freq",
+		header: "Recurrence",
+		cell: ({ row }) => {
+			const val = row.original as Transaction;
+			const [isRecurring, setIsRecurring] = useState(val.freq != null);
 
-			return txRRule(tx).toText();
+			return !isRecurring ? (
+				<Button variant="outline" onClick={() => setIsRecurring(true)}>
+					<PlusIcon />
+				</Button>
+			) : (
+				<div className="flex flex-row items-center gap-2">
+					<span className="text-md md:text-sm">Every</span>
+					<Input
+						type="number"
+						min="1"
+						// placeholder="1"
+						style={{ width: 60 }}
+						value={val.interval ?? 1}
+						onChange={(e) =>
+							setTransactions((value) =>
+								value.map((tx) =>
+									tx.name === val.name
+										? {
+												...tx,
+												interval: Number(e.target.value),
+										  }
+										: tx,
+								),
+							)
+						}
+					/>
+					<DropdownMenu modal>
+						<DropdownMenuTrigger asChild>
+							<Button
+								variant="outline"
+								className={cn(
+									"justify-start font-normal text-md md:text-sm",
+									val.freq == null && "text-muted-foreground",
+								)}
+								style={{ width: "fit-content" }}
+							>
+								<span style={{ width: "100%", textAlign: val.freq == null ? "center" : "left" }}>
+									{val.freq
+										? { DAILY: "days", WEEKLY: "weeks", MONTHLY: "months", YEARLY: "years" }[Frequency[val.freq]]
+										: "Select a frequency"}
+								</span>
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: "fit-content" }}>
+							{frequenciesStrings.map((item, i) => (
+								<DropdownMenuItem
+									key={`freq-dropdown-item:${i}`}
+									onClick={() =>
+										setTransactions((value) =>
+											value.map((tx) =>
+												tx.name === val.name
+													? {
+															...tx,
+															freq: frequencies[i],
+													  }
+													: tx,
+											),
+										)
+									}
+								>
+									{item}
+								</DropdownMenuItem>
+							))}
+						</DropdownMenuContent>
+					</DropdownMenu>
+					<Button
+						variant="outline"
+						onClick={() => {
+							setIsRecurring(false);
+							setTransactions((value) =>
+								value.map((tx) =>
+									tx.name === val.name
+										? {
+												...tx,
+												freq: undefined,
+												interval: undefined,
+										  }
+										: tx,
+								),
+							);
+						}}
+					>
+						<XIcon />
+					</Button>
+				</div>
+			);
 		},
-		header: "Recurring",
 	},
 	{
 		accessorKey: "amount",
@@ -129,6 +223,10 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 						}}
 						value={row.getValue("amount")}
 						placeholder="Enter a start value..."
+						style={{
+							minWidth: 144,
+							color: amount > 0 ? "green" : amount < 0 ? "red" : "inherit",
+						}}
 					/>
 				</span>
 			);

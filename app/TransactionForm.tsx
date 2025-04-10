@@ -1,6 +1,7 @@
 "use client";
 
-import { Calendar as CalendarIcon } from "lucide-react";
+import { useState } from "react";
+import { Calendar as CalendarIcon, Plus as PlusIcon, X as XIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -18,8 +19,7 @@ import {
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
-const frequencies = ["days", "weeks", "months", "years"];
+import { frequenciesStrings } from "./utils";
 
 const FormSchema = z.object({
 	name: z.string().nonempty("Name can't be empty."),
@@ -32,7 +32,7 @@ const FormSchema = z.object({
 		z.literal(""),
 	]),
 	// @ts-ignore silly zod
-	recurringFrequency: z.union([...frequencies.map(z.literal), z.literal("")]),
+	recurringFrequency: z.union([...frequenciesStrings.map(z.literal), z.literal("")]),
 	amount: z
 		.string()
 		.nonempty("Amount can't be empty.")
@@ -42,6 +42,8 @@ const FormSchema = z.object({
 });
 
 export function TransactionForm() {
+	const [isRecurring, setIsRecurring] = useState(false);
+
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
 		defaultValues: {
@@ -114,60 +116,79 @@ export function TransactionForm() {
 				/>
 				<div className="grid gap-2">
 					<div className="text-sm">
-						<span className="font-medium">Recurring</span>
+						<span className="font-medium">Recurrence</span>
 						<span style={{ fontWeight: 300 }}> (optional)</span>
 					</div>
-					<div className="flex flex-row items-center gap-2">
-						<span className="text-md md:text-sm">Every</span>
-						<FormField
-							control={form.control}
-							name="recurringInterval"
-							render={({ field }) => (
-								<FormItem>
-									{/* <FormLabel>Recurring interval</FormLabel> */}
-									<FormControl>
-										<Input type="number" min="1" placeholder="1" {...field} />
-									</FormControl>
-									{/* <FormMessage /> */}
-								</FormItem>
-							)}
-						/>
-						<FormField
-							control={form.control}
-							name="recurringFrequency"
-							render={({ field }) => (
-								<FormItem>
-									{/* <FormLabel>Recurring frequency</FormLabel> */}
-									<FormControl>
-										<DropdownMenu modal>
-											<DropdownMenuTrigger asChild>
-												<Button
-													variant="outline"
-													className={cn(
-														"justify-start text-left font-normal text-md md:text-sm",
-														!field.value && "text-muted-foreground",
-													)}
-												>
-													{field.value || "Select a frequency"}
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent className="justify-start text-left font-normal">
-												{frequencies.map((item, i) => (
-													<DropdownMenuItem
-														key={`freq-dropdown-item:${i}`}
-														onClick={() => field.onChange(frequencies[i])}
+					{!isRecurring ? (
+						<Button variant="outline" onClick={() => setIsRecurring(true)} style={{ width: "fit-content" }}>
+							<PlusIcon />
+						</Button>
+					) : (
+						<div className="flex flex-row items-center gap-2">
+							<span className="text-md md:text-sm">Every</span>
+							<FormField
+								control={form.control}
+								name="recurringInterval"
+								render={({ field }) => (
+									<FormItem>
+										{/* <FormLabel>Recurring interval</FormLabel> */}
+										<FormControl>
+											<Input type="number" min="1" placeholder="1" style={{ width: 100 }} {...field} />
+										</FormControl>
+										{/* <FormMessage /> */}
+									</FormItem>
+								)}
+							/>
+							<FormField
+								control={form.control}
+								name="recurringFrequency"
+								render={({ field }) => (
+									<FormItem>
+										{/* <FormLabel>Recurring frequency</FormLabel> */}
+										<FormControl>
+											<DropdownMenu modal>
+												<DropdownMenuTrigger asChild>
+													<Button
+														variant="outline"
+														className={cn(
+															"justify-start font-normal text-md md:text-sm",
+															!field.value && "text-muted-foreground",
+														)}
+														style={{ width: 190 }}
 													>
-														{item}
-													</DropdownMenuItem>
-												))}
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</FormControl>
-									{/* <FormMessage /> */}
-								</FormItem>
-							)}
-						/>
-					</div>
+														<span style={{ width: "100%", textAlign: field.value ? "left" : "center" }}>
+															{field.value || "Select a frequency"}
+														</span>
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: 155 }}>
+													{frequenciesStrings.map((item, i) => (
+														<DropdownMenuItem
+															key={`freq-dropdown-item:${i}`}
+															onClick={() => field.onChange(frequenciesStrings[i])}
+														>
+															{item}
+														</DropdownMenuItem>
+													))}
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</FormControl>
+										{/* <FormMessage /> */}
+									</FormItem>
+								)}
+							/>
+							<Button
+								variant="outline"
+								onClick={() => {
+									setIsRecurring(false);
+									form.setValue("recurringFrequency", "");
+									form.setValue("recurringInterval", "");
+								}}
+							>
+								<XIcon />
+							</Button>
+						</div>
+					)}
 				</div>
 				<FormField
 					control={form.control}
@@ -177,10 +198,18 @@ export function TransactionForm() {
 							<FormLabel>Amount</FormLabel>
 							<FormControl>
 								<span className="input-symbol">
-									<Input type="number" placeholder="-80" className="justify-start text-left font-normal" {...field} />
+									<Input
+										type="number"
+										placeholder="-80"
+										className="justify-start text-left font-normal"
+										style={{
+											color: parseFloat(field.value) > 0 ? "green" : parseFloat(field.value) < 0 ? "red" : "inherit",
+										}}
+										{...field}
+									/>
 								</span>
 							</FormControl>
-							<FormDescription>Enter a negative value for an expense.</FormDescription>
+							<FormDescription>Enter a negative amount for an expense.</FormDescription>
 							<FormMessage />
 						</FormItem>
 					)}
