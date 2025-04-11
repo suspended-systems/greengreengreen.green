@@ -224,7 +224,7 @@ export function TransactionForm({
 										placeholder="-80"
 										className="justify-start text-left font-normal"
 										style={{
-											color: parseFloat(field.value) > 0 ? "green" : parseFloat(field.value) < 0 ? "red" : "inherit",
+											color: parseFloat(field.value) > 0 ? "#519c6b" : parseFloat(field.value) < 0 ? "red" : "inherit",
 										}}
 										{...field}
 									/>

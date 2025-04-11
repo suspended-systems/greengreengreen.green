@@ -107,7 +107,7 @@ function CalendarCustomized({
 											: projectedValue! > -1
 											? props.activeModifiers.outside
 												? "#7fbf7f"
-												: "green"
+												: "#519c6b"
 											: props.activeModifiers.outside
 											? "#ff7f7f"
 											: "red",
@@ -137,7 +137,7 @@ function CalendarCustomized({
 								{projectedValue && <div style={{ fontSize: 12 }}>{formatMoney(projectedValue)}</div>}
 
 								<div style={{ fontWeight: "bold" }}>
-									{incomesTotal > 0 && <p style={{ color: "green" }}>+{formatMoney(incomesTotal)}</p>}
+									{incomesTotal > 0 && <p style={{ color: "#519c6b" }}>+{formatMoney(incomesTotal)}</p>}
 									{expensesTotal < 0 && <p style={{ color: "red" }}>{formatMoney(expensesTotal)}</p>}
 								</div>
 							</div>

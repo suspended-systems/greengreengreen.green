@@ -36,14 +36,18 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<Button
 					variant={column.getIsSorted() ? "secondary" : "ghost"}
-					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					onClick={() =>
+						column.getIsSorted() === "desc"
+							? column.clearSorting()
+							: column.toggleSorting(column.getIsSorted() === "asc")
+					}
 				>
 					{column.getIsSorted() === "asc" ? (
 						<ArrowUp className="ml-2 h-4 w-4" />
 					) : column.getIsSorted() === "desc" ? (
 						<ArrowDown className="ml-2 h-4 w-4" />
 					) : (
-						<ArrowUpDown className="ml-2 h-4 w-4" />
+						" "
 					)}
 				</Button>
 			);
@@ -66,7 +70,11 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<Button
 					variant={column.getIsSorted() ? "secondary" : "ghost"}
-					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					onClick={() =>
+						column.getIsSorted() === "desc"
+							? column.clearSorting()
+							: column.toggleSorting(column.getIsSorted() === "asc")
+					}
 				>
 					Transaction
 					{column.getIsSorted() === "asc" ? (
@@ -74,7 +82,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 					) : column.getIsSorted() === "desc" ? (
 						<ArrowDown className="ml-2 h-4 w-4" />
 					) : (
-						<ArrowUpDown className="ml-2 h-4 w-4" />
+						" "
 					)}
 				</Button>
 			);
@@ -107,7 +115,11 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<Button
 					variant={column.getIsSorted() ? "secondary" : "ghost"}
-					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					onClick={() =>
+						column.getIsSorted() === "desc"
+							? column.clearSorting()
+							: column.toggleSorting(column.getIsSorted() === "asc")
+					}
 				>
 					Date
 					{column.getIsSorted() === "asc" ? (
@@ -115,7 +127,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 					) : column.getIsSorted() === "desc" ? (
 						<ArrowDown className="ml-2 h-4 w-4" />
 					) : (
-						<ArrowUpDown className="ml-2 h-4 w-4" />
+						" "
 					)}
 				</Button>
 			);
@@ -175,7 +187,11 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<Button
 					variant={column.getIsSorted() ? "secondary" : "ghost"}
-					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					onClick={() =>
+						column.getIsSorted() === "desc"
+							? column.clearSorting()
+							: column.toggleSorting(column.getIsSorted() === "asc")
+					}
 				>
 					Recurrence
 					{column.getIsSorted() === "asc" ? (
@@ -183,7 +199,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 					) : column.getIsSorted() === "desc" ? (
 						<ArrowDown className="ml-2 h-4 w-4" />
 					) : (
-						<ArrowUpDown className="ml-2 h-4 w-4" />
+						" "
 					)}
 				</Button>
 			);
@@ -297,7 +313,11 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 				<div className="text-right">
 					<Button
 						variant={column.getIsSorted() ? "secondary" : "ghost"}
-						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						onClick={() =>
+							column.getIsSorted() === "desc"
+								? column.clearSorting()
+								: column.toggleSorting(column.getIsSorted() === "asc")
+						}
 					>
 						Amount
 						{column.getIsSorted() === "asc" ? (
@@ -305,7 +325,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 						) : column.getIsSorted() === "desc" ? (
 							<ArrowDown className="ml-2 h-4 w-4" />
 						) : (
-							<ArrowUpDown className="ml-2 h-4 w-4" />
+							" "
 						)}
 					</Button>
 				</div>
@@ -320,14 +340,14 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<div className="flex justify-end" style={{ width: 180, marginLeft: "auto" }}>
 					{row.original.disabled || !isRowHovered ? (
-						<span style={{ color: amount > -1 ? "green" : "red" }}>
+						<span style={{ color: amount > -1 ? "#519c6b" : "red" }}>
 							{amount > -1 && "+"}
 							{formatted}
 						</span>
 					) : (
 						// <div
 						// 	className="text-right font-medium"
-						// 	style={{ color: parseFloat(row.getValue("amount")) > -1 ? "green" : "red" }}
+						// 	style={{ color: parseFloat(row.getValue("amount")) > -1 ? "#519c6b" : "red" }}
 						// >
 						// 	{formatted}
 						// </div>
@@ -346,7 +366,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 								className="text-sm"
 								style={{
 									minWidth: 144,
-									color: amount > 0 ? "green" : amount < 0 ? "red" : "inherit",
+									color: amount > 0 ? "#519c6b" : amount < 0 ? "red" : "inherit",
 									textAlign: "right",
 								}}
 							/>

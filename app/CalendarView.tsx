@@ -78,7 +78,7 @@ export default function CalendarView({
 						value={startValue}
 						placeholder="5000"
 						style={{
-							color: startValue > 0 ? "green" : startValue < 0 ? "red" : "inherit",
+							color: startValue > 0 ? "#519c6b" : startValue < 0 ? "red" : "inherit",
 							width: 120,
 						}}
 					/>
@@ -99,7 +99,7 @@ export default function CalendarView({
 								// <ul style={{ display: "inline-block", margin: "0 auto", fontWeight: 500 }}>
 								// 	{dayTransactions?.map((tx, i) => (
 								// 		<li key={`tx:${i}`} className="flex gap-2 py-2">
-								// 			<span style={{ color: tx.amount > -1 ? "green" : "red" }}>
+								// 			<span style={{ color: tx.amount > -1 ? "#519c6b" : "red" }}>
 								// 				{tx.amount > -1 ? "+" : ""}
 								// 				{formatMoney(tx.amount)}
 								// 			</span>
@@ -116,7 +116,7 @@ export default function CalendarView({
 											<tr key={`tx:${i}`}>
 												<td
 													className="text-right"
-													style={{ color: tx.amount > -1 ? "green" : "red", fontWeight: "bold" }}
+													style={{ color: tx.amount > -1 ? "#519c6b" : "red", fontWeight: "bold" }}
 												>
 													{tx.amount > -1 ? "+" : ""}
 													{formatMoney(tx.amount)}

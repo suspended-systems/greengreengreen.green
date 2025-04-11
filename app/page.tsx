@@ -55,8 +55,35 @@ export default function Home() {
 
 	return (
 		<>
+			<div
+				className="text-center"
+				style={{
+					width: 698,
+					margin: "0 auto",
+					pointerEvents: "none",
+					fontSize: 36,
+					letterSpacing: 1,
+					color: "#519c6b",
+					fontWeight: 300,
+					fontFamily: "sans-serif",
+				}}
+			>
+				green
+			</div>
+			<div
+				style={{
+					border: "1px solid #519c6b",
+					borderLeft: "150px solid transparent",
+					borderRight: "150px solid transparent",
+					position: "relative",
+					top: 1,
+					width: 698,
+					margin: "0 auto",
+				}}
+			/>
+			{/* <span style={{ display: "block",width: "100%", height: 5, color: "#519c6b" }}></span> */}
 			<Tabs defaultValue="calendar" className="testt" onValueChange={setTab}>
-				<TabsList className="grid w-full grid-cols-2">
+				<TabsList className="grid grid-cols-2" style={{ width: 698, margin: "0 auto" }}>
 					<TabsTrigger value="calendar">Calendar</TabsTrigger>
 					<TabsTrigger value="transactions">Transactions</TabsTrigger>
 				</TabsList>
