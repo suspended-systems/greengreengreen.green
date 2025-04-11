@@ -43,13 +43,14 @@ export default function CalendarView({
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="flex gap-2 items-center">
+			<div className="flex gap-2 items-center text-sm">
 				Starting on
 				<Popover>
 					<PopoverTrigger asChild>
 						<Button
 							variant="outline"
 							className={cn("w-[240px] justify-start text-left font-normal", !startDate && "text-muted-foreground")}
+							style={{ width: "fit-content" }}
 						>
 							<CalendarIcon />
 							{startDate ? (
@@ -75,9 +76,10 @@ export default function CalendarView({
 						type="number"
 						onChange={(e) => setStartValue(parseFloat(e.target.value))}
 						value={startValue}
-						placeholder="Enter a start value..."
+						placeholder="5000"
 						style={{
 							color: startValue > 0 ? "green" : startValue < 0 ? "red" : "inherit",
+							width: 120,
 						}}
 					/>
 				</span>
