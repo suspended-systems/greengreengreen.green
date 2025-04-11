@@ -12,6 +12,7 @@ import {
 	ColumnDef,
 	ColumnFiltersState,
 	PaginationState,
+	Row,
 	SortingState,
 	VisibilityState,
 	flexRender,
@@ -62,6 +63,32 @@ interface DataTableProps<TData, TValue> {
 	transactions: TData[];
 	pagination: PaginationState;
 	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
+}
+
+function HoverableRow<TData>({ row }: { row: Row<TData> }) {
+	const [isRowHovered, setIsRowHovered] = React.useState(false);
+
+	return (
+		<TableRow
+			key={row.id}
+			data-state={row.getIsSelected() && "selected"}
+			onMouseEnter={() => setIsRowHovered(true)}
+			onMouseLeave={() => setIsRowHovered(false)}
+		>
+			{row.getVisibleCells().map((cell, i, arr) => (
+				<TableCell
+					key={cell.id}
+					// Prevent clicks on a disabled row. But do allow clicks on the switch to enable the row (0th column). And the trash button (last column).
+					style={{
+						pointerEvents: row.getValue("disabled") && i !== 0 && i !== arr.length - 1 ? "none" : "inherit",
+						opacity: row.getValue("disabled") && i !== 0 && i !== arr.length - 1 ? "0.5" : "inherit",
+					}}
+				>
+					{flexRender(cell.column.columnDef.cell, { ...cell.getContext(), isRowHovered })}
+				</TableCell>
+			))}
+		</TableRow>
+	);
 }
 
 export function DataTable<TData, TValue>({
@@ -157,23 +184,7 @@ export function DataTable<TData, TValue>({
 						</TableHeader>
 						<TableBody>
 							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row) => (
-									<TableRow
-										key={row.id}
-										data-state={row.getIsSelected() && "selected"}
-										style={{ opacity: row.getValue("disabled") ? "0.5" : "inherit" }}
-									>
-										{row.getVisibleCells().map((cell, i) => (
-											<TableCell
-												key={cell.id}
-												// Prevent clicks on a disabled row. But do allow clicks on the switch to enable the row (0th column).
-												style={{ pointerEvents: row.getValue("disabled") && i !== 0 ? "none" : "inherit" }}
-											>
-												{flexRender(cell.column.columnDef.cell, cell.getContext())}
-											</TableCell>
-										))}
-									</TableRow>
-								))
+								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row }} />)
 							) : (
 								<TableRow>
 									<TableCell colSpan={columns.length} className="h-24 text-center">

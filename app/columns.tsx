@@ -40,18 +40,25 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	{
 		accessorKey: "name",
 		header: "Transaction",
-		cell: ({ row }) => (
-			<Input
-				type="text"
-				onChange={(event) => {
-					const name = event.target.value;
+		// @ts-ignore custom cell context `isRowHovered`
+		cell: ({ row, isRowHovered }) => (
+			<div style={{ width: 240 }}>
+				{row.original.disabled || !isRowHovered ? (
+					<span className="text-md md:text-sm">{row.getValue("name")}</span>
+				) : (
+					<Input
+						type="text"
+						onChange={(event) => {
+							const name = event.target.value;
 
-					setTransactions((value) => value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, name } : tx)));
-				}}
-				value={row.getValue("name")}
-				placeholder="Enter a transaction name..."
-				style={{ width: "fit-content" }}
-			/>
+							setTransactions((value) => value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, name } : tx)));
+						}}
+						value={row.getValue("name")}
+						placeholder="Enter a transaction name..."
+						style={{ width: "fit-content" }}
+					/>
+				)}
+			</div>
 		),
 	},
 	{
@@ -64,187 +71,222 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 				</Button>
 			);
 		},
-		cell: ({ row }) => (
-			<Popover>
-				<PopoverTrigger asChild>
-					<Button
-						variant="outline"
-						className={cn(
-							"w-[240px] justify-start text-left font-normal",
-							!row.getValue("date") && "text-muted-foreground",
-						)}
-						style={{ width: "fit-content" }}
-					>
-						<CalendarIcon />
-						{new Date(row.getValue("date")) ? (
-							new Date(row.getValue("date")).toLocaleDateString()
-						) : (
-							<span>Select a start date</span>
-						)}
-					</Button>
-				</PopoverTrigger>
-				<PopoverContent className="w-auto p-0" align="start">
-					<Calendar
-						mode="single"
-						selected={new Date(row.getValue("date"))}
-						onSelect={(day) => {
-							if (!day) return;
+		// @ts-ignore custom cell context `isRowHovered`
+		cell: ({ row, isRowHovered }) => (
+			<div style={{ width: 135 }}>
+				{row.original.disabled || !isRowHovered ? (
+					new Date(row.getValue("date")).toLocaleDateString()
+				) : (
+					<Popover>
+						<PopoverTrigger asChild>
+							<Button
+								variant="outline"
+								className={cn(
+									"w-[240px] justify-start text-left font-normal",
+									!row.getValue("date") && "text-muted-foreground",
+								)}
+								style={{ width: "fit-content" }}
+							>
+								<CalendarIcon />
+								{new Date(row.getValue("date")) ? (
+									new Date(row.getValue("date")).toLocaleDateString()
+								) : (
+									<span>Select a start date</span>
+								)}
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-auto p-0" align="start">
+							<Calendar
+								mode="single"
+								selected={new Date(row.getValue("date"))}
+								onSelect={(day) => {
+									if (!day) return;
 
-							setTransactions((value) =>
-								value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, date: day.setHours(0, 0, 0, 0) } : tx)),
-							);
-						}}
-						initialFocus
-						className="rounded-md border shadow"
-					/>
-				</PopoverContent>
-			</Popover>
+									setTransactions((value) =>
+										value.map((tx) =>
+											tx.name === row.getValue("name") ? { ...tx, date: day.setHours(0, 0, 0, 0) } : tx,
+										),
+									);
+								}}
+								initialFocus
+								className="rounded-md border shadow"
+							/>
+						</PopoverContent>
+					</Popover>
+				)}
+			</div>
 		),
 	},
 	{
 		accessorKey: "freq",
 		header: "Recurrence",
-		cell: ({ row }) => {
+		// @ts-ignore custom cell context `isRowHovered`
+		cell: ({ row, isRowHovered }) => {
 			const val = row.original as Transaction;
 			const [isRecurring, setIsRecurring] = useState(val.freq != null);
+			const [isDropdownOpen, setDropDownOpen] = useState(false);
 
-			return !isRecurring ? (
-				<Button variant="outline" onClick={() => setIsRecurring(true)}>
-					<PlusIcon />
-				</Button>
-			) : (
-				<div className="flex flex-row items-center gap-2">
-					<span className="text-md md:text-sm">Every</span>
-					<Input
-						type="number"
-						min="1"
-						// placeholder="1"
-						style={{ width: 60 }}
-						value={val.interval ?? 1}
-						onChange={(e) =>
-							setTransactions((value) =>
-								value.map((tx) =>
-									tx.name === val.name
-										? {
-												...tx,
-												interval: Number(e.target.value),
-										  }
-										: tx,
-								),
-							)
-						}
-					/>
-					<DropdownMenu modal>
-						<DropdownMenuTrigger asChild>
+			return (
+				<div className="flex items-center" style={{ width: 255, height: 36, justifySelf: "center" }}>
+					{(row.original.disabled || !isRowHovered) && !isDropdownOpen ? (
+						<span className="text-md md:text-sm">
+							{row.original.freq ? "E" + txRRule(row.original).toText().slice(1) : ""}
+						</span>
+					) : !isRecurring ? (
+						<Button variant="outline" onClick={() => setIsRecurring(true)}>
+							<PlusIcon />
+						</Button>
+					) : (
+						<div className="flex flex-row items-center gap-2">
+							<span className="text-md md:text-sm">Every</span>
+							<Input
+								type="number"
+								min="1"
+								// placeholder="1"
+								style={{ width: 60 }}
+								value={val.interval ?? 1}
+								onChange={(e) =>
+									setTransactions((value) =>
+										value.map((tx) =>
+											tx.name === val.name
+												? {
+														...tx,
+														interval: Number(e.target.value),
+												  }
+												: tx,
+										),
+									)
+								}
+							/>
+
+							<DropdownMenu modal onOpenChange={setDropDownOpen}>
+								<DropdownMenuTrigger asChild>
+									<Button
+										variant="outline"
+										className={cn(
+											"justify-start font-normal text-md md:text-sm",
+											val.freq == null && "text-muted-foreground",
+										)}
+										style={{ width: "fit-content" }}
+									>
+										<span style={{ width: "100%", textAlign: val.freq == null ? "center" : "left" }}>
+											{val.freq
+												? { DAILY: "days", WEEKLY: "weeks", MONTHLY: "months", YEARLY: "years" }[Frequency[val.freq]]
+												: "Select"}
+										</span>
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: "fit-content" }}>
+									{frequenciesStrings.map((item, i) => (
+										<DropdownMenuItem
+											key={`freq-dropdown-item:${i}`}
+											onClick={() =>
+												setTransactions((value) =>
+													value.map((tx) =>
+														tx.name === val.name
+															? {
+																	...tx,
+																	freq: frequencies[i],
+															  }
+															: tx,
+													),
+												)
+											}
+										>
+											{item}
+										</DropdownMenuItem>
+									))}
+								</DropdownMenuContent>
+							</DropdownMenu>
 							<Button
 								variant="outline"
-								className={cn(
-									"justify-start font-normal text-md md:text-sm",
-									val.freq == null && "text-muted-foreground",
-								)}
-								style={{ width: "fit-content" }}
+								onClick={() => {
+									setIsRecurring(false);
+									setTransactions((value) =>
+										value.map((tx) =>
+											tx.name === val.name
+												? {
+														...tx,
+														freq: undefined,
+														interval: undefined,
+												  }
+												: tx,
+										),
+									);
+								}}
 							>
-								<span style={{ width: "100%", textAlign: val.freq == null ? "center" : "left" }}>
-									{val.freq
-										? { DAILY: "days", WEEKLY: "weeks", MONTHLY: "months", YEARLY: "years" }[Frequency[val.freq]]
-										: "Select a frequency"}
-								</span>
+								<XIcon />
 							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: "fit-content" }}>
-							{frequenciesStrings.map((item, i) => (
-								<DropdownMenuItem
-									key={`freq-dropdown-item:${i}`}
-									onClick={() =>
-										setTransactions((value) =>
-											value.map((tx) =>
-												tx.name === val.name
-													? {
-															...tx,
-															freq: frequencies[i],
-													  }
-													: tx,
-											),
-										)
-									}
-								>
-									{item}
-								</DropdownMenuItem>
-							))}
-						</DropdownMenuContent>
-					</DropdownMenu>
-					<Button
-						variant="outline"
-						onClick={() => {
-							setIsRecurring(false);
-							setTransactions((value) =>
-								value.map((tx) =>
-									tx.name === val.name
-										? {
-												...tx,
-												freq: undefined,
-												interval: undefined,
-										  }
-										: tx,
-								),
-							);
-						}}
-					>
-						<XIcon />
-					</Button>
+						</div>
+					)}
 				</div>
 			);
 		},
 	},
 	{
 		accessorKey: "amount",
-		// header: () => <div className="text-right">Amount</div>,
-		header: "Amount",
-		cell: ({ row }) => {
+		header: () => <div className="text-right">Amount</div>,
+		// header: "Amount",
+		// @ts-ignore custom cell context `isRowHovered`
+		cell: ({ row, isRowHovered }) => {
 			const amount = parseFloat(row.getValue("amount"));
 			const formatted = formatMoney(amount);
 
 			return (
-				// <div
-				// 	className="text-right font-medium"
-				// 	style={{ color: parseFloat(row.getValue("amount")) > -1 ? "green" : "red" }}
-				// >
-				// 	{formatted}
-				// </div>
-				<span className="input-symbol">
-					<Input
-						type="number"
-						onChange={(event) => {
-							const amount = Number(event.target.value);
+				<div className="flex justify-end" style={{ width: 180 }}>
+					{row.original.disabled || !isRowHovered ? (
+						<span style={{ color: parseFloat(row.getValue("amount")) > -1 ? "green" : "red" }}>
+							{parseFloat(row.getValue("amount")) > -1 && "+"}
+							{formatted}
+						</span>
+					) : (
+						// <div
+						// 	className="text-right font-medium"
+						// 	style={{ color: parseFloat(row.getValue("amount")) > -1 ? "green" : "red" }}
+						// >
+						// 	{formatted}
+						// </div>
+						<span className="input-symbol">
+							<Input
+								type="number"
+								onChange={(event) => {
+									const amount = Number(event.target.value);
 
-							setTransactions((value) =>
-								value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
-							);
-						}}
-						value={row.getValue("amount")}
-						placeholder="Enter a start value..."
-						style={{
-							minWidth: 144,
-							color: amount > 0 ? "green" : amount < 0 ? "red" : "inherit",
-						}}
-					/>
-				</span>
+									setTransactions((value) =>
+										value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
+									);
+								}}
+								value={row.getValue("amount")}
+								placeholder="Enter a start value..."
+								style={{
+									minWidth: 144,
+									color: amount > 0 ? "green" : amount < 0 ? "red" : "inherit",
+								}}
+							/>
+						</span>
+					)}
+				</div>
 			);
 		},
 	},
 	{
 		id: "actions",
-		cell: ({ row }) => {
+		// @ts-ignore custom cell context `isRowHovered`
+		cell: ({ row, isRowHovered }) => {
 			// const payment = row.original;
 
 			return (
-				<div className="text-right">
-					<Button
-						variant="outline"
-						onClick={() => setTransactions((value) => value.filter((tx) => tx.name !== row.getValue("name")))}
-					>
-						<TrashIcon />
-					</Button>
+				<div style={{ width: 55 }}>
+					{isRowHovered && (
+						<div className="text-right">
+							<Button
+								variant="outline"
+								onClick={() => setTransactions((value) => value.filter((tx) => tx.name !== row.getValue("name")))}
+							>
+								<TrashIcon />
+							</Button>
+						</div>
+					)}
 				</div>
 			);
 		},
