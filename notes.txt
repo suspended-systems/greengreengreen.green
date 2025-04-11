@@ -51,7 +51,9 @@
 
 
 
-- open app and enter start values form thingy/onboarding form thingy
+animation 
+
+#- open app and enter start values form thingy/onboarding form thingy
 
 
 - replace name unique check with ids
