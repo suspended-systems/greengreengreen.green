@@ -60,7 +60,7 @@ function CalendarCustomized({
 				day_selected:
 					"bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
 				day_today: "bg-accent text-accent-foreground",
-				day_outside: "day-outside text-muted-foreground aria-selected:text-muted-foreground",
+				day_outside: "day-outside text-muted-foreground",
 				day_disabled: "text-muted-foreground opacity-50",
 				day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
 				day_hidden: "invisible",
@@ -131,7 +131,13 @@ function CalendarCustomized({
 									position: "absolute",
 									// 16 day height + 5 spacing
 									top: 21,
-									opacity: isOutOfRange ? 0.15 : props.activeModifiers.outside ? 0.5 : "inherit",
+									opacity: props.activeModifiers.selected
+										? "inherit"
+										: isOutOfRange
+										? 0.15
+										: props.activeModifiers.outside
+										? 0.5
+										: "inherit",
 								}}
 							>
 								{projectedValue && <div style={{ fontSize: 12 }}>{formatMoney(projectedValue)}</div>}

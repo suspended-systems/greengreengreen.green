@@ -17,6 +17,7 @@ import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useIsomorphicLayoutEffect } from "./utils";
+import { ModeToggle } from "../components/ModeToggle";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
@@ -55,6 +56,9 @@ export default function Home() {
 
 	return (
 		<>
+			<div style={{ position: "absolute", right: 10, top: 10 }}>
+				<ModeToggle />
+			</div>
 			<div
 				className="text-center"
 				style={{
