@@ -40,13 +40,13 @@ export default function Home() {
 		pageSize: 10,
 	} as PaginationState);
 
-	// refreshes when tab changes
+	// solely used to ensure GSAP stays freshly registered, value meaningless and unused
 	const [tab, setTab] = useState("");
 	useIsomorphicLayoutEffect(() => {
 		const ctx = gsap.context(() => {
-			gsap.from(".line-2", {
+			gsap.from(".gsap-line", {
 				scrollTrigger: {
-					trigger: ".orange",
+					trigger: ".gsap-container",
 					pin: true,
 					anticipatePin: 1,
 					start: "top top+=16px",
@@ -110,15 +110,15 @@ export default function Home() {
 							margin: "0 auto",
 						}}
 					/>
-					<Tabs defaultValue="calendar" className="testt" onValueChange={setTab}>
+					<Tabs defaultValue="calendar" onValueChange={setTab}>
 						<TabsList className="grid grid-cols-2" style={{ width: 698, margin: "0 auto" }}>
 							<TabsTrigger value="calendar">Calendar</TabsTrigger>
 							<TabsTrigger value="transactions">Transactions</TabsTrigger>
 						</TabsList>
 						<TabsContent className="tab-content" value="calendar" style={{ marginLeft: "auto", marginRight: "auto" }}>
 							<div>
-								<section className="panel orange">
-									<span className="line2"></span>
+								<section className="gsap-container">
+									<span className="gsap-line"></span>
 									<CalendarView
 										{...{
 											month,
@@ -137,8 +137,8 @@ export default function Home() {
 						</TabsContent>
 						<TabsContent className="tab-content" value="transactions">
 							<div>
-								<section className="panel orange">
-									<span className="line2"></span>
+								<section className="gsap-container">
+									<span className="gsap-line"></span>
 									<TransactionsView {...{ columns, transactions, setTransactions, pagination, setPagination }} />
 								</section>
 							</div>

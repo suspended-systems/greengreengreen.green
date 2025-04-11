@@ -134,7 +134,7 @@ export function DataTable<TData, TValue>({
 				<div className="flex gap-4">
 					<AddTransaction {...{ setTransactions }} />
 					<Input
-						placeholder="Filter transactions..."
+						placeholder="Search..."
 						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
 						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
 						className="max-w-sm text-sm"
