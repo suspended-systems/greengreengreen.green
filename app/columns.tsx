@@ -57,7 +57,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		cell: ({ row, isRowHovered }) => (
 			<div style={{ width: 240 }}>
 				{row.original.disabled || !isRowHovered ? (
-					row.getValue("name")
+					<span style={{ position: "relative", top: 0.5 }}>{row.getValue("name")}</span>
 				) : (
 					<Input
 						type="text"
@@ -68,7 +68,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 						}}
 						value={row.getValue("name")}
 						placeholder="Enter a transaction name..."
-						style={{ width: "fit-content" }}
+						style={{ width: "fit-content", position: "relative", right: 13 }}
 						className="text-sm"
 					/>
 				)}
@@ -99,7 +99,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 									"w-[240px] justify-start text-left font-normal",
 									!row.getValue("date") && "text-muted-foreground",
 								)}
-								style={{ width: "fit-content" }}
+								style={{ width: "fit-content", position: "relative", right: 37 }}
 							>
 								<CalendarIcon />
 								{new Date(row.getValue("date")) ? (
@@ -267,8 +267,8 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<div className="flex justify-end" style={{ width: 180, marginLeft: "auto" }}>
 					{row.original.disabled || !isRowHovered ? (
-						<span style={{ color: parseFloat(row.getValue("amount")) > -1 ? "green" : "red" }}>
-							{parseFloat(row.getValue("amount")) > -1 && "+"}
+						<span style={{ color: amount > -1 ? "green" : "red" }}>
+							{amount > -1 && "+"}
 							{formatted}
 						</span>
 					) : (
@@ -288,12 +288,15 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 										value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
 									);
 								}}
-								value={row.getValue("amount")}
+								value={amount.toFixed(2)}
 								placeholder="Enter a start value..."
 								className="text-sm"
 								style={{
 									minWidth: 144,
 									color: amount > 0 ? "green" : amount < 0 ? "red" : "inherit",
+									textAlign: "right",
+									position: "relative",
+									left: 28,
 								}}
 							/>
 						</span>
