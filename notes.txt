@@ -54,7 +54,10 @@
 - open app and enter start values form thingy/onboarding form thingy
 
 
--replace name unique check with ids
+- replace name unique check with ids
+
+
+- calendar overflow bug on small screen
 
 
 stretch:
