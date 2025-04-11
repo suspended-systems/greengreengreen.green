@@ -24,7 +24,13 @@ import { Frequency } from "rrule";
 export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>): ColumnDef<Transaction>[] => [
 	{
 		accessorKey: "disabled",
-		header: "",
+		header: ({ column }) => {
+			return (
+				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
+		},
 		cell: ({ row }) => (
 			<Switch
 				checked={!row.getValue("disabled")}
@@ -39,12 +45,19 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		accessorKey: "name",
-		header: "Transaction",
+		header: ({ column }) => {
+			return (
+				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+					Transaction
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
+		},
 		// @ts-ignore custom cell context `isRowHovered`
 		cell: ({ row, isRowHovered }) => (
 			<div style={{ width: 240 }}>
 				{row.original.disabled || !isRowHovered ? (
-					<span className="text-md md:text-sm">{row.getValue("name")}</span>
+					row.getValue("name")
 				) : (
 					<Input
 						type="text"
@@ -56,6 +69,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 						value={row.getValue("name")}
 						placeholder="Enter a transaction name..."
 						style={{ width: "fit-content" }}
+						className="text-sm"
 					/>
 				)}
 			</div>
@@ -118,8 +132,18 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		),
 	},
 	{
-		accessorKey: "freq",
-		header: "Recurrence",
+		id: "freq",
+		accessorFn: (og) => {
+			return !og.freq ? undefined : `${og.freq}:${og.interval}`;
+		},
+		header: ({ column }) => {
+			return (
+				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+					Recurrence
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			);
+		},
 		// @ts-ignore custom cell context `isRowHovered`
 		cell: ({ row, isRowHovered }) => {
 			const val = row.original as Transaction;
@@ -129,16 +153,18 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<div className="flex items-center" style={{ width: 255, height: 36, justifySelf: "center" }}>
 					{(row.original.disabled || !isRowHovered) && !isDropdownOpen ? (
-						<span className="text-md md:text-sm">
-							{row.original.freq ? "E" + txRRule(row.original).toText().slice(1) : ""}
-						</span>
+						row.original.freq ? (
+							"E" + txRRule(row.original).toText().slice(1)
+						) : (
+							""
+						)
 					) : !isRecurring ? (
 						<Button variant="outline" onClick={() => setIsRecurring(true)}>
 							<PlusIcon />
 						</Button>
 					) : (
 						<div className="flex flex-row items-center gap-2">
-							<span className="text-md md:text-sm">Every</span>
+							Every
 							<Input
 								type="number"
 								min="1"
@@ -157,16 +183,13 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 										),
 									)
 								}
+								className="text-sm"
 							/>
-
 							<DropdownMenu modal onOpenChange={setDropDownOpen}>
 								<DropdownMenuTrigger asChild>
 									<Button
 										variant="outline"
-										className={cn(
-											"justify-start font-normal text-md md:text-sm",
-											val.freq == null && "text-muted-foreground",
-										)}
+										className={cn("justify-start font-normal", val.freq == null && "text-muted-foreground")}
 										style={{ width: "fit-content" }}
 									>
 										<span style={{ width: "100%", textAlign: val.freq == null ? "center" : "left" }}>
@@ -225,7 +248,16 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		accessorKey: "amount",
-		header: () => <div className="text-right">Amount</div>,
+		header: ({ column }) => {
+			return (
+				<div className="text-right">
+					<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+						Amount
+						<ArrowUpDown className="ml-2 h-4 w-4" />
+					</Button>
+				</div>
+			);
+		},
 		// header: "Amount",
 		// @ts-ignore custom cell context `isRowHovered`
 		cell: ({ row, isRowHovered }) => {
@@ -233,7 +265,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			const formatted = formatMoney(amount);
 
 			return (
-				<div className="flex justify-end" style={{ width: 180 }}>
+				<div className="flex justify-end" style={{ width: 180, marginLeft: "auto" }}>
 					{row.original.disabled || !isRowHovered ? (
 						<span style={{ color: parseFloat(row.getValue("amount")) > -1 ? "green" : "red" }}>
 							{parseFloat(row.getValue("amount")) > -1 && "+"}
@@ -258,6 +290,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 								}}
 								value={row.getValue("amount")}
 								placeholder="Enter a start value..."
+								className="text-sm"
 								style={{
 									minWidth: 144,
 									color: amount > 0 ? "green" : amount < 0 ? "red" : "inherit",
