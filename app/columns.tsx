@@ -278,7 +278,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 						// >
 						// 	{formatted}
 						// </div>
-						<span className="input-symbol">
+						<span className="input-symbol" style={{ position: "relative", left: 28 }}>
 							<Input
 								type="number"
 								onChange={(event) => {
@@ -295,8 +295,6 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 									minWidth: 144,
 									color: amount > 0 ? "green" : amount < 0 ? "red" : "inherit",
 									textAlign: "right",
-									position: "relative",
-									left: 28,
 								}}
 							/>
 						</span>
@@ -312,7 +310,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			// const payment = row.original;
 
 			return (
-				<div style={{ width: 55 }}>
+				<div style={{ width: 90 }}>
 					{isRowHovered && (
 						<div className="text-right">
 							<Button

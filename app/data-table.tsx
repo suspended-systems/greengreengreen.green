@@ -130,7 +130,7 @@ export function DataTable<TData, TValue>({
 						placeholder="Filter transactions..."
 						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
 						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-						className="max-w-sm"
+						className="max-w-sm text-sm"
 					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>

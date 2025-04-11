@@ -52,9 +52,16 @@
 ...
 
 
+###- column sorting headers. 
+
+
 - transaction form onSubmit
-- column sorting headers. only show arrow where actually sorting
+
 
 
 - open app and enter start values form thingy/onboarding form thingy
 
+
+
+stretch:
+-table sorting arrow direction display
