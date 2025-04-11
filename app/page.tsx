@@ -42,9 +42,9 @@ export default function Home() {
 			gsap.from(".line-2", {
 				scrollTrigger: {
 					trigger: ".orange",
-					// anticipatePin: 100,
 					pin: true,
-					start: "top top",
+					anticipatePin: 1,
+					start: "top top+=16px",
 					end: "+=100%",
 				},
 			});
@@ -55,42 +55,40 @@ export default function Home() {
 
 	return (
 		<>
-			<div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-				<Tabs defaultValue="calendar" className="testt" onValueChange={setTab}>
-					<TabsList className="grid w-full grid-cols-2">
-						<TabsTrigger value="calendar">Calendar</TabsTrigger>
-						<TabsTrigger value="transactions">Transactions</TabsTrigger>
-					</TabsList>
-					<TabsContent className="tab-content" value="calendar" style={{ marginLeft: "auto", marginRight: "auto" }}>
-						<div>
-							<section className="panel orange">
-								<span className="line2"></span>
-								<CalendarView
-									{...{
-										month,
-										onMonthChange,
-										transactions,
-										startValue,
-										setStartValue,
-										startDate,
-										setStartDate,
-										endDate,
-										setEndDate,
-									}}
-								/>
-							</section>
-						</div>
-					</TabsContent>
-					<TabsContent className="tab-content" value="transactions">
-						<div>
-							<section className="panel orange">
-								<span className="line2"></span>
-								<TransactionsView {...{ columns, transactions, setTransactions, pagination, setPagination }} />
-							</section>
-						</div>
-					</TabsContent>
-				</Tabs>
-			</div>
+			<Tabs defaultValue="calendar" className="testt" onValueChange={setTab}>
+				<TabsList className="grid w-full grid-cols-2">
+					<TabsTrigger value="calendar">Calendar</TabsTrigger>
+					<TabsTrigger value="transactions">Transactions</TabsTrigger>
+				</TabsList>
+				<TabsContent className="tab-content" value="calendar" style={{ marginLeft: "auto", marginRight: "auto" }}>
+					<div>
+						<section className="panel orange">
+							<span className="line2"></span>
+							<CalendarView
+								{...{
+									month,
+									onMonthChange,
+									transactions,
+									startValue,
+									setStartValue,
+									startDate,
+									setStartDate,
+									endDate,
+									setEndDate,
+								}}
+							/>
+						</section>
+					</div>
+				</TabsContent>
+				<TabsContent className="tab-content" value="transactions">
+					<div>
+						<section className="panel orange">
+							<span className="line2"></span>
+							<TransactionsView {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+						</section>
+					</div>
+				</TabsContent>
+			</Tabs>
 			<Toaster />
 		</>
 	);

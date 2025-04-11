@@ -61,6 +61,6 @@
 
 
 stretch:
--table sorting arrow direction display
+###- table sorting arrow direction display
 - assign happiness points to transactions
 - categorize transactions

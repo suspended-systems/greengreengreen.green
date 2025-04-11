@@ -1,7 +1,15 @@
 "use client";
 
 import { Dispatch, SetStateAction, useState } from "react";
-import { ArrowUpDown, Calendar as CalendarIcon, Trash as TrashIcon, Plus as PlusIcon, X as XIcon } from "lucide-react";
+import {
+	ArrowUpDown,
+	ArrowDown,
+	ArrowUp,
+	Calendar as CalendarIcon,
+	Trash as TrashIcon,
+	Plus as PlusIcon,
+	X as XIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
@@ -26,8 +34,17 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		accessorKey: "disabled",
 		header: ({ column }) => {
 			return (
-				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-					<ArrowUpDown className="ml-2 h-4 w-4" />
+				<Button
+					variant={column.getIsSorted() ? "secondary" : "ghost"}
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				>
+					{column.getIsSorted() === "asc" ? (
+						<ArrowUp className="ml-2 h-4 w-4" />
+					) : column.getIsSorted() === "desc" ? (
+						<ArrowDown className="ml-2 h-4 w-4" />
+					) : (
+						<ArrowUpDown className="ml-2 h-4 w-4" />
+					)}
 				</Button>
 			);
 		},
@@ -47,9 +64,18 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		accessorKey: "name",
 		header: ({ column }) => {
 			return (
-				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+				<Button
+					variant={column.getIsSorted() ? "secondary" : "ghost"}
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				>
 					Transaction
-					<ArrowUpDown className="ml-2 h-4 w-4" />
+					{column.getIsSorted() === "asc" ? (
+						<ArrowUp className="ml-2 h-4 w-4" />
+					) : column.getIsSorted() === "desc" ? (
+						<ArrowDown className="ml-2 h-4 w-4" />
+					) : (
+						<ArrowUpDown className="ml-2 h-4 w-4" />
+					)}
 				</Button>
 			);
 		},
@@ -79,9 +105,18 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		accessorKey: "date",
 		header: ({ column }) => {
 			return (
-				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+				<Button
+					variant={column.getIsSorted() ? "secondary" : "ghost"}
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				>
 					Date
-					<ArrowUpDown className="ml-2 h-4 w-4" />
+					{column.getIsSorted() === "asc" ? (
+						<ArrowUp className="ml-2 h-4 w-4" />
+					) : column.getIsSorted() === "desc" ? (
+						<ArrowDown className="ml-2 h-4 w-4" />
+					) : (
+						<ArrowUpDown className="ml-2 h-4 w-4" />
+					)}
 				</Button>
 			);
 		},
@@ -138,9 +173,18 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		},
 		header: ({ column }) => {
 			return (
-				<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+				<Button
+					variant={column.getIsSorted() ? "secondary" : "ghost"}
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				>
 					Recurrence
-					<ArrowUpDown className="ml-2 h-4 w-4" />
+					{column.getIsSorted() === "asc" ? (
+						<ArrowUp className="ml-2 h-4 w-4" />
+					) : column.getIsSorted() === "desc" ? (
+						<ArrowDown className="ml-2 h-4 w-4" />
+					) : (
+						<ArrowUpDown className="ml-2 h-4 w-4" />
+					)}
 				</Button>
 			);
 		},
@@ -251,9 +295,18 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		header: ({ column }) => {
 			return (
 				<div className="text-right">
-					<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+					<Button
+						variant={column.getIsSorted() ? "secondary" : "ghost"}
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					>
 						Amount
-						<ArrowUpDown className="ml-2 h-4 w-4" />
+						{column.getIsSorted() === "asc" ? (
+							<ArrowUp className="ml-2 h-4 w-4" />
+						) : column.getIsSorted() === "desc" ? (
+							<ArrowDown className="ml-2 h-4 w-4" />
+						) : (
+							<ArrowUpDown className="ml-2 h-4 w-4" />
+						)}
 					</Button>
 				</div>
 			);
