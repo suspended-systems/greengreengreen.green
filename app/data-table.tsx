@@ -35,8 +35,13 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import { TransactionForm } from "./TransactionForm";
+import { Transaction } from "./transactions";
 
-const AddTransaction = () => (
+const AddTransaction = ({
+	setTransactions,
+}: {
+	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+}) => (
 	<Dialog modal>
 		<DialogTrigger asChild>
 			<Button variant="outline" style={{ width: "fit-content" }}>
@@ -50,7 +55,7 @@ const AddTransaction = () => (
 				<DialogTitle>Add Transaction</DialogTitle>
 				{/* <DialogDescription>Make changes to your profile here. Click save when you're done.</DialogDescription> */}
 			</DialogHeader>
-			<TransactionForm />
+			<TransactionForm {...{ setTransactions }} />
 			{/* <DialogFooter>
 				<Button type="submit">Submit</Button>
 			</DialogFooter> */}
@@ -61,6 +66,7 @@ const AddTransaction = () => (
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	transactions: TData[];
+	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 	pagination: PaginationState;
 	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
 }
@@ -94,6 +100,7 @@ function HoverableRow<TData>({ row }: { row: Row<TData> }) {
 export function DataTable<TData, TValue>({
 	columns,
 	transactions,
+	setTransactions,
 	pagination,
 	setPagination,
 }: DataTableProps<TData, TValue>) {
@@ -125,7 +132,7 @@ export function DataTable<TData, TValue>({
 		<>
 			<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 				<div className="flex gap-4">
-					<AddTransaction />
+					<AddTransaction {...{ setTransactions }} />
 					<Input
 						placeholder="Filter transactions..."
 						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}

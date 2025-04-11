@@ -20,6 +20,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { frequenciesStrings } from "./utils";
+import { Transaction } from "./transactions";
+import { Frequency } from "rrule";
 
 const FormSchema = z.object({
 	name: z.string().nonempty("Name can't be empty."),
@@ -41,7 +43,11 @@ const FormSchema = z.object({
 		}),
 });
 
-export function TransactionForm() {
+export function TransactionForm({
+	setTransactions,
+}: {
+	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+}) {
 	const [isRecurring, setIsRecurring] = useState(false);
 
 	const form = useForm<z.infer<typeof FormSchema>>({
@@ -56,6 +62,21 @@ export function TransactionForm() {
 	});
 
 	function onSubmit(data: z.infer<typeof FormSchema>) {
+		const transaction: Transaction = {
+			name: data.name,
+			amount: data.amount,
+			date: data.date.getTime(),
+			...(data.recurringFrequency && {
+				freq: { days: Frequency.DAILY, weeks: Frequency.WEEKLY, months: Frequency.MONTHLY, years: Frequency.YEARLY }[
+					data.recurringFrequency as string
+				],
+				interval: data.recurringInterval ? parseFloat(data.recurringInterval) : 1,
+			}),
+		};
+		setTransactions((value) => [transaction, ...value]);
+
+		form.reset();
+
 		toast(`Added new transaction "${data.name}"`);
 	}
 
