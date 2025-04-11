@@ -50,10 +50,7 @@
 ###- transaction form onSubmit
 
 
-
-animation 
-
-#- open app and enter start values form thingy/onboarding form thingy
+- onboarding
 
 
 - replace name unique check with ids
