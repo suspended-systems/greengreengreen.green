@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
 import CalendarView from "../components/CalendarView";
-import TransactionsView from "../components/TransactionsView";
 
 import { columns as columnsData } from "../components/DataTable/columns";
 import { myTransactions, Transaction } from "./transactions";
@@ -18,6 +17,7 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { GreenColor, useIsomorphicLayoutEffect } from "./utils";
 import { ModeToggle } from "../components/ModeToggle";
+import { DataTable } from "../components/DataTable";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
@@ -54,6 +54,8 @@ export default function Home() {
 		return () => ctx.revert();
 	}, [tab]);
 
+	const calendarViewWidth = 698;
+
 	return (
 		<>
 			<div style={{ position: "absolute", right: 10, top: 10 }}>
@@ -62,7 +64,6 @@ export default function Home() {
 			<div
 				className="text-center"
 				style={{
-					width: 698,
 					margin: "0 auto",
 					pointerEvents: "none",
 					fontSize: 20,
@@ -82,12 +83,12 @@ export default function Home() {
 						borderRight: "150px solid transparent",
 						position: "relative",
 						top: 1,
-						width: 698,
+						width: calendarViewWidth,
 						margin: "0 auto",
 					}}
 				/>
 				<Tabs defaultValue="calendar" onValueChange={setTab}>
-					<TabsList className="grid grid-cols-2" style={{ width: 698, margin: "0 auto" }}>
+					<TabsList className="grid grid-cols-2" style={{ width: calendarViewWidth, margin: "0 auto" }}>
 						<TabsTrigger value="calendar">Calendar</TabsTrigger>
 						<TabsTrigger value="transactions">Transactions</TabsTrigger>
 					</TabsList>
@@ -115,7 +116,7 @@ export default function Home() {
 						<div>
 							<section className="gsap-container">
 								<span className="gsap-line"></span>
-								<TransactionsView {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+								<DataTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
 							</section>
 						</div>
 					</TabsContent>

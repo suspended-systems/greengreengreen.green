@@ -82,44 +82,41 @@ export default function CalendarView({
 					/>
 				</span>
 			</div>
-			<div className="container">
-				<CalendarCustomized
-					{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions }}
-					mode="single"
-					selected={endDate}
-					onSelect={setEndDate}
-					className="rounded-md border"
-				/>
-				<div className="flex justify-center p-4" style={{ minHeight: 300 }}>
-					{endDate && (
-						<>
-							{dayTransactions && dayTransactions.length > 0 ? (
-								<table
-									className="border border-transparent border-spacing-4"
-									style={{ height: "100%", borderCollapse: "separate", borderSpacing: 8 }}
-								>
-									<tbody>
-										{dayTransactions.map((tx, i) => (
-											<tr key={`tx:${i}`}>
-												<td
-													className="text-right"
-													style={{ color: tx.amount > -1 ? GreenColor : "red", fontWeight: "bold" }}
-												>
-													{tx.amount > -1 ? "+" : ""}
-													{formatMoney(tx.amount)}
-												</td>
-												<td style={{ fontWeight: 500 }}>{tx.name}</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							) : (
-								<p style={{ opacity: 0.5 }}>No transactions on {endDate.toLocaleDateString()}</p>
-							)}
-						</>
-					)}
-					{!endDate && <p style={{ opacity: 0.5 }}>Select a date to view its transactions</p>}
-				</div>
+			<CalendarCustomized
+				{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions }}
+				mode="single"
+				selected={endDate}
+				onSelect={setEndDate}
+				className="rounded-md border"
+			/>
+			<div className="flex justify-center items-center">
+				{endDate ? (
+					dayTransactions && dayTransactions.length > 0 ? (
+						<table
+							className="border border-transparent border-spacing-4"
+							style={{ height: "100%", borderCollapse: "separate", borderSpacing: 8 }}
+						>
+							<tbody>
+								{dayTransactions.map((tx, i) => (
+									<tr key={`tx:${i}`}>
+										<td
+											className="text-right"
+											style={{ color: tx.amount > -1 ? GreenColor : "red", fontWeight: "bold" }}
+										>
+											{tx.amount > -1 ? "+" : ""}
+											{formatMoney(tx.amount)}
+										</td>
+										<td style={{ fontWeight: 500 }}>{tx.name}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					) : (
+						<p style={{ opacity: 0.5 }}>No transactions on {endDate.toLocaleDateString()}</p>
+					)
+				) : (
+					<p style={{ opacity: 0.5 }}>Select a date to view its transactions</p>
+				)}
 			</div>
 		</div>
 	);

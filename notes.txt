@@ -56,9 +56,6 @@
 - replace name unique check with ids
 
 
-- calendar overflow bug on small screen
-
-
 stretch:
 ###- table sorting arrow direction display
 - assign happiness points to transactions
