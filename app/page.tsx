@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, PropsWithChildren } from "react";
-import { useOnborda } from "onborda";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
@@ -38,8 +37,6 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 }
 
 export default function Home() {
-	const { startOnborda, closeOnborda } = useOnborda();
-
 	const [startValue, setStartValue] = useState(15000);
 	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
 	const [endDate, setEndDate] = useState<Date | undefined>();
@@ -73,10 +70,6 @@ export default function Home() {
 		return () => ctx.revert();
 	}, [tab]);
 
-	const onClickHandler = (tourName: string) => {
-		startOnborda(tourName);
-	};
-
 	return (
 		<>
 			{/* night mode toggle */}
@@ -108,8 +101,6 @@ export default function Home() {
 					margin: "0 auto",
 				}}
 			/>
-			<Button onClick={() => onClickHandler("firsttour")}>Start</Button>
-			<div id="foo-step1">Onboard Step</div>
 			{/* tabs */}
 			<Tabs defaultValue="calendar" onValueChange={setTab}>
 				<TabsList className="grid grid-cols-2 w-full">
