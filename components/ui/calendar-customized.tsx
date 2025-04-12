@@ -28,6 +28,7 @@ function CalendarCustomized({
 		<DayPicker
 			formatters={{
 				formatWeekdayName: (date) =>
+					// display just the first letter of each day
 					["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()].slice(0, 1),
 			}}
 			showOutsideDays={showOutsideDays}
@@ -72,6 +73,7 @@ function CalendarCustomized({
 
 					const endOfDay = new Date(props.date.getTime() + DAY_MS - 1);
 
+					// Only project values for days starting at our start date. Transactions and a start value must exist as well.
 					const projectedValue =
 						(startValue &&
 							startDate &&
@@ -94,6 +96,7 @@ function CalendarCustomized({
 
 					return (
 						<>
+							{/* green or red line */}
 							<div
 								style={{
 									alignSelf: "start",
@@ -113,6 +116,7 @@ function CalendarCustomized({
 											: "red",
 								}}
 							/>
+							{/* day # */}
 							<span
 								style={{
 									overflow: "visible",
@@ -125,12 +129,13 @@ function CalendarCustomized({
 							>
 								{props.date.getDate()}
 							</span>
-
+							{/* projected value & income/expense sums */}
 							<div
 								style={{
 									position: "absolute",
 									// 16 day height + 5 spacing
 									top: 21,
+									// style the opacity dependent on selection/outside day so it matches the other styling of days
 									opacity: props.activeModifiers.selected
 										? "inherit"
 										: isOutOfRange

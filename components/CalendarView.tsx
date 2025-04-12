@@ -42,8 +42,10 @@ export default function CalendarView({
 
 	return (
 		<div className="flex gap-4">
+			{/* left panel */}
 			<div className="flex flex-col gap-4">
 				<div className="flex gap-2 items-center text-sm">
+					{/* starting values */}
 					<span style={{ whiteSpace: "nowrap" }}>Starting on</span>
 					<Popover>
 						<PopoverTrigger asChild>
@@ -84,6 +86,7 @@ export default function CalendarView({
 						/>
 					</span>
 				</div>
+				{/* selected day transactions */}
 				<div className="flex flex-col justify-center items-center py-4">
 					{endDate ? (
 						dayTransactions && dayTransactions.length > 0 ? (
@@ -117,6 +120,7 @@ export default function CalendarView({
 					)}
 				</div>
 			</div>
+			{/* right panel */}
 			<CalendarCustomized
 				{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions }}
 				mode="single"

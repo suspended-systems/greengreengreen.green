@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, PropsWithChildren } from "react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
@@ -19,6 +19,21 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
+
+function TabContentItem({ children, id }: PropsWithChildren & { id: string }) {
+	return (
+		<TabsContent className="tab-content w-full" value={id} style={{ marginLeft: "auto", marginRight: "auto" }}>
+			<div>
+				<section className="gsap-container">
+					<span className="gsap-line"></span>
+					<div className="lg:mx-4">
+						<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>{children}</div>
+					</div>
+				</section>
+			</div>
+		</TabsContent>
+	);
+}
 
 export default function Home() {
 	const [startValue, setStartValue] = useState(15000);
@@ -55,6 +70,7 @@ export default function Home() {
 
 	return (
 		<>
+			{/* banner */}
 			<div style={{ position: "absolute", right: 10, top: 10 }}>
 				<ModeToggle />
 			</div>
@@ -82,45 +98,32 @@ export default function Home() {
 					margin: "0 auto",
 				}}
 			/>
+			{/* tabs */}
 			<Tabs defaultValue="calendar" onValueChange={setTab}>
 				<TabsList className="grid grid-cols-2 w-full">
 					<TabsTrigger value="calendar">Calendar</TabsTrigger>
 					<TabsTrigger value="transactions">Transactions</TabsTrigger>
 				</TabsList>
-				<TabsContent
-					className="tab-content w-full"
-					value="calendar"
-					style={{ marginLeft: "auto", marginRight: "auto" }}
-				>
-					<div>
-						<section className="gsap-container">
-							<span className="gsap-line"></span>
-							<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>
-								<CalendarView
-									{...{
-										month,
-										onMonthChange,
-										transactions,
-										startValue,
-										setStartValue,
-										startDate,
-										setStartDate,
-										endDate,
-										setEndDate,
-									}}
-								/>
-							</div>
-						</section>
+				<TabContentItem id="calendar">
+					<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>
+						<CalendarView
+							{...{
+								month,
+								onMonthChange,
+								transactions,
+								startValue,
+								setStartValue,
+								startDate,
+								setStartDate,
+								endDate,
+								setEndDate,
+							}}
+						/>
 					</div>
-				</TabsContent>
-				<TabsContent className="tab-content" value="transactions">
-					<div>
-						<section className="gsap-container">
-							<span className="gsap-line"></span>
-							<DataTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
-						</section>
-					</div>
-				</TabsContent>
+				</TabContentItem>
+				<TabContentItem id="transactions">
+					<DataTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+				</TabContentItem>
 			</Tabs>
 			<Toaster />
 		</>
