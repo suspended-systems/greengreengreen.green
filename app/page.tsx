@@ -54,7 +54,7 @@ export default function Home() {
 	const [tab, setTab] = useState("");
 	useIsomorphicLayoutEffect(() => {
 		const ctx = gsap.context(() => {
-			// makes the scroll snap to tab content
+			// makes the scroll snap to and pin tab content
 			gsap.from(".gsap-line", {
 				scrollTrigger: {
 					trigger: ".gsap-container",
