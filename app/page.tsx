@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState, PropsWithChildren } from "react";
+import { useOnborda } from "onborda";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
+import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CalendarView from "@/components/CalendarView";
@@ -20,9 +22,9 @@ import { ModeSwitcher } from "../components/ModeSwitcher";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
-function TabContentItem({ children, id }: PropsWithChildren & { id: string }) {
+function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
 	return (
-		<TabsContent className="tab-content w-full" value={id} style={{ marginLeft: "auto", marginRight: "auto" }}>
+		<TabsContent className="tab-content w-full" value={name} style={{ marginLeft: "auto", marginRight: "auto" }}>
 			<div>
 				<section className="gsap-container">
 					<span className="gsap-line"></span>
@@ -36,6 +38,8 @@ function TabContentItem({ children, id }: PropsWithChildren & { id: string }) {
 }
 
 export default function Home() {
+	const { startOnborda, closeOnborda } = useOnborda();
+
 	const [startValue, setStartValue] = useState(15000);
 	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
 	const [endDate, setEndDate] = useState<Date | undefined>();
@@ -61,13 +65,17 @@ export default function Home() {
 					pin: true,
 					anticipatePin: 1,
 					start: "top top+=16px",
-					end: "+=100%",
+					// end: "+=100%",
 				},
 			});
 		});
 
 		return () => ctx.revert();
 	}, [tab]);
+
+	const onClickHandler = (tourName: string) => {
+		startOnborda(tourName);
+	};
 
 	return (
 		<>
@@ -100,30 +108,30 @@ export default function Home() {
 					margin: "0 auto",
 				}}
 			/>
+			<Button onClick={() => onClickHandler("firsttour")}>Start</Button>
+			<div id="foo-step1">Onboard Step</div>
 			{/* tabs */}
 			<Tabs defaultValue="calendar" onValueChange={setTab}>
 				<TabsList className="grid grid-cols-2 w-full">
 					<TabsTrigger value="calendar">Calendar</TabsTrigger>
 					<TabsTrigger value="transactions">Transactions</TabsTrigger>
 				</TabsList>
-				<TabContentItem id="calendar">
-					<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>
-						<CalendarView
-							{...{
-								month,
-								onMonthChange,
-								transactions,
-								startValue,
-								setStartValue,
-								startDate,
-								setStartDate,
-								endDate,
-								setEndDate,
-							}}
-						/>
-					</div>
+				<TabContentItem name="calendar">
+					<CalendarView
+						{...{
+							month,
+							onMonthChange,
+							transactions,
+							startValue,
+							setStartValue,
+							startDate,
+							setStartDate,
+							endDate,
+							setEndDate,
+						}}
+					/>
 				</TabContentItem>
-				<TabContentItem id="transactions">
+				<TabContentItem name="transactions">
 					<DataTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
 				</TabContentItem>
 			</Tabs>

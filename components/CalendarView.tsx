@@ -41,7 +41,7 @@ export default function CalendarView({
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
-		<div className="flex gap-4">
+		<div className="flex gap-8">
 			{/* left panel */}
 			<div className="flex flex-col gap-4">
 				<div className="flex gap-2 items-center text-sm">
@@ -51,15 +51,11 @@ export default function CalendarView({
 						<PopoverTrigger asChild>
 							<Button
 								variant="outline"
-								className={cn("w-[240px] justify-start text-left font-normal", !startDate && "text-muted-foreground")}
-								style={{ width: "fit-content" }}
+								className={cn("justify-start text-left font-normal", !startDate && "text-muted-foreground")}
+								style={{ width: 120 }}
 							>
 								<CalendarIcon />
-								{startDate ? (
-									startDate.toLocaleDateString() + (startDateIsToday ? " (today)" : "")
-								) : (
-									<span>Select a start date</span>
-								)}
+								{startDate ? startDateIsToday ? "today" : startDate.toLocaleDateString() : <span>Select</span>}
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent className="w-auto p-0" align="start">
@@ -91,7 +87,13 @@ export default function CalendarView({
 					{endDate ? (
 						dayTransactions && dayTransactions.length > 0 ? (
 							<>
-								<div className="font-medium">{endDate.toLocaleDateString()}</div>
+								<div className="font-medium">
+									{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
+										month: "long",
+										weekday: "long",
+										day: "numeric",
+									})}
+								</div>
 								<table
 									className="border border-transparent border-spacing-4"
 									style={{ borderCollapse: "separate", borderSpacing: 8 }}
@@ -113,7 +115,14 @@ export default function CalendarView({
 								</table>
 							</>
 						) : (
-							<p style={{ opacity: 0.5 }}>No transactions on {endDate.toLocaleDateString()}</p>
+							<p style={{ opacity: 0.5 }}>
+								No transactions on{" "}
+								{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
+									month: "long",
+									weekday: "long",
+									day: "numeric",
+								})}
+							</p>
 						)
 					) : (
 						<p style={{ opacity: 0.5 }}>Select a date to view its transactions</p>

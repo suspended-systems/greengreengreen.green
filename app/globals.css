@@ -132,6 +132,17 @@
 	}
 }
 
+.hide-scrollbar {
+	overflow-y: scroll; /* Ensure vertical scrolling is possible */
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+/* For Chrome, Safari and Opera */
+.hide-scrollbar::-webkit-scrollbar {
+	display: none;
+}
+
 .input-symbol {
 	position: relative;
 }
