@@ -8,7 +8,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CalendarView from "@/components/CalendarView";
 import { columns as columnsData } from "@/components/DataTable/columns";
-import { ModeToggle } from "@/components/ModeToggle";
 import { DataTable } from "@/components/DataTable";
 import { myTransactions, Transaction } from "./transactions";
 
