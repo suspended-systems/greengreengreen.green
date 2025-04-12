@@ -87,7 +87,7 @@ export default function CalendarView({
 					{endDate ? (
 						dayTransactions && dayTransactions.length > 0 ? (
 							<>
-								<div className="font-medium">
+								<div className="font-medium italic">
 									{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
 										month: "long",
 										weekday: "long",
@@ -115,7 +115,7 @@ export default function CalendarView({
 								</table>
 							</>
 						) : (
-							<p style={{ opacity: 0.5 }}>
+							<p style={{ opacity: 0.5, fontStyle: "italic" }}>
 								No transactions on{" "}
 								{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
 									month: "long",
@@ -125,7 +125,7 @@ export default function CalendarView({
 							</p>
 						)
 					) : (
-						<p style={{ opacity: 0.5 }}>Select a date to view its transactions</p>
+						<p style={{ opacity: 0.5, fontStyle: "italic" }}>Select a date to view its transactions</p>
 					)}
 				</div>
 			</div>
