@@ -50,8 +50,9 @@
 ###- transaction form onSubmit
 
 
-- onboarding
+###- night mode move to bottom right and have dropdown side open top
 
+- onboarding
 
 - replace name unique check with ids
 

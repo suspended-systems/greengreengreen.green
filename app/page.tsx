@@ -17,6 +17,7 @@ import { GreenColor, useIsomorphicLayoutEffect } from "./utils";
 import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ModeSwitcher } from "../components/ModeSwitcher";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
@@ -70,10 +71,11 @@ export default function Home() {
 
 	return (
 		<>
-			{/* banner */}
-			<div style={{ position: "absolute", right: 10, top: 10 }}>
-				<ModeToggle />
+			{/* night mode toggle */}
+			<div style={{ position: "absolute", right: 0, top: 0 }}>
+				<ModeSwitcher />
 			</div>
+			{/* banner */}
 			<div
 				className="text-center"
 				style={{
@@ -82,7 +84,7 @@ export default function Home() {
 					fontSize: 20,
 					letterSpacing: 1,
 					color: GreenColor,
-					fontWeight: 300,
+					fontWeight: 500,
 					fontFamily: "sans-serif",
 				}}
 			>

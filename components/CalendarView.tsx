@@ -91,7 +91,7 @@ export default function CalendarView({
 					{endDate ? (
 						dayTransactions && dayTransactions.length > 0 ? (
 							<>
-								<div className="font-medium">Transactions on {endDate.toLocaleDateString()}:</div>
+								<div className="font-medium">{endDate.toLocaleDateString()}</div>
 								<table
 									className="border border-transparent border-spacing-4"
 									style={{ borderCollapse: "separate", borderSpacing: 8 }}
