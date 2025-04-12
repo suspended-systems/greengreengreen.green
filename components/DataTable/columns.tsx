@@ -153,7 +153,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<div className="flex items-center" style={{ width: 255, height: 36, justifySelf: "center" }}>
 					{(row.original.disabled || !isRowHovered) && !isDropdownOpen ? (
-						row.original.freq ? (
+						row.original.freq != null ? (
 							// capitalize the E
 							"E" + txRRule(row.original).toText().slice(1)
 						) : (
@@ -193,7 +193,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 										style={{ width: "fit-content" }}
 									>
 										<span style={{ width: "100%", textAlign: val.freq == null ? "center" : "left" }}>
-											{val.freq != null ? frequenciesStrings[val.freq] : "Select"}
+											{val.freq != null ? frequenciesStrings[frequenciesStrings.length - 1 - val.freq] : "Select"}
 										</span>
 									</Button>
 								</DropdownMenuTrigger>
@@ -207,7 +207,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 														tx.name === val.name
 															? {
 																	...tx,
-																	freq: frequencies[frequencies.length - 1 - i],
+																	freq: frequencies[i],
 															  }
 															: tx,
 													),

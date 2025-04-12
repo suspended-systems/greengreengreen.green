@@ -8,9 +8,9 @@ export const formatMoney = (amount: number) =>
 		currency: "USD",
 	}).format(amount);
 
-export const frequenciesStrings = ["days", "weeks", "months", "years"];
 import { Frequency } from "rrule";
 export const frequencies = [Frequency.DAILY, Frequency.WEEKLY, Frequency.MONTHLY, Frequency.YEARLY];
+export const frequenciesStrings = ["days", "weeks", "months", "years"];
 
 import { useEffect, useLayoutEffect } from "react";
 export const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
