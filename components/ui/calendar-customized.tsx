@@ -7,7 +7,7 @@ import { DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { calcProjectedValue, getTransactionsOnDay, Transaction } from "../../app/transactions";
-import { DAY_MS, formatMoney } from "../../app/utils";
+import { DAY_MS, formatMoney, GreenColor } from "../../app/utils";
 
 function CalendarCustomized({
 	className,
@@ -107,7 +107,7 @@ function CalendarCustomized({
 											: projectedValue! > -1
 											? props.activeModifiers.outside
 												? "#7fbf7f"
-												: "#519c6b"
+												: GreenColor
 											: props.activeModifiers.outside
 											? "#ff7f7f"
 											: "red",
@@ -143,7 +143,7 @@ function CalendarCustomized({
 								{projectedValue && <div style={{ fontSize: 12 }}>{formatMoney(projectedValue)}</div>}
 
 								<div style={{ fontWeight: "bold" }}>
-									{incomesTotal > 0 && <p style={{ color: "#519c6b" }}>+{formatMoney(incomesTotal)}</p>}
+									{incomesTotal > 0 && <p style={{ color: GreenColor }}>+{formatMoney(incomesTotal)}</p>}
 									{expensesTotal < 0 && <p style={{ color: "red" }}>{formatMoney(expensesTotal)}</p>}
 								</div>
 							</div>

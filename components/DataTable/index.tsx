@@ -34,8 +34,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import { TransactionForm } from "./TransactionForm";
-import { Transaction } from "./transactions";
+import { TransactionForm } from "../TransactionForm";
+import { Transaction } from "../../app/transactions";
 
 const AddTransaction = ({
 	setTransactions,
@@ -53,12 +53,8 @@ const AddTransaction = ({
 		<DialogContent>
 			<DialogHeader>
 				<DialogTitle>Add Transaction</DialogTitle>
-				{/* <DialogDescription>Make changes to your profile here. Click save when you're done.</DialogDescription> */}
 			</DialogHeader>
 			<TransactionForm {...{ setTransactions }} />
-			{/* <DialogFooter>
-				<Button type="submit">Submit</Button>
-			</DialogFooter> */}
 		</DialogContent>
 	</Dialog>
 );
@@ -72,6 +68,8 @@ interface DataTableProps<TData, TValue> {
 }
 
 function HoverableRow<TData>({ row }: { row: Row<TData> }) {
+	// Keep pointer event in state to detect hovering
+	// When hovering, the inline editing UI is shown
 	const [isRowHovered, setIsRowHovered] = React.useState(false);
 
 	return (
@@ -81,18 +79,22 @@ function HoverableRow<TData>({ row }: { row: Row<TData> }) {
 			onMouseEnter={() => setIsRowHovered(true)}
 			onMouseLeave={() => setIsRowHovered(false)}
 		>
-			{row.getVisibleCells().map((cell, i, arr) => (
-				<TableCell
-					key={cell.id}
-					// Prevent clicks on a disabled row. But do allow clicks on the switch to enable the row (0th column). And the trash button (last column).
-					style={{
-						pointerEvents: row.getValue("disabled") && i !== 0 && i !== arr.length - 1 ? "none" : "inherit",
-						opacity: row.getValue("disabled") && i !== 0 && i !== arr.length - 1 ? "0.5" : "inherit",
-					}}
-				>
-					{flexRender(cell.column.columnDef.cell, { ...cell.getContext(), isRowHovered })}
-				</TableCell>
-			))}
+			{row.getVisibleCells().map((cell, i, arr) => {
+				// The first cell (toggle switch) and last cell (trash can) are always enabled.
+				const isDisabled = row.getValue("disabled") && i !== 0 && i !== arr.length - 1;
+
+				return (
+					<TableCell
+						key={cell.id}
+						style={{
+							pointerEvents: isDisabled ? "none" : "inherit",
+							opacity: row.getValue("disabled") && i !== 0 && i !== arr.length - 1 ? "0.5" : "inherit",
+						}}
+					>
+						{flexRender(cell.column.columnDef.cell, { ...cell.getContext(), isRowHovered })}
+					</TableCell>
+				);
+			})}
 		</TableRow>
 	);
 }

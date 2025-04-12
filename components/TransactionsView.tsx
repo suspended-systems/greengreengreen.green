@@ -3,8 +3,8 @@
 import { Dispatch, SetStateAction } from "react";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
-import { DataTable } from "./data-table";
-import { Transaction } from "./transactions";
+import { DataTable } from "./DataTable";
+import { Transaction } from "../app/transactions";
 
 export default function TransactionsView({
 	columns,

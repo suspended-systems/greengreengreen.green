@@ -2,7 +2,6 @@
 
 import { Dispatch, SetStateAction, useState } from "react";
 import {
-	ArrowUpDown,
 	ArrowDown,
 	ArrowUp,
 	Calendar as CalendarIcon,
@@ -12,7 +11,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { ColumnDef } from "@tanstack/react-table";
+import { CellContext, Column, ColumnDef, RowData } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -25,33 +24,40 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 
-import { Transaction, txRRule } from "./transactions";
-import { formatMoney, frequencies, frequenciesStrings } from "./utils";
+import { Transaction, txRRule } from "../../app/transactions";
+import { formatMoney, frequencies, frequenciesStrings, GreenColor } from "../../app/utils";
 import { Frequency } from "rrule";
+
+declare module "@tanstack/react-table" {
+	interface CellContext<TData extends RowData, TValue> {
+		isRowHovered: boolean;
+	}
+}
+
+function Header({ column, title }: { column: Column<Transaction, unknown>; title?: string }) {
+	return (
+		<Button
+			variant={column.getIsSorted() ? "secondary" : "ghost"}
+			onClick={() =>
+				column.getIsSorted() === "desc" ? column.clearSorting() : column.toggleSorting(column.getIsSorted() === "asc")
+			}
+		>
+			{title}
+			{column.getIsSorted() === "asc" ? (
+				<ArrowUp className="ml-2 h-4 w-4" />
+			) : column.getIsSorted() === "desc" ? (
+				<ArrowDown className="ml-2 h-4 w-4" />
+			) : (
+				" "
+			)}
+		</Button>
+	);
+}
 
 export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>): ColumnDef<Transaction>[] => [
 	{
 		accessorKey: "disabled",
-		header: ({ column }) => {
-			return (
-				<Button
-					variant={column.getIsSorted() ? "secondary" : "ghost"}
-					onClick={() =>
-						column.getIsSorted() === "desc"
-							? column.clearSorting()
-							: column.toggleSorting(column.getIsSorted() === "asc")
-					}
-				>
-					{column.getIsSorted() === "asc" ? (
-						<ArrowUp className="ml-2 h-4 w-4" />
-					) : column.getIsSorted() === "desc" ? (
-						<ArrowDown className="ml-2 h-4 w-4" />
-					) : (
-						" "
-					)}
-				</Button>
-			);
-		},
+		header: ({ column }) => <Header {...{ column }} />,
 		cell: ({ row }) => (
 			<Switch
 				checked={!row.getValue("disabled")}
@@ -66,28 +72,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		accessorKey: "name",
-		header: ({ column }) => {
-			return (
-				<Button
-					variant={column.getIsSorted() ? "secondary" : "ghost"}
-					onClick={() =>
-						column.getIsSorted() === "desc"
-							? column.clearSorting()
-							: column.toggleSorting(column.getIsSorted() === "asc")
-					}
-				>
-					Transaction
-					{column.getIsSorted() === "asc" ? (
-						<ArrowUp className="ml-2 h-4 w-4" />
-					) : column.getIsSorted() === "desc" ? (
-						<ArrowDown className="ml-2 h-4 w-4" />
-					) : (
-						" "
-					)}
-				</Button>
-			);
-		},
-		// @ts-ignore custom cell context `isRowHovered`
+		header: ({ column }) => <Header {...{ column, title: "Transaction" }} />,
 		cell: ({ row, isRowHovered }) => (
 			<div style={{ width: 240 }}>
 				{row.original.disabled || !isRowHovered ? (
@@ -111,28 +96,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		accessorKey: "date",
-		header: ({ column }) => {
-			return (
-				<Button
-					variant={column.getIsSorted() ? "secondary" : "ghost"}
-					onClick={() =>
-						column.getIsSorted() === "desc"
-							? column.clearSorting()
-							: column.toggleSorting(column.getIsSorted() === "asc")
-					}
-				>
-					Date
-					{column.getIsSorted() === "asc" ? (
-						<ArrowUp className="ml-2 h-4 w-4" />
-					) : column.getIsSorted() === "desc" ? (
-						<ArrowDown className="ml-2 h-4 w-4" />
-					) : (
-						" "
-					)}
-				</Button>
-			);
-		},
-		// @ts-ignore custom cell context `isRowHovered`
+		header: ({ column }) => <Header {...{ column, title: "Date" }} />,
 		cell: ({ row, isRowHovered }) => (
 			<div style={{ width: 135 }}>
 				{row.original.disabled || !isRowHovered ? (
@@ -183,28 +147,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		accessorFn: (og) => {
 			return !og.freq ? undefined : `${og.freq}:${og.interval}`;
 		},
-		header: ({ column }) => {
-			return (
-				<Button
-					variant={column.getIsSorted() ? "secondary" : "ghost"}
-					onClick={() =>
-						column.getIsSorted() === "desc"
-							? column.clearSorting()
-							: column.toggleSorting(column.getIsSorted() === "asc")
-					}
-				>
-					Recurrence
-					{column.getIsSorted() === "asc" ? (
-						<ArrowUp className="ml-2 h-4 w-4" />
-					) : column.getIsSorted() === "desc" ? (
-						<ArrowDown className="ml-2 h-4 w-4" />
-					) : (
-						" "
-					)}
-				</Button>
-			);
-		},
-		// @ts-ignore custom cell context `isRowHovered`
+		header: ({ column }) => <Header {...{ column, title: "Recurrence" }} />,
 		cell: ({ row, isRowHovered }) => {
 			const val = row.original as Transaction;
 			const [isRecurring, setIsRecurring] = useState(val.freq != null);
@@ -253,9 +196,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 										style={{ width: "fit-content" }}
 									>
 										<span style={{ width: "100%", textAlign: val.freq == null ? "center" : "left" }}>
-											{val.freq
-												? { DAILY: "days", WEEKLY: "weeks", MONTHLY: "months", YEARLY: "years" }[Frequency[val.freq]]
-												: "Select"}
+											{val.freq != null ? frequenciesStrings[val.freq] : "Select"}
 										</span>
 									</Button>
 								</DropdownMenuTrigger>
@@ -269,7 +210,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 														tx.name === val.name
 															? {
 																	...tx,
-																	freq: frequencies[i],
+																	freq: frequencies[frequencies.length - 1 - i],
 															  }
 															: tx,
 													),
@@ -308,31 +249,11 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		accessorKey: "amount",
-		header: ({ column }) => {
-			return (
-				<div className="text-right">
-					<Button
-						variant={column.getIsSorted() ? "secondary" : "ghost"}
-						onClick={() =>
-							column.getIsSorted() === "desc"
-								? column.clearSorting()
-								: column.toggleSorting(column.getIsSorted() === "asc")
-						}
-					>
-						Amount
-						{column.getIsSorted() === "asc" ? (
-							<ArrowUp className="ml-2 h-4 w-4" />
-						) : column.getIsSorted() === "desc" ? (
-							<ArrowDown className="ml-2 h-4 w-4" />
-						) : (
-							" "
-						)}
-					</Button>
-				</div>
-			);
-		},
-		// header: "Amount",
-		// @ts-ignore custom cell context `isRowHovered`
+		header: ({ column }) => (
+			<div className="text-right">
+				<Header {...{ column, title: "Amount" }} />
+			</div>
+		),
 		cell: ({ row, isRowHovered }) => {
 			const amount = parseFloat(row.getValue("amount"));
 			const formatted = formatMoney(amount);
@@ -340,17 +261,11 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<div className="flex justify-end" style={{ width: 180, marginLeft: "auto" }}>
 					{row.original.disabled || !isRowHovered ? (
-						<span style={{ color: amount > -1 ? "#519c6b" : "red" }}>
+						<span style={{ color: amount > -1 ? GreenColor : "red" }}>
 							{amount > -1 && "+"}
 							{formatted}
 						</span>
 					) : (
-						// <div
-						// 	className="text-right font-medium"
-						// 	style={{ color: parseFloat(row.getValue("amount")) > -1 ? "#519c6b" : "red" }}
-						// >
-						// 	{formatted}
-						// </div>
 						<span className="input-symbol" style={{ position: "relative", left: 28 }}>
 							<Input
 								type="number"
@@ -366,7 +281,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 								className="text-sm"
 								style={{
 									minWidth: 144,
-									color: amount > 0 ? "#519c6b" : amount < 0 ? "red" : "inherit",
+									color: amount > 0 ? GreenColor : amount < 0 ? "red" : "inherit",
 									textAlign: "right",
 								}}
 							/>
@@ -378,24 +293,19 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		id: "actions",
-		// @ts-ignore custom cell context `isRowHovered`
-		cell: ({ row, isRowHovered }) => {
-			// const payment = row.original;
-
-			return (
-				<div style={{ width: 90 }}>
-					{isRowHovered && (
-						<div className="text-right">
-							<Button
-								variant="outline"
-								onClick={() => setTransactions((value) => value.filter((tx) => tx.name !== row.getValue("name")))}
-							>
-								<TrashIcon />
-							</Button>
-						</div>
-					)}
-				</div>
-			);
-		},
+		cell: ({ row, isRowHovered }) => (
+			<div style={{ width: 90 }}>
+				{isRowHovered && (
+					<div className="text-right">
+						<Button
+							variant="outline"
+							onClick={() => setTransactions((value) => value.filter((tx) => tx.name !== row.getValue("name")))}
+						>
+							<TrashIcon />
+						</Button>
+					</div>
+				)}
+			</div>
+		),
 	},
 ];

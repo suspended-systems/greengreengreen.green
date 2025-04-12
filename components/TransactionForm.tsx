@@ -19,13 +19,14 @@ import {
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { frequenciesStrings } from "./utils";
-import { Transaction } from "./transactions";
+import { frequenciesStrings, GreenColor } from "../app/utils";
+import { Transaction } from "../app/transactions";
 import { Frequency } from "rrule";
 
 const FormSchema = z.object({
 	name: z.string().nonempty("Name can't be empty."),
 	date: z.date(),
+	// Optional string number greater than 0
 	recurringInterval: z.union([
 		z
 			.string()
@@ -33,8 +34,10 @@ const FormSchema = z.object({
 			.refine((s) => Number(s) >= 1, "Interval must be greater than zero."),
 		z.literal(""),
 	]),
-	// @ts-ignore silly zod
+	// Optional string appearing in `frequenciesStrings`
+	// @ts-ignore: poor zod types
 	recurringFrequency: z.union([...frequenciesStrings.map(z.literal), z.literal("")]),
+	// Required nonzero string number
 	amount: z
 		.string()
 		.nonempty("Amount can't be empty.")
@@ -67,9 +70,12 @@ export function TransactionForm({
 			amount: data.amount,
 			date: data.date.getTime(),
 			...(data.recurringFrequency && {
-				freq: { days: Frequency.DAILY, weeks: Frequency.WEEKLY, months: Frequency.MONTHLY, years: Frequency.YEARLY }[
-					data.recurringFrequency as string
-				],
+				freq: {
+					days: Frequency.DAILY,
+					weeks: Frequency.WEEKLY,
+					months: Frequency.MONTHLY,
+					years: Frequency.YEARLY,
+				}[data.recurringFrequency as "days" | "weeks" | "months" | "years"],
 				interval: data.recurringInterval ? parseFloat(data.recurringInterval) : 1,
 			}),
 		};
@@ -113,11 +119,7 @@ export function TransactionForm({
 											)}
 										>
 											<CalendarIcon />
-											{field.value && new Date(field.value) ? (
-												new Date(field.value).toLocaleDateString()
-											) : (
-												<span>Select a date</span>
-											)}
+											{field.value ? new Date(field.value).toLocaleDateString() : "Select a date"}
 										</Button>
 									</PopoverTrigger>
 									<PopoverContent className="w-auto p-0" align="start">
@@ -152,11 +154,9 @@ export function TransactionForm({
 								name="recurringInterval"
 								render={({ field }) => (
 									<FormItem>
-										{/* <FormLabel>Recurring interval</FormLabel> */}
 										<FormControl>
 											<Input type="number" min="1" placeholder="1" style={{ width: 100 }} {...field} />
 										</FormControl>
-										{/* <FormMessage /> */}
 									</FormItem>
 								)}
 							/>
@@ -165,7 +165,6 @@ export function TransactionForm({
 								name="recurringFrequency"
 								render={({ field }) => (
 									<FormItem>
-										{/* <FormLabel>Recurring frequency</FormLabel> */}
 										<FormControl>
 											<DropdownMenu modal>
 												<DropdownMenuTrigger asChild>
@@ -194,7 +193,6 @@ export function TransactionForm({
 												</DropdownMenuContent>
 											</DropdownMenu>
 										</FormControl>
-										{/* <FormMessage /> */}
 									</FormItem>
 								)}
 							/>
@@ -224,7 +222,7 @@ export function TransactionForm({
 										placeholder="-80"
 										className="justify-start text-left font-normal"
 										style={{
-											color: parseFloat(field.value) > 0 ? "#519c6b" : parseFloat(field.value) < 0 ? "red" : "inherit",
+											color: parseFloat(field.value) > 0 ? GreenColor : parseFloat(field.value) < 0 ? "red" : "inherit",
 										}}
 										{...field}
 									/>

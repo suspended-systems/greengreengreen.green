@@ -1,7 +1,7 @@
 import { partition } from "lodash";
 import { Frequency, RRule } from "rrule";
-
 import { DAY_MS } from "./utils";
+
 export type Transaction = {
 	name: string;
 	date: number;

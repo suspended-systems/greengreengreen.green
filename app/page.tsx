@@ -1,24 +1,22 @@
 "use client";
 
-import "./home.css";
-
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
-import CalendarView from "./CalendarView";
-import TransactionsView from "./TransactionsView";
+import CalendarView from "../components/CalendarView";
+import TransactionsView from "../components/TransactionsView";
 
-import { columns as columnsData } from "./columns";
+import { columns as columnsData } from "../components/DataTable/columns";
 import { myTransactions, Transaction } from "./transactions";
 
 import { gsap } from "gsap";
 
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useIsomorphicLayoutEffect } from "./utils";
+import { GreenColor, useIsomorphicLayoutEffect } from "./utils";
 import { ModeToggle } from "../components/ModeToggle";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
@@ -67,9 +65,9 @@ export default function Home() {
 					width: 698,
 					margin: "0 auto",
 					pointerEvents: "none",
-					fontSize: 36,
+					fontSize: 20,
 					letterSpacing: 1,
-					color: "#519c6b",
+					color: GreenColor,
 					fontWeight: 300,
 					fontFamily: "sans-serif",
 				}}
@@ -79,7 +77,7 @@ export default function Home() {
 			<div>
 				<div
 					style={{
-						border: "1px solid #519c6b",
+						border: `1px solid ${GreenColor}`,
 						borderLeft: "150px solid transparent",
 						borderRight: "150px solid transparent",
 						position: "relative",
