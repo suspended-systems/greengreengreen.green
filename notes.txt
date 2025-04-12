@@ -52,12 +52,13 @@
 
 ###- night mode move to bottom right and have dropdown side open top
 
-- onboarding
+###- table sorting arrow direction display
 
 - replace name unique check with ids
 
+- onboarding
 
-stretch:
-###- table sorting arrow direction display
+
+future roadmap:
 - assign happiness points to transactions
 - categorize transactions
