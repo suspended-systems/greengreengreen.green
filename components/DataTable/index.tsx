@@ -37,34 +37,32 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../../app/transactions";
 
-const AddTransaction = ({
-	setTransactions,
-}: {
-	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-}) => (
-	<Dialog modal>
-		<DialogTrigger asChild>
-			<Button variant="outline" style={{ width: "fit-content" }}>
-				<PlusIcon />
-				Add Transaction
-				<span className="sr-only">Add transaction</span>
-			</Button>
-		</DialogTrigger>
-		<DialogContent>
-			<DialogHeader>
-				<DialogTitle>Add Transaction</DialogTitle>
-			</DialogHeader>
-			<TransactionForm {...{ setTransactions }} />
-		</DialogContent>
-	</Dialog>
-);
-
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	transactions: TData[];
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 	pagination: PaginationState;
 	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
+}
+
+function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>> }) {
+	return (
+		<Dialog modal>
+			<DialogTrigger asChild>
+				<Button variant="outline" style={{ width: "fit-content" }}>
+					<PlusIcon />
+					Add Transaction
+					<span className="sr-only">Add transaction</span>
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Add Transaction</DialogTitle>
+				</DialogHeader>
+				<TransactionForm {...{ setTransactions }} />
+			</DialogContent>
+		</Dialog>
+	);
 }
 
 function HoverableRow<TData>({ row }: { row: Row<TData> }) {

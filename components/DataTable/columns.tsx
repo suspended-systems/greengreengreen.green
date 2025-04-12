@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { CellContext, Column, ColumnDef, RowData } from "@tanstack/react-table";
+import { Column, ColumnDef, RowData } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -26,7 +26,6 @@ import { Switch } from "@/components/ui/switch";
 
 import { Transaction, txRRule } from "../../app/transactions";
 import { formatMoney, frequencies, frequenciesStrings, GreenColor } from "../../app/utils";
-import { Frequency } from "rrule";
 
 declare module "@tanstack/react-table" {
 	interface CellContext<TData extends RowData, TValue> {
@@ -144,9 +143,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		id: "freq",
-		accessorFn: (og) => {
-			return !og.freq ? undefined : `${og.freq}:${og.interval}`;
-		},
+		accessorFn: (og) => (og.freq == null ? undefined : `${og.freq}:${og.interval}`),
 		header: ({ column }) => <Header {...{ column, title: "Recurrence" }} />,
 		cell: ({ row, isRowHovered }) => {
 			const val = row.original as Transaction;
@@ -157,6 +154,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 				<div className="flex items-center" style={{ width: 255, height: 36, justifySelf: "center" }}>
 					{(row.original.disabled || !isRowHovered) && !isDropdownOpen ? (
 						row.original.freq ? (
+							// capitalize the E
 							"E" + txRRule(row.original).toText().slice(1)
 						) : (
 							""
@@ -171,7 +169,6 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 							<Input
 								type="number"
 								min="1"
-								// placeholder="1"
 								style={{ width: 60 }}
 								value={val.interval ?? 1}
 								onChange={(e) =>

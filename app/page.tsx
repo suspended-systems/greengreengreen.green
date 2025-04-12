@@ -2,22 +2,21 @@
 
 import { useMemo, useState } from "react";
 
-import { Toaster } from "@/components/ui/sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
-import CalendarView from "../components/CalendarView";
-
-import { columns as columnsData } from "../components/DataTable/columns";
+import { Toaster } from "@/components/ui/sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CalendarView from "@/components/CalendarView";
+import { columns as columnsData } from "@/components/DataTable/columns";
+import { ModeToggle } from "@/components/ModeToggle";
+import { DataTable } from "@/components/DataTable";
 import { myTransactions, Transaction } from "./transactions";
 
-import { gsap } from "gsap";
+import { GreenColor, useIsomorphicLayoutEffect } from "./utils";
 
+import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { GreenColor, useIsomorphicLayoutEffect } from "./utils";
-import { ModeToggle } from "../components/ModeToggle";
-import { DataTable } from "../components/DataTable";
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
@@ -54,8 +53,6 @@ export default function Home() {
 		return () => ctx.revert();
 	}, [tab]);
 
-	const calendarViewWidth = 698;
-
 	return (
 		<>
 			<div style={{ position: "absolute", right: 10, top: 10 }}>
@@ -75,27 +72,30 @@ export default function Home() {
 			>
 				green
 			</div>
-			<div>
-				<div
-					style={{
-						border: `1px solid ${GreenColor}`,
-						borderLeft: "150px solid transparent",
-						borderRight: "150px solid transparent",
-						position: "relative",
-						top: 1,
-						width: calendarViewWidth,
-						margin: "0 auto",
-					}}
-				/>
-				<Tabs defaultValue="calendar" onValueChange={setTab}>
-					<TabsList className="grid grid-cols-2" style={{ width: calendarViewWidth, margin: "0 auto" }}>
-						<TabsTrigger value="calendar">Calendar</TabsTrigger>
-						<TabsTrigger value="transactions">Transactions</TabsTrigger>
-					</TabsList>
-					<TabsContent className="tab-content" value="calendar" style={{ marginLeft: "auto", marginRight: "auto" }}>
-						<div>
-							<section className="gsap-container">
-								<span className="gsap-line"></span>
+			<div
+				style={{
+					border: `1px solid ${GreenColor}`,
+					borderLeft: "150px solid transparent",
+					borderRight: "150px solid transparent",
+					position: "relative",
+					top: 1,
+					margin: "0 auto",
+				}}
+			/>
+			<Tabs defaultValue="calendar" onValueChange={setTab}>
+				<TabsList className="grid grid-cols-2 w-full">
+					<TabsTrigger value="calendar">Calendar</TabsTrigger>
+					<TabsTrigger value="transactions">Transactions</TabsTrigger>
+				</TabsList>
+				<TabsContent
+					className="tab-content w-full"
+					value="calendar"
+					style={{ marginLeft: "auto", marginRight: "auto" }}
+				>
+					<div>
+						<section className="gsap-container">
+							<span className="gsap-line"></span>
+							<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>
 								<CalendarView
 									{...{
 										month,
@@ -109,19 +109,19 @@ export default function Home() {
 										setEndDate,
 									}}
 								/>
-							</section>
-						</div>
-					</TabsContent>
-					<TabsContent className="tab-content" value="transactions">
-						<div>
-							<section className="gsap-container">
-								<span className="gsap-line"></span>
-								<DataTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
-							</section>
-						</div>
-					</TabsContent>
-				</Tabs>
-			</div>
+							</div>
+						</section>
+					</div>
+				</TabsContent>
+				<TabsContent className="tab-content" value="transactions">
+					<div>
+						<section className="gsap-container">
+							<span className="gsap-line"></span>
+							<DataTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+						</section>
+					</div>
+				</TabsContent>
+			</Tabs>
 			<Toaster />
 		</>
 	);
