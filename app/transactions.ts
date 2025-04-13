@@ -67,9 +67,26 @@ export const defaultTransactions: Transaction[] = [
 		interval: 2,
 	},
 	{
+		name: "Rent",
+		date: new Date().setDate(1),
+		amount: -1500,
+		freq: Frequency.MONTHLY,
+	},
+	{
+		name: "Netflix",
+		date: new Date().setDate(4),
+		amount: -24.99,
+		freq: Frequency.MONTHLY,
+	},
+	{
 		name: "Internet Bill",
 		date: new Date().setDate(13),
 		amount: -80,
 		freq: Frequency.MONTHLY,
+	},
+	{
+		name: "Refund",
+		date: new Date().setDate(24),
+		amount: 200,
 	},
 ];
