@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, PropsWithChildren } from "react";
+import { useMemo, useState, useEffect, useLayoutEffect, PropsWithChildren } from "react";
 import { useLocalStorage } from "react-use";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
@@ -12,7 +12,7 @@ import { columns as columnsData } from "./TransactionsTable/columns";
 import { TransactionsTable } from "./TransactionsTable";
 import { defaultTransactions, Transaction } from "./transactions";
 
-import { GreenColor, useIsomorphicLayoutEffect } from "./utils";
+import { APP_NAME, GreenColor } from "./utils";
 
 import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
@@ -24,6 +24,8 @@ import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
+
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
 	return (
@@ -38,7 +40,7 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 }
 
 export default function Home() {
-	const [isTourComplete, setTourComplete] = useLocalStorage("isTourComplete", false);
+	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
 	const [activeTab, setActiveTab] = useState("calendar");
 
 	const [startValue, setStartValue] = useState(15000);
@@ -105,7 +107,7 @@ export default function Home() {
 					fontFamily: "sans-serif",
 				}}
 			>
-				green
+				{APP_NAME}
 			</div>
 			<div
 				style={{

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { ThemeProvider } from "./ThemeProvider";
+import { APP_NAME } from "./utils";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -16,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "green",
+	title: APP_NAME,
 };
 
 export default function RootLayout({
