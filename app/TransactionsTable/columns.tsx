@@ -42,7 +42,7 @@ function Header({ column, title }: { column: Column<Transaction, unknown>; title
 				column.getIsSorted() === "desc" ? column.clearSorting() : column.toggleSorting(column.getIsSorted() === "asc")
 			}
 		>
-			{title}
+			{title ?? "‎ "}
 			{column.getIsSorted() === "asc" ? (
 				<ArrowUp className="ml-2 h-4 w-4" />
 			) : column.getIsSorted() === "desc" ? (
