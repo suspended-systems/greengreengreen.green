@@ -40,6 +40,7 @@ export default function Tour({ isTourComplete, callback }: { isTourComplete?: bo
 	return (
 		!isTourComplete && (
 			<JoyRide
+				disableScrolling
 				callback={callback}
 				steps={TOUR_STEPS}
 				continuous

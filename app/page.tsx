@@ -138,7 +138,7 @@ export default function Home() {
 						<TabsTrigger value="calendar" style={{ color: GreenColor }}>
 							Calendar
 						</TabsTrigger>
-						<TabsTrigger value="transactions" style={{ color: GreenColor }}>
+						<TabsTrigger value="transactions" style={{ color: GreenColor }} className="tour-transactions">
 							Transactions
 						</TabsTrigger>
 					</TabsList>
