@@ -138,6 +138,10 @@
 	-ms-overflow-style: none; /* Internet Explorer 10+ */
 }
 
+.hide-box-shadow {
+	box-shadow: none;
+}
+
 /* For Chrome, Safari and Opera */
 .hide-scrollbar::-webkit-scrollbar {
 	display: none;

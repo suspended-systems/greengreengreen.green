@@ -275,7 +275,6 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 									);
 								}}
 								value={amount.toFixed(2)}
-								placeholder="Enter a start value..."
 								className="text-sm"
 								style={{
 									minWidth: 144,

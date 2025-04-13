@@ -108,7 +108,7 @@ export default function Home() {
 					fontFamily: "sans-serif",
 				}}
 			>
-				{APP_NAME}
+				💸 {APP_NAME}
 			</div>
 			<div
 				style={{
@@ -125,8 +125,10 @@ export default function Home() {
 				<span className="gsap-line"></span>
 				<Tabs value={activeTab} onValueChange={setActiveTab}>
 					<TabsList className="grid grid-cols-2 w-full">
-						<TabsTrigger value="calendar">Calendar</TabsTrigger>
-						<TabsTrigger value="transactions" className="tour-transactions">
+						<TabsTrigger value="calendar" style={{ color: GreenColor }}>
+							Calendar
+						</TabsTrigger>
+						<TabsTrigger value="transactions" style={{ color: GreenColor }}>
 							Transactions
 						</TabsTrigger>
 					</TabsList>

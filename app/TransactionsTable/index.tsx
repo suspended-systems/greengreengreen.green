@@ -138,7 +138,7 @@ export function TransactionsTable<TData, TValue>({
 						placeholder="Search..."
 						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
 						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-						className="max-w-sm text-sm"
+						className="max-w-sm text-sm hide-box-shadow"
 					/>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
