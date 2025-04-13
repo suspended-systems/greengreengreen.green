@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { Column, ColumnDef, RowData } from "@tanstack/react-table";
+import { CellContext, Column, ColumnDef, RowData } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -73,26 +73,42 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	{
 		accessorKey: "name",
 		header: ({ column }) => <Header {...{ column, title: "Transaction" }} />,
-		cell: ({ row, isRowHovered }) => (
-			<div style={{ width: 240 }}>
-				{row.original.disabled || !isRowHovered ? (
-					<span style={{ position: "relative", top: 0.5 }}>{row.getValue("name")}</span>
-				) : (
-					<Input
-						type="text"
-						onChange={(event) => {
-							const name = event.target.value;
+		cell: ({ row, isRowHovered }) => {
+			const [isInputSelected, setInputSelected] = useState(false);
 
-							setTransactions((value) => value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, name } : tx)));
-						}}
-						value={row.getValue("name")}
-						placeholder="Enter a transaction name..."
-						style={{ width: "fit-content", position: "relative", right: 13 }}
-						className="text-sm"
-					/>
-				)}
-			</div>
-		),
+			const handleFocus = () => {
+				setInputSelected(true);
+			};
+
+			const handleBlur = () => {
+				setInputSelected(false);
+			};
+
+			return (
+				<div style={{ width: 240 }}>
+					{(row.original.disabled || !isRowHovered) && !isInputSelected ? (
+						<span style={{ position: "relative", top: 0.5 }}>{row.getValue("name")}</span>
+					) : (
+						<Input
+							onFocus={handleFocus}
+							onBlur={handleBlur}
+							type="text"
+							onChange={(event) => {
+								const name = event.target.value;
+
+								setTransactions((value) =>
+									value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, name } : tx)),
+								);
+							}}
+							value={row.getValue("name")}
+							placeholder="Enter a transaction name..."
+							style={{ width: "fit-content", position: "relative", right: 13 }}
+							className="text-sm"
+						/>
+					)}
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "date",
@@ -150,10 +166,19 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			const val = row.original as Transaction;
 			const [isRecurring, setIsRecurring] = useState(val.freq != null);
 			const [isDropdownOpen, setDropDownOpen] = useState(false);
+			const [isInputSelected, setInputSelected] = useState(false);
+
+			const handleFocus = () => {
+				setInputSelected(true);
+			};
+
+			const handleBlur = () => {
+				setInputSelected(false);
+			};
 
 			return (
 				<div className="flex items-center" style={{ width: 255, height: 36, justifySelf: "center" }}>
-					{(row.original.disabled || !isRowHovered) && !isDropdownOpen ? (
+					{(row.original.disabled || !isRowHovered) && !isDropdownOpen && !isInputSelected ? (
 						row.original.freq != null ? (
 							// capitalize the E
 							"E" + txRRule(row.original).toText().slice(1)
@@ -168,6 +193,8 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 						<div className="flex flex-row items-center gap-2">
 							Every
 							<Input
+								onFocus={handleFocus}
+								onBlur={handleBlur}
 								type="number"
 								min="1"
 								style={{ width: 60 }}
@@ -253,35 +280,56 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			</div>
 		),
 		cell: ({ row, isRowHovered }) => {
-			const amount = parseFloat(row.getValue("amount"));
-			const formatted = formatMoney(amount);
+			const numberAmount = parseFloat(row.getValue("amount"));
+			const formattedString = formatMoney(numberAmount);
+
+			const [val, setVal] = useState(formattedString.slice(numberAmount < 0 ? 2 : 1));
+			const [isInputSelected, setInputSelected] = useState(false);
+
+			const handleFocus = () => {
+				setInputSelected(true);
+			};
+
+			const handleBlur = () => {
+				setInputSelected(false);
+			};
 
 			return (
 				<div className="flex justify-end" style={{ width: 180, marginLeft: "auto" }}>
-					{row.original.disabled || !isRowHovered ? (
-						<span style={{ color: amount > -1 ? GreenColor : "red" }}>
-							{amount > -1 && "+"}
-							{formatted}
+					{(row.original.disabled || !isRowHovered) && !isInputSelected ? (
+						<span style={{ color: numberAmount > -1 ? GreenColor : "red" }}>
+							{numberAmount > -1 && "+"}
+							{formattedString}
 						</span>
 					) : (
-						<span className="input-symbol" style={{ position: "relative", left: 28 }}>
+						<span className="input-symbol" style={{ position: "relative", left: 13, bottom: 0.5 }}>
 							<Input
-								type="number"
+								onFocus={handleFocus}
+								onBlur={handleBlur}
+								inputMode="numeric"
+								// type="number"
 								onChange={(event) => {
-									const amount = Number(event.target.value);
+									setVal(event.target.value);
+									// const amount = Number(event.target.value);
 
-									setTransactions((value) =>
-										value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
-									);
+									// console.log({ amount });
+
+									// // makes ux nicer
+									// if (amount !== 0) {
+									// 	setTransactions((value) =>
+									// 		value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
+									// 	);
+									// }
 								}}
-								value={amount.toFixed(2)}
+								value={val}
 								className="text-sm"
 								style={{
 									minWidth: 144,
-									color: amount > 0 ? GreenColor : amount < 0 ? "red" : "inherit",
+									color: numberAmount > 0 ? GreenColor : numberAmount < 0 ? "red" : "inherit",
 									textAlign: "right",
 								}}
 							/>
+							{/* a<input></input> */}
 						</span>
 					)}
 				</div>
