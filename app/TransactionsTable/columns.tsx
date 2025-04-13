@@ -36,6 +36,7 @@ declare module "@tanstack/react-table" {
 function Header({ column, title }: { column: Column<Transaction, unknown>; title?: string }) {
 	return (
 		<Button
+			size={!title ? "icon" : undefined}
 			variant={column.getIsSorted() ? "secondary" : "ghost"}
 			onClick={() =>
 				column.getIsSorted() === "desc" ? column.clearSorting() : column.toggleSorting(column.getIsSorted() === "asc")
@@ -47,7 +48,7 @@ function Header({ column, title }: { column: Column<Transaction, unknown>; title
 			) : column.getIsSorted() === "desc" ? (
 				<ArrowDown className="ml-2 h-4 w-4" />
 			) : (
-				" "
+				""
 			)}
 		</Button>
 	);

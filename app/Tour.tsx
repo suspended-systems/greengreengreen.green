@@ -32,7 +32,7 @@ const TOUR_STEPS = [
 	},
 	{
 		target: ".tour-edit-transaction",
-		content: "You can edit or remove a transaction by hovering it",
+		content: "You can edit or remove a transaction by hovering",
 	},
 ];
 
@@ -44,6 +44,9 @@ export default function Tour({ callback }: { callback: Callback }) {
 			continuous
 			showSkipButton
 			// showProgress
+			locale={{
+				last: "Complete tutorial 🎉",
+			}}
 			styles={{
 				tooltipContainer: {
 					textAlign: "left",
@@ -53,6 +56,15 @@ export default function Tour({ callback }: { callback: Callback }) {
 				},
 				buttonBack: {
 					marginRight: 10,
+					color: "black",
+				},
+				beaconInner: {
+					backgroundColor: GreenColor,
+				},
+				beaconOuter: {
+					// 0x33 / 0.2 alpha
+					backgroundColor: `${GreenColor}33`,
+					borderColor: GreenColor,
 				},
 			}}
 		/>
