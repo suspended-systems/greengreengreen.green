@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CalendarView from "@/app/CalendarView";
 import { columns as columnsData } from "./TransactionsTable/columns";
 import { TransactionsTable } from "./TransactionsTable";
-import { myTransactions, Transaction } from "./transactions";
+import { defaultTransactions, Transaction } from "./transactions";
 
 import { GreenColor, useIsomorphicLayoutEffect } from "./utils";
 
@@ -43,7 +43,7 @@ export default function Home() {
 	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
 	const [endDate, setEndDate] = useState<Date | undefined>();
 
-	const [transactions, setTransactions] = useState(myTransactions);
+	const [transactions, setTransactions] = useState(defaultTransactions);
 
 	const [month, onMonthChange] = useState(new Date());
 

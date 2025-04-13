@@ -58,135 +58,18 @@ export function calcProjectedValue({
 		}, startValue);
 }
 
-export const myTransactions: Transaction[] = [
-	/**
-	 * INCOME
-	 */
+export const defaultTransactions: Transaction[] = [
 	{
-		name: "Corpo paycheck",
-		date: Date.now(),
-		amount: 4375,
+		name: "Paycheck",
+		date: new Date().setDate(1),
+		amount: 2000,
 		freq: Frequency.WEEKLY,
 		interval: 2,
-		disabled: true,
 	},
 	{
-		name: "GS",
-		date: Date.now(),
-		amount: 1000,
-		freq: Frequency.MONTHLY,
-	},
-
-	/**
-	 * SPLURGE
-	 */
-	{
-		name: "DoorDash",
-		date: Date.now(),
-		amount: -30,
-		freq: Frequency.WEEKLY,
-		assignedHappinessPoints: 100,
-	},
-	{
-		name: "McDelivery",
-		date: Date.now(),
-		amount: -25,
-		freq: Frequency.WEEKLY,
-		assignedHappinessPoints: 100,
-	},
-	{
-		name: "Lekda Wellness Thai Massage",
-		date: Date.now() - 2 * DAY_MS,
-		amount: -250,
-		freq: Frequency.MONTHLY,
-		assignedHappinessPoints: 100,
-		disabled: true,
-	},
-	{
-		name: "Kintsu Medspa",
-		date: Date.now() - 2 * DAY_MS,
-		amount: -500,
-		freq: Frequency.MONTHLY,
-		interval: 2,
-		assignedHappinessPoints: 100,
-		disabled: true,
-	},
-
-	/**
-	 * STREAMING
-	 */
-	{
-		name: "Netflix",
-		date: Date.now() + 10 * DAY_MS,
-		amount: -24.99,
-		freq: Frequency.MONTHLY,
-		assignedHappinessPoints: 100,
-		// disabled: true,
-	},
-	{
-		name: "HBO Max",
-		date: Date.now() + 11 * DAY_MS,
-		amount: -16.99,
-		freq: Frequency.MONTHLY,
-		assignedHappinessPoints: 100,
-		// disabled: true,
-	},
-	{
-		name: "YouTube TV",
-		date: Date.now() + 12 * DAY_MS,
-		amount: -69.99,
-		freq: Frequency.MONTHLY,
-		assignedHappinessPoints: 100,
-		// disabled: true,
-	},
-
-	/**
-	 * REFUNDS
-	 */
-	{
-		name: "Neon tube light refund",
-		date: Date.now() + 10 * DAY_MS,
-		amount: 250,
-	},
-
-	/**
-	 * BILLZ
-	 */
-	{
-		name: "Rent",
-		date: Date.now(),
-		amount: -3200,
-		freq: Frequency.MONTHLY,
-	},
-	{
-		name: "Prosper",
-		date: Date.now() + DAY_MS * 3,
-		amount: -1000,
-		freq: Frequency.MONTHLY,
-	},
-	{
-		name: "Water",
-		date: Date.now(),
-		amount: -150,
-		freq: Frequency.MONTHLY,
-	},
-	{
-		name: "Power",
-		date: Date.now(),
-		amount: -100,
-		freq: Frequency.MONTHLY,
-	},
-	{
-		name: "Sonic Internet",
-		date: Date.now(),
+		name: "Internet Bill",
+		date: new Date().setDate(13),
 		amount: -80,
 		freq: Frequency.MONTHLY,
-	},
-	{
-		name: "Groceries",
-		date: Date.now() + DAY_MS + 1,
-		amount: -150,
-		freq: Frequency.WEEKLY,
-		interval: 2,
 	},
 ];

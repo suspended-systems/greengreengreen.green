@@ -15,7 +15,7 @@ const TOUR_STEPS = [
 	},
 	{
 		target: ".tour-calendar-today",
-		content: "You can click on a day to see its transactions",
+		content: "Click on a day to see its transactions",
 	},
 	{
 		target: ".tour-calendar-selected-day-details",
@@ -32,7 +32,7 @@ const TOUR_STEPS = [
 	},
 	{
 		target: ".tour-edit-transaction",
-		content: "You can edit or remove a transaction by hovering",
+		content: "You can edit or remove a transaction here",
 	},
 ];
 
@@ -43,9 +43,8 @@ export default function Tour({ callback }: { callback: Callback }) {
 			steps={TOUR_STEPS}
 			continuous
 			showSkipButton
-			// showProgress
 			locale={{
-				last: "Complete tutorial 🎉",
+				last: "Complete (back to calendar) 🎉",
 			}}
 			styles={{
 				tooltipContainer: {
