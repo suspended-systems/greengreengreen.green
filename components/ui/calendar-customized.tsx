@@ -47,7 +47,7 @@ function CalendarCustomized({
 				nav_button_next: "absolute right-1",
 				table: "w-full border-collapse space-x-1",
 				head_row: "flex py-4",
-				head_cell: `text-muted-foreground rounded-md w-24 font-normal text-[0.8rem]`,
+				head_cell: `text-muted-foreground rounded-md w-18 md:w-24 font-normal text-[0.8rem]`,
 				row: "flex w-full",
 				cell: cn(
 					"relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-range-end)]:rounded-r-md",
@@ -55,7 +55,7 @@ function CalendarCustomized({
 						? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
 						: "[&:has([aria-selected])]:rounded-md",
 				),
-				day: cn(buttonVariants({ variant: "ghost" }), `size-24 p-0 font-normal aria-selected:opacity-100`),
+				day: cn(buttonVariants({ variant: "ghost" }), `size-18 md:size-24 p-0 font-normal aria-selected:opacity-100`),
 				day_range_start: "day-range-start aria-selected:bg-primary aria-selected:text-primary-foreground",
 				day_range_end: "day-range-end aria-selected:bg-primary aria-selected:text-primary-foreground",
 				day_selected:
@@ -145,11 +145,19 @@ function CalendarCustomized({
 										: "inherit",
 								}}
 							>
-								{projectedValue && <div style={{ fontSize: 12 }}>{formatMoney(projectedValue)}</div>}
+								{projectedValue && <div className="text-[10px] md:text-xs">{formatMoney(projectedValue)}</div>}
 
 								<div style={{ fontWeight: "bold" }}>
-									{incomesTotal > 0 && <p style={{ color: GreenColor }}>+{formatMoney(incomesTotal)}</p>}
-									{expensesTotal < 0 && <p style={{ color: "red" }}>{formatMoney(expensesTotal)}</p>}
+									{incomesTotal > 0 && (
+										<p className="text-xs md:text-sm" style={{ color: GreenColor }}>
+											+{formatMoney(incomesTotal)}
+										</p>
+									)}
+									{expensesTotal < 0 && (
+										<p className="text-xs md:text-sm" style={{ color: "red" }}>
+											{formatMoney(expensesTotal)}
+										</p>
+									)}
 								</div>
 							</div>
 						</>

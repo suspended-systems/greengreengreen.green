@@ -1,6 +1,6 @@
 import "./globals.css";
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { ThemeProvider } from "./ThemeProvider";
@@ -18,6 +18,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
 	title: APP_NAME,
+};
+
+// tailwind recommended responsive design
+// https://tailwindcss.com/docs/responsive-design
+// https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Viewport_meta_element
+export const viewport: Viewport = {
+	width: "device-width",
+	initialScale: 1.0,
 };
 
 export default function RootLayout({

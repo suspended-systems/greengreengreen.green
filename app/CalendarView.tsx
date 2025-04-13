@@ -41,9 +41,9 @@ export default function CalendarView({
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
-		<div className="flex gap-8">
+		<div className="flex flex-col md:flex-row gap-4 md:gap-8">
 			{/* left panel */}
-			<div className="tour-calendar-selected-day-details flex flex-col gap-4">
+			<div className="tour-calendar-selected-day-details flex flex-col gap-4 order-last md:order-first">
 				<div className="tour-starting flex gap-2 items-center text-sm">
 					{/* starting values */}
 					<span style={{ whiteSpace: "nowrap" }}>Starting on</span>
