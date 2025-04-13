@@ -99,18 +99,20 @@ export default function CalendarView({
 									style={{ borderCollapse: "separate", borderSpacing: 8 }}
 								>
 									<tbody>
-										{dayTransactions.map((tx, i) => (
-											<tr key={`tx:${i}`}>
-												<td
-													className="text-right"
-													style={{ color: tx.amount > -1 ? GreenColor : "red", fontWeight: "bold" }}
-												>
-													{tx.amount > -1 ? "+" : ""}
-													{formatMoney(tx.amount)}
-												</td>
-												<td style={{ fontWeight: 500 }}>{tx.name}</td>
-											</tr>
-										))}
+										{dayTransactions
+											.sort((a, b) => b.amount - a.amount)
+											.map((tx, i) => (
+												<tr key={`tx:${i}`}>
+													<td
+														className="text-right"
+														style={{ color: tx.amount > -1 ? GreenColor : "red", fontWeight: "bold" }}
+													>
+														{tx.amount > -1 ? "+" : ""}
+														{formatMoney(tx.amount)}
+													</td>
+													<td style={{ fontWeight: 500 }}>{tx.name}</td>
+												</tr>
+											))}
 									</tbody>
 								</table>
 							</>
