@@ -54,7 +54,11 @@
 
 ###- table sorting arrow direction display
 
-fix gsap not staying registered
+###fix gsap not staying registered
+
+- mobile calendarview stacked layout
+
+- mobile transactions rows stacked cells layout
 
 - replace name unique check with ids
 
