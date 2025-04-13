@@ -24,8 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 
-import { Transaction, txRRule } from "../../app/transactions";
-import { formatMoney, frequencies, frequenciesStrings, GreenColor } from "../../app/utils";
+import { Transaction, txRRule } from "../transactions";
+import { formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
 
 declare module "@tanstack/react-table" {
 	interface CellContext<TData extends RowData, TValue> {

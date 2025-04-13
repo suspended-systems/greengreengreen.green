@@ -35,7 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import { TransactionForm } from "../TransactionForm";
-import { Transaction } from "../../app/transactions";
+import { Transaction } from "../transactions";
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -49,7 +49,7 @@ function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<R
 	return (
 		<Dialog modal>
 			<DialogTrigger asChild>
-				<Button variant="outline" style={{ width: "fit-content" }}>
+				<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
 					<PlusIcon />
 					Add Transaction
 					<span className="sr-only">Add transaction</span>
@@ -65,13 +65,14 @@ function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<R
 	);
 }
 
-function HoverableRow<TData>({ row }: { row: Row<TData> }) {
+function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number }) {
 	// Keep pointer event in state to detect hovering
 	// When hovering, the inline editing UI is shown
 	const [isRowHovered, setIsRowHovered] = React.useState(false);
 
 	return (
 		<TableRow
+			className={index === 0 ? "tour-edit-transaction" : ""}
 			key={row.id}
 			data-state={row.getIsSelected() && "selected"}
 			onMouseEnter={() => setIsRowHovered(true)}
@@ -97,7 +98,7 @@ function HoverableRow<TData>({ row }: { row: Row<TData> }) {
 	);
 }
 
-export function DataTable<TData, TValue>({
+export function TransactionsTable<TData, TValue>({
 	columns,
 	transactions,
 	setTransactions,
@@ -191,7 +192,7 @@ export function DataTable<TData, TValue>({
 						</TableHeader>
 						<TableBody>
 							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row }} />)
+								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
 							) : (
 								<TableRow>
 									<TableCell colSpan={columns.length} className="h-24 text-center">

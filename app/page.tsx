@@ -1,14 +1,14 @@
 "use client";
 
-import { useMemo, useState, PropsWithChildren } from "react";
+import { useMemo, useState, PropsWithChildren, useEffect } from "react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CalendarView from "@/components/CalendarView";
-import { columns as columnsData } from "@/components/DataTable/columns";
-import { DataTable } from "@/components/DataTable";
+import CalendarView from "@/app/CalendarView";
+import { columns as columnsData } from "./TransactionsTable/columns";
+import { TransactionsTable } from "./TransactionsTable";
 import { myTransactions, Transaction } from "./transactions";
 
 import { GreenColor, useIsomorphicLayoutEffect } from "./utils";
@@ -16,7 +16,11 @@ import { GreenColor, useIsomorphicLayoutEffect } from "./utils";
 import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ModeSwitcher } from "../components/ModeSwitcher";
+import { ModeSwitcher } from "./ModeSwitcher";
+
+import dynamic from "next/dynamic";
+import { CallBackProps } from "react-joyride";
+const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
@@ -24,34 +28,31 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 	return (
 		<TabsContent className="tab-content w-full" value={name} style={{ marginLeft: "auto", marginRight: "auto" }}>
 			<div>
-				<section className="gsap-container">
-					<span className="gsap-line"></span>
-					<div className="lg:mx-4">
-						<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>{children}</div>
-					</div>
-				</section>
+				<div className="lg:mx-4">
+					<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>{children}</div>
+				</div>
 			</div>
 		</TabsContent>
 	);
 }
 
 export default function Home() {
+	const [activeTab, setActiveTab] = useState("calendar");
+
 	const [startValue, setStartValue] = useState(15000);
 	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
 	const [endDate, setEndDate] = useState<Date | undefined>();
-	const [transactions, setTransactions] = useState(myTransactions);
 
-	const columns: ColumnDef<Transaction>[] = useMemo(() => columnsData(setTransactions), [setTransactions]);
+	const [transactions, setTransactions] = useState(myTransactions);
 
 	const [month, onMonthChange] = useState(new Date());
 
+	const columns: ColumnDef<Transaction>[] = useMemo(() => columnsData(setTransactions), [setTransactions]);
 	const [pagination, setPagination] = useState({
 		pageIndex: 0,
 		pageSize: 10,
 	} as PaginationState);
 
-	// solely used to ensure GSAP stays freshly registered, value meaningless and unused
-	const [tab, setTab] = useState("");
 	useIsomorphicLayoutEffect(() => {
 		const ctx = gsap.context(() => {
 			// makes the scroll snap to and pin tab content
@@ -60,17 +61,30 @@ export default function Home() {
 					trigger: ".gsap-container",
 					pin: true,
 					anticipatePin: 1,
-					start: "top top+=16px",
-					// end: "+=100%",
+					// assuming tab height of 36, start right after the tabs
+					start: "top top-=36px",
 				},
 			});
 		});
 
 		return () => ctx.revert();
-	}, [tab]);
+	}, []);
+
+	const handleJoyrideCallback = ({ index }: CallBackProps) => {
+		const manageTransactionsIndex = 4;
+		const finishIndex = 0;
+
+		const hooks = {
+			[manageTransactionsIndex]: () => setActiveTab("transactions"),
+			[finishIndex]: () => setActiveTab("calendar"),
+		};
+
+		hooks[index as keyof typeof hooks]?.();
+	};
 
 	return (
 		<>
+			<Tour callback={handleJoyrideCallback} />
 			{/* night mode toggle */}
 			<div style={{ position: "absolute", right: 0, top: 0 }}>
 				<ModeSwitcher />
@@ -101,30 +115,35 @@ export default function Home() {
 				}}
 			/>
 			{/* tabs */}
-			<Tabs defaultValue="calendar" onValueChange={setTab}>
-				<TabsList className="grid grid-cols-2 w-full">
-					<TabsTrigger value="calendar">Calendar</TabsTrigger>
-					<TabsTrigger value="transactions">Transactions</TabsTrigger>
-				</TabsList>
-				<TabContentItem name="calendar">
-					<CalendarView
-						{...{
-							month,
-							onMonthChange,
-							transactions,
-							startValue,
-							setStartValue,
-							startDate,
-							setStartDate,
-							endDate,
-							setEndDate,
-						}}
-					/>
-				</TabContentItem>
-				<TabContentItem name="transactions">
-					<DataTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
-				</TabContentItem>
-			</Tabs>
+			<section className="gsap-container">
+				<span className="gsap-line"></span>
+				<Tabs value={activeTab} onValueChange={setActiveTab}>
+					<TabsList className="grid grid-cols-2 w-full">
+						<TabsTrigger value="calendar">Calendar</TabsTrigger>
+						<TabsTrigger value="transactions" className="tour-transactions">
+							Transactions
+						</TabsTrigger>
+					</TabsList>
+					<TabContentItem name="calendar">
+						<CalendarView
+							{...{
+								month,
+								onMonthChange,
+								transactions,
+								startValue,
+								setStartValue,
+								startDate,
+								setStartDate,
+								endDate,
+								setEndDate,
+							}}
+						/>
+					</TabContentItem>
+					<TabContentItem name="transactions">
+						<TransactionsTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+					</TabContentItem>
+				</Tabs>
+			</section>
 			<Toaster />
 		</>
 	);

@@ -54,6 +54,8 @@
 
 ###- table sorting arrow direction display
 
+fix gsap not staying registered
+
 - replace name unique check with ids
 
 - onboarding

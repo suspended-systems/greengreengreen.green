@@ -10,8 +10,8 @@ import { CalendarCustomized } from "@/components/ui/calendar-customized";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { getTransactionsOnDay, Transaction } from "../app/transactions";
-import { formatMoney, GreenColor } from "../app/utils";
+import { getTransactionsOnDay, Transaction } from "./transactions";
+import { formatMoney, GreenColor } from "./utils";
 
 export default function CalendarView({
 	month,
@@ -43,8 +43,8 @@ export default function CalendarView({
 	return (
 		<div className="flex gap-8">
 			{/* left panel */}
-			<div className="flex flex-col gap-4">
-				<div className="flex gap-2 items-center text-sm">
+			<div className="tour-calendar-selected-day-details flex flex-col gap-4">
+				<div className="tour-starting flex gap-2 items-center text-sm">
 					{/* starting values */}
 					<span style={{ whiteSpace: "nowrap" }}>Starting on</span>
 					<Popover>
@@ -55,7 +55,7 @@ export default function CalendarView({
 								style={{ width: 120 }}
 							>
 								<CalendarIcon />
-								{startDate ? startDateIsToday ? "today" : startDate.toLocaleDateString() : <span>Select</span>}
+								{startDate ? startDateIsToday ? "Today" : startDate.toLocaleDateString() : <span>Select</span>}
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent className="w-auto p-0" align="start">
@@ -87,7 +87,7 @@ export default function CalendarView({
 					{endDate ? (
 						dayTransactions && dayTransactions.length > 0 ? (
 							<>
-								<div className="font-medium italic">
+								<div className="font-medium text-sm">
 									{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
 										month: "long",
 										weekday: "long",
@@ -115,7 +115,7 @@ export default function CalendarView({
 								</table>
 							</>
 						) : (
-							<p style={{ opacity: 0.5, fontStyle: "italic" }}>
+							<p className="text-sm" style={{ opacity: 0.5 }}>
 								No transactions on{" "}
 								{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
 									month: "long",
@@ -125,7 +125,9 @@ export default function CalendarView({
 							</p>
 						)
 					) : (
-						<p style={{ opacity: 0.5, fontStyle: "italic" }}>Select a date to view its transactions</p>
+						<p className="italic text-sm" style={{ opacity: 0.5 }}>
+							Select a date to view its transactions
+						</p>
 					)}
 				</div>
 			</div>
@@ -135,7 +137,7 @@ export default function CalendarView({
 				mode="single"
 				selected={endDate}
 				onSelect={setEndDate}
-				className="rounded-md border"
+				className="tour-calendar rounded-md border"
 			/>
 		</div>
 	);
