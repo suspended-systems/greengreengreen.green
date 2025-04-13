@@ -116,7 +116,7 @@ export default function Home() {
 					borderLeft: "150px solid transparent",
 					borderRight: "150px solid transparent",
 					position: "relative",
-					top: 1,
+					top: 3,
 					margin: "0 auto",
 				}}
 			/>
@@ -126,7 +126,7 @@ export default function Home() {
 					borderLeft: "150px solid transparent",
 					borderRight: "150px solid transparent",
 					position: "relative",
-					top: 1 + 36 + 1,
+					top: 37,
 					margin: "0 auto",
 				}}
 			/>
