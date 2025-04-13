@@ -80,6 +80,9 @@ importers:
       react-joyride:
         specifier: ^2.9.3
         version: 2.9.3(@types/react@19.0.12)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react-joyride-react-19:
+        specifier: ^2.9.2
+        version: 2.9.2(@types/react@19.0.12)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react-use:
         specifier: ^17.6.0
         version: 17.6.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -2021,6 +2024,12 @@ packages:
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
+
+  react-joyride-react-19@2.9.2:
+    resolution: {integrity: sha512-/ruorGnSPr9UUHMbXg47W+N/1Tm7T/mkMlHZ/d9DFYeP86OFJURoHK0Ij2PdtlZL4y6xFV+3n6dm7D+cSzQijw==}
+    peerDependencies:
+      react: 16.3 - 19
+      react-dom: 16.3 - 19
 
   react-joyride@2.9.3:
     resolution: {integrity: sha512-1+Mg34XK5zaqJ63eeBhqdbk7dlGCFp36FXwsEvgpjqrtyywX2C6h9vr3jgxP0bGHCw8Ilsp/nRDzNVq6HJ3rNw==}
@@ -4416,6 +4425,24 @@ snapshots:
       react: 19.0.0
 
   react-is@16.13.1: {}
+
+  react-joyride-react-19@2.9.2(@types/react@19.0.12)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+    dependencies:
+      '@gilbarbara/deep-equal': 0.3.1
+      deep-diff: 1.0.2
+      deepmerge: 4.3.1
+      is-lite: 1.2.1
+      react: 19.0.0
+      react-dom: 19.0.0(react@19.0.0)
+      react-floater: 0.7.9(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react-innertext: 1.1.5(@types/react@19.0.12)(react@19.0.0)
+      react-is: 16.13.1
+      scroll: 3.0.1
+      scrollparent: 2.1.0
+      tree-changes: 0.11.3
+      type-fest: 4.39.1
+    transitivePeerDependencies:
+      - '@types/react'
 
   react-joyride@2.9.3(@types/react@19.0.12)(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
