@@ -1,5 +1,6 @@
 import React from "react";
 import JoyRide, { Callback } from "react-joyride";
+import { GreenColor } from "./utils";
 
 const TOUR_STEPS = [
 	{
@@ -35,21 +36,20 @@ const TOUR_STEPS = [
 	},
 ];
 
-const Tour = ({ callback }: { callback: Callback }) => {
+export default function Tour({ callback }: { callback: Callback }) {
 	return (
 		<JoyRide
-			run={true}
 			callback={callback}
 			steps={TOUR_STEPS}
-			continuous={true}
-			showSkipButton={true}
-			showProgress={true}
+			continuous
+			showSkipButton
+			// showProgress
 			styles={{
 				tooltipContainer: {
 					textAlign: "left",
 				},
 				buttonNext: {
-					backgroundColor: "green",
+					backgroundColor: GreenColor,
 				},
 				buttonBack: {
 					marginRight: 10,
@@ -57,6 +57,4 @@ const Tour = ({ callback }: { callback: Callback }) => {
 			}}
 		/>
 	);
-};
-
-export default Tour;
+}
