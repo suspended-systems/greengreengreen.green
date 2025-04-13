@@ -186,88 +186,13 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 						) : (
 							""
 						)
-					) : !isRecurring ? (
-						<Button variant="outline" onClick={() => setIsRecurring(true)}>
-							<PlusIcon />
-						</Button>
 					) : (
-						<div className="flex flex-row items-center gap-2">
-							Every
-							<Input
-								onFocus={handleFocus}
-								onBlur={handleBlur}
-								type="number"
-								min="1"
-								style={{ width: 60 }}
-								value={val.interval ?? 1}
-								onChange={(e) =>
-									setTransactions((value) =>
-										value.map((tx) =>
-											tx.name === val.name
-												? {
-														...tx,
-														interval: Number(e.target.value),
-												  }
-												: tx,
-										),
-									)
-								}
-								className="text-sm"
-							/>
-							<DropdownMenu modal onOpenChange={setDropDownOpen}>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="outline"
-										className={cn("justify-start font-normal", val.freq == null && "text-muted-foreground")}
-										style={{ width: "fit-content" }}
-									>
-										<span style={{ width: "100%", textAlign: val.freq == null ? "center" : "left" }}>
-											{val.freq != null ? frequenciesStrings[frequenciesStrings.length - 1 - val.freq] : "Select"}
-										</span>
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: "fit-content" }}>
-									{frequenciesStrings.map((item, i) => (
-										<DropdownMenuItem
-											key={`freq-dropdown-item:${i}`}
-											onClick={() =>
-												setTransactions((value) =>
-													value.map((tx) =>
-														tx.name === val.name
-															? {
-																	...tx,
-																	freq: frequencies[i],
-															  }
-															: tx,
-													),
-												)
-											}
-										>
-											{item}
-										</DropdownMenuItem>
-									))}
-								</DropdownMenuContent>
-							</DropdownMenu>
-							<Button
-								variant="outline"
-								onClick={() => {
-									setIsRecurring(false);
-									setTransactions((value) =>
-										value.map((tx) =>
-											tx.name === val.name
-												? {
-														...tx,
-														freq: undefined,
-														interval: undefined,
-												  }
-												: tx,
-										),
-									);
-								}}
-							>
-								<XIcon />
-							</Button>
-						</div>
+						<InlineFrequencyEditor
+							tx={val}
+							handleInputFocus={handleFocus}
+							handleInputBlur={handleBlur}
+							{...{ setDropDownOpen, setTransactions }}
+						/>
 					)}
 				</div>
 			);
@@ -348,3 +273,103 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		),
 	},
 ];
+
+function InlineFrequencyEditor({
+	tx,
+	setDropDownOpen,
+	handleInputFocus,
+	handleInputBlur,
+	setTransactions,
+}: {
+	tx: Transaction;
+	setDropDownOpen: Dispatch<SetStateAction<boolean>>;
+	handleInputFocus: () => void;
+	handleInputBlur: () => void;
+	setTransactions: Dispatch<SetStateAction<Transaction[]>>;
+}) {
+	const [isRecurring, setIsRecurring] = useState(tx.freq != null);
+
+	return !isRecurring ? (
+		<Button variant="outline" onClick={() => setIsRecurring(true)}>
+			<PlusIcon />
+		</Button>
+	) : (
+		<div className="flex flex-row items-center gap-2">
+			Every
+			<Input
+				onFocus={handleInputFocus}
+				onBlur={handleInputBlur}
+				type="number"
+				min="1"
+				style={{ width: 60 }}
+				value={tx.interval ?? 1}
+				onChange={(e) =>
+					setTransactions((value) =>
+						value.map((t) =>
+							t.name === tx.name
+								? {
+										...t,
+										interval: Number(e.target.value),
+								  }
+								: t,
+						),
+					)
+				}
+				className="text-sm"
+			/>
+			<DropdownMenu modal onOpenChange={setDropDownOpen}>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="outline"
+						className={cn("justify-start font-normal", tx.freq == null && "text-muted-foreground")}
+						style={{ width: "fit-content" }}
+					>
+						<span style={{ width: "100%", textAlign: tx.freq == null ? "center" : "left" }}>
+							{tx.freq != null ? frequenciesStrings[frequenciesStrings.length - 1 - tx.freq] : "Select"}
+						</span>
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: "fit-content" }}>
+					{frequenciesStrings.map((item, i) => (
+						<DropdownMenuItem
+							key={`freq-dropdown-item:${i}`}
+							onClick={() =>
+								setTransactions((value) =>
+									value.map((t) =>
+										t.name === tx.name
+											? {
+													...t,
+													freq: frequencies[i],
+											  }
+											: t,
+									),
+								)
+							}
+						>
+							{item}
+						</DropdownMenuItem>
+					))}
+				</DropdownMenuContent>
+			</DropdownMenu>
+			<Button
+				variant="outline"
+				onClick={() => {
+					setIsRecurring(false);
+					setTransactions((value) =>
+						value.map((t) =>
+							t.name === tx.name
+								? {
+										...t,
+										freq: undefined,
+										interval: undefined,
+								  }
+								: t,
+						),
+					);
+				}}
+			>
+				<XIcon />
+			</Button>
+		</div>
+	);
+}
