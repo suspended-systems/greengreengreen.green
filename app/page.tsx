@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, PropsWithChildren, useEffect } from "react";
+import { useMemo, useState, PropsWithChildren } from "react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
