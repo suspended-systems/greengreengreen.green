@@ -2,13 +2,13 @@
 
 import { Dispatch, SetStateAction } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
-
 import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarCustomized } from "@/components/ui/calendar-customized";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import NumericInput from "@/components/NumericInput";
 
 import { getTransactionsOnDay, Transaction } from "./transactions";
 import { formatMoney, GreenColor } from "./utils";
@@ -70,15 +70,18 @@ export default function CalendarView({
 					</Popover>
 					with
 					<span className="input-symbol">
-						<Input
-							type="number"
-							onChange={(e) => setStartValue(parseFloat(e.target.value))}
-							value={startValue}
-							placeholder="5000"
+						<NumericInput
 							style={{
 								color: startValue > 0 ? GreenColor : startValue < 0 ? "red" : "inherit",
 								width: 120,
 							}}
+							onValidatedChange={(amount) => {
+								if (amount !== 0) {
+									setStartValue(amount);
+								}
+							}}
+							initialValue={startValue.toFixed(2)}
+							className="text-sm"
 						/>
 					</span>
 				</div>

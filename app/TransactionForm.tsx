@@ -6,8 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { toast } from "sonner";
-
 import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -19,6 +19,8 @@ import {
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import NumericInput from "@/components/NumericInput";
+
 import { frequenciesStrings, GreenColor } from "../app/utils";
 import { Transaction } from "../app/transactions";
 import { Frequency } from "rrule";
@@ -51,6 +53,8 @@ export function TransactionForm({
 }: {
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 }) {
+	// This flag toggles whenever you reset the form.
+	const [resetCounter, setResetCounter] = useState(0);
 	const [isRecurring, setIsRecurring] = useState(false);
 
 	const form = useForm<z.infer<typeof FormSchema>>({
@@ -82,6 +86,8 @@ export function TransactionForm({
 		setTransactions((value) => [transaction, ...value]);
 
 		form.reset();
+
+		setResetCounter((prevCount) => prevCount + 1);
 
 		toast(`Added new transaction "${data.name}"`);
 	}
@@ -216,7 +222,7 @@ export function TransactionForm({
 						<FormItem>
 							<FormLabel>Amount</FormLabel>
 							<FormControl>
-								<span className="input-symbol">
+								{/* <span className="input-symbol">
 									<Input
 										type="number"
 										placeholder="-80"
@@ -226,6 +232,28 @@ export function TransactionForm({
 										}}
 										{...field}
 									/>
+								</span> */}
+								<span className="input-symbol">
+									<>
+										{console.log({ fieldval: field.value })}
+										<NumericInput
+											key={resetCounter}
+											style={{
+												color:
+													Number(field.value.replaceAll(",", "")) > 0
+														? GreenColor
+														: Number(field.value.replaceAll(",", "")) < 0
+														? "red"
+														: "inherit",
+												width: 120,
+											}}
+											initialValue={field.value}
+											placeholder="-80"
+											className="justify-start text-left font-normal"
+											onValidatedChange={(amount) => field.onChange({ target: { value: String(amount) } })}
+											{...field}
+										/>
+									</>
 								</span>
 							</FormControl>
 							<FormDescription>Enter a negative amount for an expense.</FormDescription>

@@ -9,9 +9,9 @@ import {
 	Plus as PlusIcon,
 	X as XIcon,
 } from "lucide-react";
-
 import { cn } from "@/lib/utils";
-import { CellContext, Column, ColumnDef, RowData } from "@tanstack/react-table";
+import { Column, ColumnDef, RowData } from "@tanstack/react-table";
+
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import NumericInput from "@/components/NumericInput";
 
 import { Transaction, txRRule } from "../transactions";
 import { formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
@@ -280,10 +281,12 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			</div>
 		),
 		cell: ({ row, isRowHovered }) => {
+			const [resetFlag] = useState(false);
+
 			const numberAmount = parseFloat(row.getValue("amount"));
 			const formattedString = formatMoney(numberAmount);
 
-			const [val, setVal] = useState(formattedString.slice(numberAmount < 0 ? 2 : 1));
+			// const [val, setVal] = useState(formattedString.slice(numberAmount < 0 ? 2 : 1));
 			const [isInputSelected, setInputSelected] = useState(false);
 
 			const handleFocus = () => {
@@ -303,25 +306,17 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 						</span>
 					) : (
 						<span className="input-symbol" style={{ position: "relative", left: 13, bottom: 0.5 }}>
-							<Input
+							<NumericInput
 								onFocus={handleFocus}
 								onBlur={handleBlur}
-								inputMode="numeric"
-								// type="number"
-								onChange={(event) => {
-									setVal(event.target.value);
-									// const amount = Number(event.target.value);
-
-									// console.log({ amount });
-
-									// // makes ux nicer
-									// if (amount !== 0) {
-									// 	setTransactions((value) =>
-									// 		value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
-									// 	);
-									// }
+								onValidatedChange={(amount) => {
+									if (amount !== 0) {
+										setTransactions((value) =>
+											value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
+										);
+									}
 								}}
-								value={val}
+								initialValue={numberAmount.toFixed(2)}
 								className="text-sm"
 								style={{
 									minWidth: 144,
@@ -329,7 +324,6 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 									textAlign: "right",
 								}}
 							/>
-							{/* a<input></input> */}
 						</span>
 					)}
 				</div>
