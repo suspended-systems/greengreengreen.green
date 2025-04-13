@@ -1,103 +1,168 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState, useEffect, useLayoutEffect, PropsWithChildren } from "react";
+import { useLocalStorage } from "react-use";
+
+import { ColumnDef, PaginationState } from "@tanstack/react-table";
+
+import { Toaster } from "@/components/ui/sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CalendarView from "@/app/CalendarView";
+import { columns as columnsData } from "./TransactionsTable/columns";
+import { TransactionsTable } from "./TransactionsTable";
+import { defaultTransactions, Transaction } from "./transactions";
+
+import { APP_NAME, GreenColor } from "./utils";
+
+import { gsap } from "gsap";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { ModeSwitcher } from "./ModeSwitcher";
+
+import dynamic from "next/dynamic";
+import { CallBackProps } from "react-joyride";
+const Tour = dynamic(() => import("./Tour"), { ssr: false });
+
+gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
+
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
+	return (
+		<TabsContent className="tab-content w-full" value={name} style={{ marginLeft: "auto", marginRight: "auto" }}>
+			<div>
+				<div className="lg:mx-4">
+					<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>{children}</div>
+				</div>
+			</div>
+		</TabsContent>
+	);
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+	const [activeTab, setActiveTab] = useState("calendar");
+
+	const [startValue, setStartValue] = useState(5000);
+	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
+	const [endDate, setEndDate] = useState<Date | undefined>();
+
+	const [transactions, setTransactions] = useState(defaultTransactions);
+
+	const [month, onMonthChange] = useState(new Date());
+
+	const columns: ColumnDef<Transaction>[] = useMemo(() => columnsData(setTransactions), [setTransactions]);
+	const [pagination, setPagination] = useState({
+		pageIndex: 0,
+		pageSize: 10,
+	} as PaginationState);
+
+	useIsomorphicLayoutEffect(() => {
+		const ctx = gsap.context(() => {
+			// makes the scroll snap to and pin tab content
+			gsap.from(".gsap-line", {
+				scrollTrigger: {
+					trigger: ".gsap-container",
+					pin: true,
+					anticipatePin: 1,
+					// assuming tab height of 36, start right after the tabs
+					start: "top top-=36px",
+				},
+			});
+		});
+
+		return () => ctx.revert();
+	}, []);
+
+	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
+		const manageTransactionsIndex = 4;
+
+		if (action === "next" && index === manageTransactionsIndex) {
+			setActiveTab("transactions");
+		}
+
+		if (action === "reset") {
+			setActiveTab("calendar");
+			setTourComplete(true);
+		}
+	};
+
+	return (
+		<>
+			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
+			{/* night mode toggle */}
+			<div style={{ position: "absolute", right: 0, top: 0 }}>
+				<ModeSwitcher />
+			</div>
+			{/* banner */}
+			<div
+				className="text-center"
+				style={{
+					margin: "0 auto",
+					pointerEvents: "none",
+					fontSize: 20,
+					letterSpacing: 1,
+					color: GreenColor,
+					fontWeight: 500,
+					fontFamily: "sans-serif",
+				}}
+			>
+				💸 {APP_NAME}
+			</div>
+			<div
+				style={{
+					border: `1px solid ${GreenColor}`,
+					borderLeft: "150px solid transparent",
+					borderRight: "150px solid transparent",
+					position: "relative",
+					top: 3,
+					margin: "0 auto",
+				}}
+			/>
+			<div
+				style={{
+					border: `1px solid ${GreenColor}`,
+					borderLeft: "150px solid transparent",
+					borderRight: "150px solid transparent",
+					position: "relative",
+					top: 37,
+					margin: "0 auto",
+				}}
+			/>
+			{/* tabs */}
+			<section className="gsap-container">
+				<span className="gsap-line"></span>
+				<Tabs value={activeTab} onValueChange={setActiveTab}>
+					<TabsList className="grid grid-cols-2 w-full">
+						<TabsTrigger value="calendar" style={{ color: GreenColor }}>
+							Calendar
+						</TabsTrigger>
+						<TabsTrigger value="transactions" style={{ color: GreenColor }} className="tour-transactions">
+							Transactions
+						</TabsTrigger>
+					</TabsList>
+					<TabContentItem name="calendar">
+						<CalendarView
+							{...{
+								month,
+								onMonthChange,
+								transactions,
+								startValue,
+								setStartValue,
+								startDate,
+								setStartDate,
+								endDate,
+								setEndDate,
+							}}
+						/>
+					</TabContentItem>
+					<TabContentItem name="transactions">
+						<TransactionsTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+					</TabContentItem>
+				</Tabs>
+			</section>
+			<Toaster />
+		</>
+	);
 }

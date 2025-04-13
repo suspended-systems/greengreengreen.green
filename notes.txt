@@ -1,0 +1,70 @@
+###- toggle transaction enabled
+
+###- change begin day selection to be simple different box date component
+
+
+..
+
+
+
+...
+
+
+###-- replace emoji dots with just actual transactions listed in small font below the total when multiple from ea column. then show the expanded detail IN the cell that grows when clicking in
+
+
+
+...
+
+
+###- tx checkbox enable/disable
+
+
+...
+
+
+###- tx rename/set date/recurring/amount inline 
+
+...
+
+
+###- add transaction form
+
+...
+
+
+###- fix calendar popover not opening in form
+
+###- add form inputs for date/freq/amount
+
+...
+
+
+###-tx recurring frequency inline editing
+...
+
+
+###- column sorting headers. 
+
+
+###- transaction form onSubmit
+
+
+###- night mode move to bottom right and have dropdown side open top
+
+###- table sorting arrow direction display
+
+###fix gsap not staying registered
+
+- mobile calendarview stacked layout
+
+- mobile transactions rows stacked cells layout
+
+- replace name unique check with ids
+
+- onboarding
+
+
+future roadmap:
+- assign happiness points to transactions
+- categorize transactions
