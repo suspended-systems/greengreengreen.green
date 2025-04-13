@@ -43,7 +43,7 @@ export default function Home() {
 	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
 	const [activeTab, setActiveTab] = useState("calendar");
 
-	const [startValue, setStartValue] = useState(15000);
+	const [startValue, setStartValue] = useState(5000);
 	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
 	const [endDate, setEndDate] = useState<Date | undefined>();
 
