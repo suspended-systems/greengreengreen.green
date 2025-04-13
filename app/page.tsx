@@ -41,6 +41,7 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 
 export default function Home() {
 	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
+
 	const [activeTab, setActiveTab] = useState("calendar");
 
 	const [startValue, setStartValue] = useState(5000);
