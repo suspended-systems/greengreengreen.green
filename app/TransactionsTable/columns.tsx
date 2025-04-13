@@ -206,12 +206,9 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			</div>
 		),
 		cell: ({ row, isRowHovered }) => {
-			const [resetFlag] = useState(false);
-
 			const numberAmount = parseFloat(row.getValue("amount"));
 			const formattedString = formatMoney(numberAmount);
 
-			// const [val, setVal] = useState(formattedString.slice(numberAmount < 0 ? 2 : 1));
 			const [isInputSelected, setInputSelected] = useState(false);
 
 			const handleFocus = () => {

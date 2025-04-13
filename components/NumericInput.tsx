@@ -17,8 +17,6 @@ export default function NumericInput({
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const newValue = e.target.value;
 
-		console.log({ newValue });
-
 		if (newValue === "") {
 			setValue("");
 			return;

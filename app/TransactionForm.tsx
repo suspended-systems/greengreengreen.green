@@ -222,20 +222,8 @@ export function TransactionForm({
 						<FormItem>
 							<FormLabel>Amount</FormLabel>
 							<FormControl>
-								{/* <span className="input-symbol">
-									<Input
-										type="number"
-										placeholder="-80"
-										className="justify-start text-left font-normal"
-										style={{
-											color: parseFloat(field.value) > 0 ? GreenColor : parseFloat(field.value) < 0 ? "red" : "inherit",
-										}}
-										{...field}
-									/>
-								</span> */}
 								<span className="input-symbol">
 									<>
-										{console.log({ fieldval: field.value })}
 										<NumericInput
 											key={resetCounter}
 											style={{
