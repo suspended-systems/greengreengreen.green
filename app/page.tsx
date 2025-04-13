@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, PropsWithChildren } from "react";
+import { useLocalStorage } from "react-use";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
@@ -37,6 +38,7 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 }
 
 export default function Home() {
+	const [isTourComplete, setTourComplete] = useLocalStorage("isTourComplete", false);
 	const [activeTab, setActiveTab] = useState("calendar");
 
 	const [startValue, setStartValue] = useState(15000);
@@ -70,21 +72,22 @@ export default function Home() {
 		return () => ctx.revert();
 	}, []);
 
-	const handleJoyrideCallback = ({ index }: CallBackProps) => {
+	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
 		const manageTransactionsIndex = 4;
-		const finishIndex = 0;
 
-		const hooks = {
-			[manageTransactionsIndex]: () => setActiveTab("transactions"),
-			[finishIndex]: () => setActiveTab("calendar"),
-		};
+		if (action === "next" && index === manageTransactionsIndex) {
+			setActiveTab("transactions");
+		}
 
-		hooks[index as keyof typeof hooks]?.();
+		if (action === "reset") {
+			setActiveTab("calendar");
+			setTourComplete(true);
+		}
 	};
 
 	return (
 		<>
-			<Tour callback={handleJoyrideCallback} />
+			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
 			{/* night mode toggle */}
 			<div style={{ position: "absolute", right: 0, top: 0 }}>
 				<ModeSwitcher />

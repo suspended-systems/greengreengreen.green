@@ -36,36 +36,38 @@ const TOUR_STEPS = [
 	},
 ];
 
-export default function Tour({ callback }: { callback: Callback }) {
+export default function Tour({ isTourComplete, callback }: { isTourComplete?: boolean; callback: Callback }) {
 	return (
-		<JoyRide
-			callback={callback}
-			steps={TOUR_STEPS}
-			continuous
-			showSkipButton
-			locale={{
-				last: "Complete (back to calendar) 🎉",
-			}}
-			styles={{
-				tooltipContainer: {
-					textAlign: "left",
-				},
-				buttonNext: {
-					backgroundColor: GreenColor,
-				},
-				buttonBack: {
-					marginRight: 10,
-					color: "black",
-				},
-				beaconInner: {
-					backgroundColor: GreenColor,
-				},
-				beaconOuter: {
-					// 0x33 / 0.2 alpha
-					backgroundColor: `${GreenColor}33`,
-					borderColor: GreenColor,
-				},
-			}}
-		/>
+		!isTourComplete && (
+			<JoyRide
+				callback={callback}
+				steps={TOUR_STEPS}
+				continuous
+				showSkipButton
+				locale={{
+					last: "Complete (back to calendar) 🎉",
+				}}
+				styles={{
+					tooltipContainer: {
+						textAlign: "left",
+					},
+					buttonNext: {
+						backgroundColor: GreenColor,
+					},
+					buttonBack: {
+						marginRight: 10,
+						color: "black",
+					},
+					beaconInner: {
+						backgroundColor: GreenColor,
+					},
+					beaconOuter: {
+						// 0x33 / 0.2 alpha
+						backgroundColor: `${GreenColor}33`,
+						borderColor: GreenColor,
+					},
+				}}
+			/>
+		)
 	);
 }
