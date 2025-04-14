@@ -1,14 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, useState } from "react";
-import {
-	ArrowDown,
-	ArrowUp,
-	Calendar as CalendarIcon,
-	Trash as TrashIcon,
-	Plus as PlusIcon,
-	X as XIcon,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarIcon, TrashIcon, PlusIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Column, ColumnDef, RowData } from "@tanstack/react-table";
 

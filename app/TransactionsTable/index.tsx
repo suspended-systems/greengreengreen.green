@@ -2,12 +2,7 @@
 
 import * as React from "react";
 
-import {
-	EyeOff as EyeOffIcon,
-	ChevronLeft as ChevronLeftIcon,
-	ChevronRight as ChevronRightIcon,
-	Plus as PlusIcon,
-} from "lucide-react";
+import { EyeOffIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -36,6 +31,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../transactions";
+
+import { gsap } from "gsap";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
 interface TransactionsTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
@@ -167,7 +167,6 @@ export function TransactionsTable<TData, TValue>({
 		</>
 	);
 }
-
 
 function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>> }) {
 	return (
