@@ -13,6 +13,9 @@ import NumericInput from "@/components/NumericInput";
 import { getTransactionsOnDay, Transaction } from "./transactions";
 import { formatMoney, GreenColor } from "./utils";
 
+/**
+ * Additional styling exists in `@/components/ui/calendar-customized`
+ */
 export default function CalendarView({
 	month,
 	onMonthChange,
@@ -36,6 +39,7 @@ export default function CalendarView({
 }) {
 	const enabledTransactions = transactions.filter((tx) => !tx.disabled);
 
+	console.log({ enabledTransactions });
 	const dayTransactions = endDate && getTransactionsOnDay(endDate, enabledTransactions);
 
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
