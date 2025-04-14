@@ -71,7 +71,7 @@ export function TransactionForm({
 	function onSubmit(data: z.infer<typeof FormSchema>) {
 		const transaction: Transaction = {
 			name: data.name,
-			amount: data.amount,
+			amount: Number(data.amount),
 			date: data.date.getTime(),
 			...(data.recurringFrequency && {
 				freq: {
