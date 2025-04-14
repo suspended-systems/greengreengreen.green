@@ -37,7 +37,7 @@ export default function NumericInput({
 	};
 
 	return (
-		<div className="flex gap-2">
+		<div className="flex gap-1">
 			<input
 				style={props.style}
 				placeholder={props.placeholder}

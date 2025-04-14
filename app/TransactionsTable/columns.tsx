@@ -108,7 +108,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		accessorKey: "date",
 		header: ({ column }) => <HeaderWithSort {...{ column, title: "Date" }} />,
 		cell: ({ row, isRowHovered }) => (
-			<div style={{ width: 135 }}>
+			<div style={{ width: 97 }}>
 				{row.original.disabled || !isRowHovered ? (
 					new Date(row.getValue("date")).toLocaleDateString()
 				) : (
@@ -158,20 +158,11 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		header: ({ column }) => <HeaderWithSort {...{ column, title: "Recurrence" }} />,
 		cell: ({ row, isRowHovered }) => {
 			const val = row.original as Transaction;
-			const [isRecurring, setIsRecurring] = useState(val.freq != null);
 			const [isDropdownOpen, setDropDownOpen] = useState(false);
 			const [isInputSelected, setInputSelected] = useState(false);
 
-			const handleFocus = () => {
-				setInputSelected(true);
-			};
-
-			const handleBlur = () => {
-				setInputSelected(false);
-			};
-
 			return (
-				<div className="flex items-center" style={{ width: 255, height: 36, justifySelf: "center" }}>
+				<div className="flex items-center" style={{ width: 196, height: 36, justifySelf: "center" }}>
 					{(row.original.disabled || !isRowHovered) && !isDropdownOpen && !isInputSelected ? (
 						row.original.freq != null ? (
 							// capitalize the E
@@ -182,8 +173,8 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 					) : (
 						<InlineFrequencyEditor
 							tx={val}
-							handleInputFocus={handleFocus}
-							handleInputBlur={handleBlur}
+							handleInputFocus={() => setInputSelected(true)}
+							handleInputBlur={() => setInputSelected(false)}
 							{...{ setDropDownOpen, setTransactions }}
 						/>
 					)}
@@ -220,7 +211,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 							{formattedString}
 						</span>
 					) : (
-						<span className="input-symbol" style={{ position: "relative", left: 63 }}>
+						<span className="input-symbol" style={{ position: "relative", left: 59 }}>
 							<NumericInput
 								onFocus={handleFocus}
 								onBlur={handleBlur}
@@ -248,7 +239,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	{
 		id: "actions",
 		cell: ({ row, isRowHovered }) => (
-			<div style={{ width: 122 }}>
+			<div style={{ width: 118 }}>
 				{isRowHovered && (
 					<div className="text-right">
 						<Button
@@ -284,7 +275,7 @@ function InlineFrequencyEditor({
 			<PlusIcon />
 		</Button>
 	) : (
-		<div className="flex flex-row items-center gap-2">
+		<div className="flex flex-row items-center gap-1">
 			Every
 			<Input
 				onFocus={handleInputFocus}

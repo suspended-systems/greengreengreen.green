@@ -153,7 +153,7 @@ export function TransactionForm({
 							<PlusIcon />
 						</Button>
 					) : (
-						<div className="flex flex-row items-center gap-2">
+						<div className="flex flex-row items-center gap-1">
 							<span className="text-md md:text-sm">Every</span>
 							<FormField
 								control={form.control}
@@ -167,7 +167,7 @@ export function TransactionForm({
 												min="1"
 												placeholder="1"
 												// to line up with others and not expand the modal width
-												className="w-[63px] md:w-[68px]"
+												className="w-[71px] md:w-[76px]"
 												{...field}
 											/>
 										</FormControl>
