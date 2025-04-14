@@ -167,7 +167,7 @@ export function TransactionForm({
 												min="1"
 												placeholder="1"
 												// to line up with others and not expand the modal width
-												style={{ width: 63 }}
+												className="w-[63px] md:w-[68px]"
 												{...field}
 											/>
 										</FormControl>
@@ -241,7 +241,8 @@ export function TransactionForm({
 														: Number(field.value.replaceAll(",", "")) < 0
 														? "red"
 														: "inherit",
-												width: 120,
+												// to line up with others and not expand the modal width
+												width: 210,
 											}}
 											initialValue={field.value}
 											placeholder="-80"
