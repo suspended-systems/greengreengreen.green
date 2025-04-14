@@ -290,6 +290,7 @@ function InlineFrequencyEditor({
 				onFocus={handleInputFocus}
 				onBlur={handleInputBlur}
 				type="number"
+				inputMode="numeric"
 				min="1"
 				style={{ width: 60 }}
 				value={tx.interval ?? 1}

@@ -161,7 +161,14 @@ export function TransactionForm({
 								render={({ field }) => (
 									<FormItem>
 										<FormControl>
-											<Input type="number" min="1" placeholder="1" style={{ width: 100 }} {...field} />
+											<Input
+												type="number"
+												inputMode="numeric"
+												min="1"
+												placeholder="1"
+												style={{ width: 100 }}
+												{...field}
+											/>
 										</FormControl>
 									</FormItem>
 								)}
