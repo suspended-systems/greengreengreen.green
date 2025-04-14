@@ -39,7 +39,6 @@ export default function CalendarView({
 }) {
 	const enabledTransactions = transactions.filter((tx) => !tx.disabled);
 
-	console.log({ enabledTransactions });
 	const dayTransactions = endDate && getTransactionsOnDay(endDate, enabledTransactions);
 
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
