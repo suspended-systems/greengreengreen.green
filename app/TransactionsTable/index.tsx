@@ -37,11 +37,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../transactions";
 
-import { gsap } from "gsap";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
-
 interface TransactionsTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	transactions: TData[];
