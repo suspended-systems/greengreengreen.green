@@ -84,9 +84,6 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 						<span style={{ position: "relative", top: 0.5 }}>{row.getValue("name")}</span>
 					) : (
 						<Input
-							id="inputnamecolfoobar"
-							name="inputnamecollfoobar"
-							autoComplete="offinputnamecollfoobar"
 							onFocus={handleFocus}
 							onBlur={handleBlur}
 							type="text"
