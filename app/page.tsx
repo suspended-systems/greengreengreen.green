@@ -1,8 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState, useEffect, useLayoutEffect, PropsWithChildren } from "react";
-import { useLocalStorage } from "react-use";
+import { useMemo, useState, PropsWithChildren } from "react";
+import { useIsomorphicLayoutEffect, useLocalStorage } from "react-use";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
@@ -23,8 +23,6 @@ import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
-
-const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export default function Home() {
 	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
@@ -156,7 +154,11 @@ export default function Home() {
 
 function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
 	return (
-		<TabsContent className="tab-content w-full" value={name} style={{ marginLeft: "auto", marginRight: "auto" }}>
+		<TabsContent
+			className="tab-content w-full h-screen"
+			value={name}
+			style={{ marginLeft: "auto", marginRight: "auto" }}
+		>
 			<div>
 				<div className="lg:mx-4">
 					<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>{children}</div>
