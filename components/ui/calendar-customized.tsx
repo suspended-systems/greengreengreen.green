@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, Table } from "lucide-react";
-import { DayPicker } from "react-day-picker";
+import { ChevronLeft, ChevronRight, HomeIcon, Table } from "lucide-react";
+import { CaptionLabel, CaptionNavigation, DayPicker, useDayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { calcProjectedValue, getTransactionsOnDay, Transaction } from "../../app/transactions";
 import { DAY_MS, formatMoney, GreenColor } from "../../app/utils";
 
@@ -22,10 +22,12 @@ function CalendarCustomized({
 	endDate?: Date;
 	transactions?: Transaction[];
 } & React.ComponentProps<typeof DayPicker>) {
-	const { startValue, startDate, endDate, transactions } = props;
+	const { startValue, startDate, endDate, transactions, month, onMonthChange } = props;
 
 	return (
 		<DayPicker
+			// numberOfMonths={2}
+			fixedWeeks
 			formatters={{
 				formatWeekdayName: (date) =>
 					// display just the first letter of each day
@@ -68,6 +70,39 @@ function CalendarCustomized({
 				...classNames,
 			}}
 			components={{
+				CaptionLabel: (props) => {
+					const {
+						locale,
+						classNames,
+						styles,
+						formatters: { formatCaption },
+					} = useDayPicker();
+
+					const resetMonth = () => onMonthChange(new Date());
+
+					return (
+						<div className="flex flex-col items-center">
+							<div
+								className={`${classNames.caption_label}`}
+								style={styles.caption_label}
+								aria-live="polite"
+								role="presentation"
+								id={props.id}
+							>
+								{formatCaption(props.displayMonth, { locale })}
+							</div>
+							<div className="absolute" style={{ top: 24 }}>
+								{props.displayMonth.getMonth() !== new Date().getMonth() && (
+									<Button variant="outline" onClick={resetMonth} style={{ height: 28 }}>
+										<HomeIcon />
+										Back to today
+									</Button>
+								)}
+							</div>
+						</div>
+					);
+				},
+
 				DayContent: (props) => {
 					const dayTransactions = getTransactionsOnDay(props.date, transactions ?? []);
 

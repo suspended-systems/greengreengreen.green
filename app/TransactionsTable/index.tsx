@@ -169,13 +169,13 @@ function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<R
 			<DialogTrigger asChild>
 				<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
 					<PlusIcon />
-					Add Transaction
+					Add transaction
 					<span className="sr-only">Add transaction</span>
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Add Transaction</DialogTitle>
+					<DialogTitle>Add transaction</DialogTitle>
 				</DialogHeader>
 				<TransactionForm {...{ setTransactions }} />
 			</DialogContent>
