@@ -26,7 +26,7 @@ import { Transaction } from "../app/transactions";
 import { Frequency } from "rrule";
 
 const FormSchema = z.object({
-	name: z.string().nonempty("Name can't be empty."),
+	txname: z.string().nonempty("Name can't be empty."),
 	date: z.date(),
 	// Optional string number greater than 0
 	recurringInterval: z.union([
@@ -60,7 +60,7 @@ export function TransactionForm({
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
 		defaultValues: {
-			name: "",
+			txname: "",
 			// date: new Date(),
 			recurringInterval: "",
 			recurringFrequency: "",
@@ -70,7 +70,7 @@ export function TransactionForm({
 
 	function onSubmit(data: z.infer<typeof FormSchema>) {
 		const transaction: Transaction = {
-			name: data.name,
+			txname: data.txname,
 			amount: Number(data.amount),
 			date: data.date.getTime(),
 			...(data.recurringFrequency && {
@@ -89,7 +89,7 @@ export function TransactionForm({
 
 		setResetCounter((prevCount) => prevCount + 1);
 
-		toast(`Added new transaction "${data.name}"`);
+		toast(`Added new transaction "${data.txname}"`);
 	}
 
 	return (
@@ -97,7 +97,7 @@ export function TransactionForm({
 			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex flex-col">
 				<FormField
 					control={form.control}
-					name="name"
+					name="txname"
 					render={({ field }) => (
 						<FormItem>
 							<FormLabel>Name</FormLabel>
