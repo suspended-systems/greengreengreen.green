@@ -58,14 +58,15 @@
 
 ###- mobile calendarview stacked layout
 
--make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
-
--safari only text top 0.5 bottom 0.5 in inline editable columns
 
 - replace name unique check with ids
 
+- transactions saving / google sheets integration
+
 
 future roadmap:
+-safari only text top 0.5 bottom 0.5 in inline editable columns
+-make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
 - onboarding
 - assign happiness points to transactions
 - categorize transactions
