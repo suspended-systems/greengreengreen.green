@@ -102,11 +102,11 @@ export default function Home() {
 					borderLeft: "150px solid transparent",
 					borderRight: "150px solid transparent",
 					position: "relative",
-					top: 3,
+					top: 1, //3,
 					margin: "0 auto",
 				}}
 			/>
-			<div
+			{/* <div
 				style={{
 					border: `1px solid ${GreenColor}`,
 					borderLeft: "150px solid transparent",
@@ -115,7 +115,7 @@ export default function Home() {
 					top: 37,
 					margin: "0 auto",
 				}}
-			/>
+			/> */}
 			{/* tabs */}
 			<section className="gsap-container">
 				<span className="gsap-line"></span>
