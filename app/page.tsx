@@ -20,11 +20,6 @@ import { APP_NAME, GreenColor } from "./utils";
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
-import { gsap } from "gsap";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
-
 export default function Home() {
 	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
 
@@ -43,23 +38,6 @@ export default function Home() {
 		pageIndex: 0,
 		pageSize: 10,
 	} as PaginationState);
-
-	useIsomorphicLayoutEffect(() => {
-		const ctx = gsap.context(() => {
-			// makes the scroll snap to and pin tab content
-			gsap.from(".gsap-line", {
-				scrollTrigger: {
-					trigger: ".gsap-container",
-					pin: true,
-					anticipatePin: 1,
-					// assuming tab height of 36, start right after the tabs
-					start: "top top-=36px",
-				},
-			});
-		});
-
-		return () => ctx.revert();
-	}, []);
 
 	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
 		const manageTransactionsIndex = 4;
@@ -102,11 +80,11 @@ export default function Home() {
 					borderLeft: "150px solid transparent",
 					borderRight: "150px solid transparent",
 					position: "relative",
-					top: 3,
+					top: 1, //3
 					margin: "0 auto",
 				}}
 			/>
-			<div
+			{/* <div
 				style={{
 					border: `1px solid ${GreenColor}`,
 					borderLeft: "150px solid transparent",
@@ -115,41 +93,38 @@ export default function Home() {
 					top: 37,
 					margin: "0 auto",
 				}}
-			/>
+			/> */}
 			{/* tabs */}
-			<section className="gsap-container">
-				<span className="gsap-line"></span>
-				<Tabs value={activeTab} onValueChange={setActiveTab}>
-					<TabsList className="grid grid-cols-2 w-full">
-						<TabsTrigger value="calendar">
-							<CalendarDaysIcon />
-							Calendar
-						</TabsTrigger>
-						<TabsTrigger value="transactions" className="tour-transactions">
-							<CircleDollarSignIcon />
-							Transactions
-						</TabsTrigger>
-					</TabsList>
-					<TabContentItem name="calendar">
-						<CalendarView
-							{...{
-								month,
-								onMonthChange,
-								transactions,
-								startValue,
-								setStartValue,
-								startDate,
-								setStartDate,
-								endDate,
-								setEndDate,
-							}}
-						/>
-					</TabContentItem>
-					<TabContentItem name="transactions">
-						<TransactionsTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
-					</TabContentItem>
-				</Tabs>
-			</section>
+			<Tabs value={activeTab} onValueChange={setActiveTab}>
+				<TabsList className="grid grid-cols-2 w-full">
+					<TabsTrigger value="calendar">
+						<CalendarDaysIcon />
+						Calendar
+					</TabsTrigger>
+					<TabsTrigger value="transactions" className="tour-transactions">
+						<CircleDollarSignIcon />
+						Transactions
+					</TabsTrigger>
+				</TabsList>
+				<TabContentItem name="calendar">
+					<CalendarView
+						{...{
+							month,
+							onMonthChange,
+							transactions,
+							startValue,
+							setStartValue,
+							startDate,
+							setStartDate,
+							endDate,
+							setEndDate,
+						}}
+					/>
+				</TabContentItem>
+				<TabContentItem name="transactions">
+					<TransactionsTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+				</TabContentItem>
+			</Tabs>
 			<Toaster />
 		</>
 	);
@@ -157,12 +132,8 @@ export default function Home() {
 
 function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
 	return (
-		<TabsContent
-			className="tab-content w-full h-screen"
-			value={name}
-			style={{ marginLeft: "auto", marginRight: "auto" }}
-		>
-			<div>
+		<TabsContent className="tab-content w-full mx-auto" value={name} style={{ height: "calc(100vh - 16px)" }}>
+			<div className="h-full">
 				<div className="flex justify-center lg:mx-4">
 					<div className="flex justify-start" style={{ overflowX: "auto" }}>
 						{children}
