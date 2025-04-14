@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo, useState, useEffect, useLayoutEffect, PropsWithChildren } from "react";
 import { useLocalStorage } from "react-use";
 
@@ -10,34 +11,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CalendarView from "@/app/CalendarView";
 import { columns as columnsData } from "./TransactionsTable/columns";
 import { TransactionsTable } from "./TransactionsTable";
-import { defaultTransactions, Transaction } from "./transactions";
+import { ModeSwitcher } from "./ModeSwitcher";
 
+import { defaultTransactions, Transaction } from "./transactions";
 import { APP_NAME, GreenColor } from "./utils";
+
+import { CallBackProps } from "react-joyride";
+const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
 import { gsap } from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { ModeSwitcher } from "./ModeSwitcher";
-
-import dynamic from "next/dynamic";
-import { CallBackProps } from "react-joyride";
-const Tour = dynamic(() => import("./Tour"), { ssr: false });
-
 gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
-
-function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
-	return (
-		<TabsContent className="tab-content w-full" value={name} style={{ marginLeft: "auto", marginRight: "auto" }}>
-			<div>
-				<div className="lg:mx-4">
-					<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>{children}</div>
-				</div>
-			</div>
-		</TabsContent>
-	);
-}
 
 export default function Home() {
 	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
@@ -164,5 +151,17 @@ export default function Home() {
 			</section>
 			<Toaster />
 		</>
+	);
+}
+
+function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
+	return (
+		<TabsContent className="tab-content w-full" value={name} style={{ marginLeft: "auto", marginRight: "auto" }}>
+			<div>
+				<div className="lg:mx-4">
+					<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>{children}</div>
+				</div>
+			</div>
+		</TabsContent>
 	);
 }
