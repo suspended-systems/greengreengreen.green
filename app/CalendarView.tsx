@@ -46,7 +46,7 @@ export default function CalendarView({
 	return (
 		<div className="flex flex-col md:flex-row gap-4 md:gap-8">
 			{/* left panel */}
-			<div className="tour-calendar-selected-day-details flex flex-col gap-4 items-center order-last md:order-first">
+			<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
 				<div className="tour-starting flex gap-2 items-center text-sm">
 					{/* starting values */}
 					<span className="hidden md:inline" style={{ whiteSpace: "nowrap" }}>
@@ -91,7 +91,7 @@ export default function CalendarView({
 					</span>
 				</div>
 				{/* selected day transactions */}
-				<div className="flex flex-col justify-center items-center py-4">
+				<div className="flex flex-col justify-center items-center py-4 order-3 md:order-2">
 					{endDate ? (
 						dayTransactions && dayTransactions.length > 0 ? (
 							<>
