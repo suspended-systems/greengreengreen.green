@@ -102,7 +102,7 @@ export function TransactionForm({
 						<FormItem>
 							<FormLabel>Name</FormLabel>
 							<FormControl>
-								<Input placeholder="Concert tickets" {...field} />
+								<Input autoComplete="off" placeholder="Concert tickets" {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
