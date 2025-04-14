@@ -157,11 +157,7 @@ export default function Home() {
 
 function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
 	return (
-		<TabsContent
-			className="tab-content w-full h-screen"
-			value={name}
-			style={{ marginLeft: "auto", marginRight: "auto" }}
-		>
+		<TabsContent className="tab-content mx-auto w-full" value={name}>
 			<div className="flex justify-center lg:mx-4">
 				<div className="flex justify-start" style={{ overflowX: "auto" }}>
 					{children}
