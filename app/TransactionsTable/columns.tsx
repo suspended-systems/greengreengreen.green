@@ -34,7 +34,7 @@ declare module "@tanstack/react-table" {
 	}
 }
 
-function Header({ column, title }: { column: Column<Transaction, unknown>; title?: string }) {
+function HeaderWithSort({ column, title }: { column: Column<Transaction, unknown>; title?: string }) {
 	return (
 		<Button
 			size={!title ? "icon" : undefined}
@@ -58,7 +58,7 @@ function Header({ column, title }: { column: Column<Transaction, unknown>; title
 export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>): ColumnDef<Transaction>[] => [
 	{
 		accessorKey: "disabled",
-		header: ({ column }) => <Header {...{ column }} />,
+		header: ({ column }) => <HeaderWithSort {...{ column }} />,
 		cell: ({ row }) => (
 			<Switch
 				checked={!row.getValue("disabled")}
@@ -73,7 +73,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		accessorKey: "name",
-		header: ({ column }) => <Header {...{ column, title: "Transaction" }} />,
+		header: ({ column }) => <HeaderWithSort {...{ column, title: "Transaction" }} />,
 		cell: ({ row, isRowHovered }) => {
 			const [isInputSelected, setInputSelected] = useState(false);
 
@@ -113,7 +113,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	},
 	{
 		accessorKey: "date",
-		header: ({ column }) => <Header {...{ column, title: "Date" }} />,
+		header: ({ column }) => <HeaderWithSort {...{ column, title: "Date" }} />,
 		cell: ({ row, isRowHovered }) => (
 			<div style={{ width: 135 }}>
 				{row.original.disabled || !isRowHovered ? (
@@ -162,7 +162,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 	{
 		id: "freq",
 		accessorFn: (og) => (og.freq == null ? undefined : `${og.freq}:${og.interval}`),
-		header: ({ column }) => <Header {...{ column, title: "Recurrence" }} />,
+		header: ({ column }) => <HeaderWithSort {...{ column, title: "Recurrence" }} />,
 		cell: ({ row, isRowHovered }) => {
 			const val = row.original as Transaction;
 			const [isRecurring, setIsRecurring] = useState(val.freq != null);
@@ -202,7 +202,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 		accessorKey: "amount",
 		header: ({ column }) => (
 			<div className="text-right">
-				<Header {...{ column, title: "Amount" }} />
+				<HeaderWithSort {...{ column, title: "Amount" }} />
 			</div>
 		),
 		cell: ({ row, isRowHovered }) => {
