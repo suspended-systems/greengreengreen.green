@@ -160,8 +160,10 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 			style={{ marginLeft: "auto", marginRight: "auto" }}
 		>
 			<div>
-				<div className="lg:mx-4">
-					<div style={{ display: "flex", overflowX: "auto", justifyContent: "center" }}>{children}</div>
+				<div className="flex justify-center lg:mx-4">
+					<div className="flex justify-start" style={{ overflowX: "auto" }}>
+						{children}
+					</div>
 				</div>
 			</div>
 		</TabsContent>
