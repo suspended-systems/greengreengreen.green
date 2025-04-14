@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useMemo, useState, PropsWithChildren } from "react";
 import { useIsomorphicLayoutEffect, useLocalStorage } from "react-use";
+import { CalendarDaysIcon, CircleDollarSignIcon } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
@@ -120,10 +121,12 @@ export default function Home() {
 				<span className="gsap-line"></span>
 				<Tabs value={activeTab} onValueChange={setActiveTab}>
 					<TabsList className="grid grid-cols-2 w-full">
-						<TabsTrigger value="calendar" style={{ color: GreenColor }}>
+						<TabsTrigger value="calendar">
+							<CalendarDaysIcon />
 							Calendar
 						</TabsTrigger>
-						<TabsTrigger value="transactions" style={{ color: GreenColor }} className="tour-transactions">
+						<TabsTrigger value="transactions" className="tour-transactions">
+							<CircleDollarSignIcon />
 							Transactions
 						</TabsTrigger>
 					</TabsList>
