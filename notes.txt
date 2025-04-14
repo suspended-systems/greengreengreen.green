@@ -56,17 +56,14 @@
 
 ###fix gsap not staying registered
 
+###- mobile calendarview stacked layout
+
 -safari only text top 0.5 bottom 0.5 in inline editable columns
-
-- mobile calendarview stacked layout
-
-- mobile transactions rows stacked cells layout
 
 - replace name unique check with ids
 
-- onboarding
-
 
 future roadmap:
+- onboarding
 - assign happiness points to transactions
 - categorize transactions
