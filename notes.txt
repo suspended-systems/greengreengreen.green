@@ -58,7 +58,6 @@
 
 ###- mobile calendarview stacked layout
 
-
 - replace name unique check with ids
 
 - transactions saving / google sheets integration
