@@ -162,7 +162,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			const [isInputSelected, setInputSelected] = useState(false);
 
 			return (
-				<div className="flex items-center" style={{ width: 196, height: 36, justifySelf: "center" }}>
+				<div className="flex items-center" style={{ width: 207, height: 36, justifySelf: "center" }}>
 					{(row.original.disabled || !isRowHovered) && !isDropdownOpen && !isInputSelected ? (
 						row.original.freq != null ? (
 							// capitalize the E
@@ -304,7 +304,7 @@ function InlineFrequencyEditor({
 					<Button
 						variant="outline"
 						className={cn("justify-start font-normal", tx.freq == null && "text-muted-foreground")}
-						style={{ width: "fit-content" }}
+						style={{ width: 90 }}
 					>
 						<span style={{ width: "100%", textAlign: tx.freq == null ? "center" : "left" }}>
 							{tx.freq != null ? frequenciesStrings[frequenciesStrings.length - 1 - tx.freq] : "Select"}
