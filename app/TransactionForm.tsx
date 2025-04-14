@@ -166,7 +166,8 @@ export function TransactionForm({
 												inputMode="numeric"
 												min="1"
 												placeholder="1"
-												style={{ width: 100 }}
+												// to line up with others and not expand the modal width
+												style={{ width: 63 }}
 												{...field}
 											/>
 										</FormControl>
@@ -187,10 +188,10 @@ export function TransactionForm({
 															"justify-start font-normal text-md md:text-sm",
 															!field.value && "text-muted-foreground",
 														)}
-														style={{ width: 190 }}
+														style={{ width: 90 }}
 													>
 														<span style={{ width: "100%", textAlign: field.value ? "left" : "center" }}>
-															{field.value || "Select a frequency"}
+															{field.value || "Select"}
 														</span>
 													</Button>
 												</DropdownMenuTrigger>
