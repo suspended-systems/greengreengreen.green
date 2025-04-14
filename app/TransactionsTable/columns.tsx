@@ -81,7 +81,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 			return (
 				<div style={{ width: 240 }}>
 					{(row.original.disabled || !isRowHovered) && !isInputSelected ? (
-						<span style={{ position: "relative", top: 0.5 }}>{row.getValue("name")}</span>
+						<span style={{ position: "relative" }}>{row.getValue("name")}</span>
 					) : (
 						<Input
 							onFocus={handleFocus}
@@ -220,7 +220,7 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 							{formattedString}
 						</span>
 					) : (
-						<span className="input-symbol" style={{ position: "relative", left: 63, bottom: 0.5 }}>
+						<span className="input-symbol" style={{ position: "relative", left: 63 }}>
 							<NumericInput
 								onFocus={handleFocus}
 								onBlur={handleBlur}
