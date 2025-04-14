@@ -37,65 +37,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../transactions";
 
-interface DataTableProps<TData, TValue> {
+import { gsap } from "gsap";
+import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
+
+interface TransactionsTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
 	transactions: TData[];
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 	pagination: PaginationState;
 	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
-}
-
-function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>> }) {
-	return (
-		<Dialog modal>
-			<DialogTrigger asChild>
-				<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
-					<PlusIcon />
-					Add Transaction
-					<span className="sr-only">Add transaction</span>
-				</Button>
-			</DialogTrigger>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Add Transaction</DialogTitle>
-				</DialogHeader>
-				<TransactionForm {...{ setTransactions }} />
-			</DialogContent>
-		</Dialog>
-	);
-}
-
-function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number }) {
-	// Keep pointer event in state to detect hovering
-	// When hovering, the inline editing UI is shown
-	const [isRowHovered, setIsRowHovered] = React.useState(false);
-
-	return (
-		<TableRow
-			className={index === 0 ? "tour-edit-transaction" : ""}
-			key={row.id}
-			data-state={row.getIsSelected() && "selected"}
-			onMouseEnter={() => setIsRowHovered(true)}
-			onMouseLeave={() => setIsRowHovered(false)}
-		>
-			{row.getVisibleCells().map((cell, i, arr) => {
-				// The first cell (toggle switch) and last cell (trash can) are always enabled.
-				const isDisabled = row.getValue("disabled") && i !== 0 && i !== arr.length - 1;
-
-				return (
-					<TableCell
-						key={cell.id}
-						style={{
-							pointerEvents: isDisabled ? "none" : "inherit",
-							opacity: row.getValue("disabled") && i !== 0 && i !== arr.length - 1 ? "0.5" : "inherit",
-						}}
-					>
-						{flexRender(cell.column.columnDef.cell, { ...cell.getContext(), isRowHovered })}
-					</TableCell>
-				);
-			})}
-		</TableRow>
-	);
 }
 
 export function TransactionsTable<TData, TValue>({
@@ -104,7 +56,7 @@ export function TransactionsTable<TData, TValue>({
 	setTransactions,
 	pagination,
 	setPagination,
-}: DataTableProps<TData, TValue>) {
+}: TransactionsTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -218,5 +170,59 @@ export function TransactionsTable<TData, TValue>({
 				</div>
 			</div>
 		</>
+	);
+}
+
+
+function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>> }) {
+	return (
+		<Dialog modal>
+			<DialogTrigger asChild>
+				<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
+					<PlusIcon />
+					Add Transaction
+					<span className="sr-only">Add transaction</span>
+				</Button>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Add Transaction</DialogTitle>
+				</DialogHeader>
+				<TransactionForm {...{ setTransactions }} />
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number }) {
+	// Keep pointer event in state to detect hovering
+	// When hovering, the inline editing UI is shown
+	const [isRowHovered, setIsRowHovered] = React.useState(false);
+
+	return (
+		<TableRow
+			className={index === 0 ? "tour-edit-transaction" : ""}
+			key={row.id}
+			data-state={row.getIsSelected() && "selected"}
+			onMouseEnter={() => setIsRowHovered(true)}
+			onMouseLeave={() => setIsRowHovered(false)}
+		>
+			{row.getVisibleCells().map((cell, i, arr) => {
+				// The first cell (toggle switch) and last cell (trash can) are always enabled.
+				const isDisabled = row.getValue("disabled") && i !== 0 && i !== arr.length - 1;
+
+				return (
+					<TableCell
+						key={cell.id}
+						style={{
+							pointerEvents: isDisabled ? "none" : "inherit",
+							opacity: row.getValue("disabled") && i !== 0 && i !== arr.length - 1 ? "0.5" : "inherit",
+						}}
+					>
+						{flexRender(cell.column.columnDef.cell, { ...cell.getContext(), isRowHovered })}
+					</TableCell>
+				);
+			})}
+		</TableRow>
 	);
 }
