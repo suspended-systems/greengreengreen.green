@@ -60,6 +60,8 @@
 
 - replace name unique check with ids
 
+- style={{}} cleanup replace with tailwind
+
 - transactions saving / google sheets integration
 
 
