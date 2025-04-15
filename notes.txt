@@ -62,15 +62,15 @@
 
 ###- mobile move tabs to bottom and gsap reverse, hide logo in banner, make tabs taller and big icon
 
+- transactions saving / google sheets integration
+
 - replace name unique check with ids
 
 - style={{}} cleanup replace with tailwind
 
-- transactions saving / google sheets integration
-
-
 future roadmap:
--make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
+- reintroduce gsap?
+- make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
 - onboarding
 - assign happiness points to transactions
 - categorize transactions

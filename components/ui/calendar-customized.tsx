@@ -91,9 +91,9 @@ function CalendarCustomized({
 							>
 								{formatCaption(props.displayMonth, { locale })}
 							</div>
-							<div className="absolute" style={{ top: 24 }}>
+							<div className="absolute" style={{ top: 28 }}>
 								{props.displayMonth.getMonth() !== new Date().getMonth() && (
-									<Button variant="outline" onClick={resetMonth} style={{ height: 28 }}>
+									<Button variant="outline" onClick={resetMonth} className="text-xs" style={{ height: 20 }}>
 										<HomeIcon />
 										Back to today
 									</Button>
