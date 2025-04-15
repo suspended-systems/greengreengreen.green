@@ -3,6 +3,7 @@ import { Frequency, RRule } from "rrule";
 import { DAY_MS } from "./utils";
 
 export type Transaction = {
+	id?: string;
 	name: string;
 	date: number;
 	amount: number;

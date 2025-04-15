@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState, PropsWithChildren } from "react";
-import { useLocalStorage } from "react-use";
+import { useIsomorphicLayoutEffect, useLocalStorage } from "react-use";
 import { CalendarDaysIcon, CircleDollarSignIcon } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
@@ -20,7 +20,11 @@ import { APP_NAME, GreenColor } from "./utils";
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
+import { useSession, signIn, signOut } from "next-auth/react";
+
 export default function Home() {
+	const { data: session } = useSession();
+
 	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
 
 	const [activeTab, setActiveTab] = useState("calendar");
@@ -52,8 +56,63 @@ export default function Home() {
 		}
 	};
 
+	const [spreadsheetId, setSpreadsheetId] = useState(null);
+
+	// On session load, create a new spreadsheet and load data from it (if any)
+	useIsomorphicLayoutEffect(() => {
+		if (session && !spreadsheetId) {
+			fetch("/api/sheets/init")
+				.then((res) => res.json())
+				.then((data) => {
+					if (data.spreadsheetId) {
+						setSpreadsheetId(data.spreadsheetId);
+						// If you want to load existing transactions from the sheet, do it here.
+						// For now, we assume the sheet is new/empty.
+					}
+				})
+				.catch((err) => console.error("Error initializing sheet:", err));
+		}
+	}, [session, spreadsheetId]);
+
+	// Sync transactions to the spreadsheet every time the state changes.
+	useIsomorphicLayoutEffect(() => {
+		if (spreadsheetId) {
+			console.log("posting trans");
+
+			// It’s a good idea to debounce/throttle if the changes are very frequent.
+			fetch("/api/sheets/transactions", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ spreadsheetId, transactions }),
+			})
+				.then((res) => res.json())
+				.then((data) => {
+					console.log("Spreadsheet updated:", data);
+				})
+				.catch((err) => console.error("Error updating transactions:", err));
+		}
+	}, [transactions, spreadsheetId]);
+
 	return (
 		<>
+			{session ? (
+				<div>
+					<h2 className="text-lg font-medium text-gray-700">Welcome, {session.user!.name}!</h2>
+					<button
+						onClick={() => signOut()}
+						className="px-4 py-2 mt-4 text-white bg-red-500 rounded-lg hover:bg-red-600"
+					>
+						Sign Out
+					</button>
+				</div>
+			) : (
+				<button
+					onClick={() => signIn("google")}
+					className="tour-sign-in px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+				>
+					Sign in with Google
+				</button>
+			)}
 			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
 			{/* night mode toggle */}
 			<div style={{ position: "absolute", right: 0, top: 0 }}>
