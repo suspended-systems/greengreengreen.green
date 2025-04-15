@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState, PropsWithChildren } from "react";
-import { useIsomorphicLayoutEffect, useLocalStorage } from "react-use";
+import { useLocalStorage } from "react-use";
 import { CalendarDaysIcon, CircleDollarSignIcon } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
@@ -19,11 +19,6 @@ import { APP_NAME, GreenColor } from "./utils";
 
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
-
-import { gsap } from "gsap";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-gsap.registerPlugin(ScrollToPlugin, ScrollTrigger);
 
 export default function Home() {
 	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
@@ -43,23 +38,6 @@ export default function Home() {
 		pageIndex: 0,
 		pageSize: 10,
 	} as PaginationState);
-
-	useIsomorphicLayoutEffect(() => {
-		const ctx = gsap.context(() => {
-			// makes the scroll snap to and pin tab content
-			gsap.from(".gsap-line", {
-				scrollTrigger: {
-					trigger: ".gsap-container",
-					pin: true,
-					anticipatePin: 1,
-					// assuming tab height of 36, start right after the tabs
-					start: "top top-=36px",
-				},
-			});
-		});
-
-		return () => ctx.revert();
-	}, []);
 
 	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
 		const manageTransactionsIndex = 4;
@@ -103,45 +81,39 @@ export default function Home() {
 					borderRight: "150px solid transparent",
 					position: "relative",
 					top: 1, //3,
-					margin: "0 auto",
 				}}
+				className="mx-auto mb-4 md:mb-0"
 			/>
-			{/* <div
-				style={{
-					border: `1px solid ${GreenColor}`,
-					borderLeft: "150px solid transparent",
-					borderRight: "150px solid transparent",
-					position: "relative",
-					top: 37,
-					margin: "0 auto",
-				}}
-			/> */}
 			{/* tabs */}
-			<section className="gsap-container">
-				<span className="gsap-line"></span>
+			<section className="gsap-tab-container">
+				<span className="gsap-tab-trigger-line"></span>
 				<Tabs value={activeTab} onValueChange={setActiveTab}>
-					<TabsList className="grid grid-cols-2 w-full">
-						<TabsTrigger value="calendar">
-							<CalendarDaysIcon />
+					<TabsList className="grid grid-cols-2 w-full fixed md:relative bottom-0 h-18 md:h-9">
+						<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
+							<CalendarDaysIcon className="size-8 md:size-4" />
 							Calendar
 						</TabsTrigger>
-						<TabsTrigger value="transactions" className="tour-transactions">
-							<CircleDollarSignIcon />
+						<TabsTrigger
+							value="transactions"
+							className="tour-transactions flex flex-col md:flex-row text-xs md:text-sm"
+						>
+							<CircleDollarSignIcon className="size-8 md:size-4" />
 							Transactions
 						</TabsTrigger>
 					</TabsList>
+
 					<TabContentItem name="calendar">
 						<CalendarView
 							{...{
 								month,
 								onMonthChange,
-								transactions,
 								startValue,
 								setStartValue,
 								startDate,
 								setStartDate,
 								endDate,
 								setEndDate,
+								transactions,
 							}}
 						/>
 					</TabContentItem>
@@ -158,7 +130,8 @@ export default function Home() {
 function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
 	return (
 		<TabsContent className="tab-content mx-auto w-full" value={name}>
-			<div className="flex justify-center lg:mx-4">
+			{/* -15 instead of -16 to account for the green bar */}
+			<div className={`flex justify-center lg:mx-4 h-[calc(100vh-15px)] md:h-[calc(100vh-16px)]`}>
 				<div className="flex justify-start" style={{ overflowX: "auto" }}>
 					{children}
 				</div>

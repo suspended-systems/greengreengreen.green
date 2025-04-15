@@ -58,9 +58,9 @@
 
 ###- mobile calendarview stacked layout
 
-- "back to today" calendar button. increase arrow button sizes on mobile too. 
+###- "back to today" calendar button. increase arrow button sizes on mobile too. 
 
-- mobile move tabs to bottom and gsap reverse, hide logo in banner, make tabs taller and big icon
+###- mobile move tabs to bottom and gsap reverse, hide logo in banner, make tabs taller and big icon
 
 - replace name unique check with ids
 
