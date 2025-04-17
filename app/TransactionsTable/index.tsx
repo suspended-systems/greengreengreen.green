@@ -104,7 +104,7 @@ export function TransactionsTable<TData, TValue>({
 	) : (
 		<div className="flex flex-col gap-4">
 			{!isDemoWarningClosed && (
-				<div className="relative rounded-md border p-6 self-center flex flex-col gap-3 items-center">
+				<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
 					<button
 						onClick={() => setIsDemoWarningClosed(true)}
 						// copied from Dialog.Close
@@ -113,8 +113,8 @@ export function TransactionsTable<TData, TValue>({
 						<XIcon />
 						<span className="sr-only">Hide</span>
 					</button>
-					<p className="text-lg font-semibold">⚠️ Warning</p>
-					<p>
+					<p className="text-lg font-semibold absolute top-4">⚠️ Warning</p>
+					<p className="mt-8">
 						You are in demo mode. <span className="font-medium">Data will not save.</span>
 					</p>
 					<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
@@ -289,13 +289,14 @@ function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string 
 		</Button>
 	) : (
 		<>
+			<p>Now copy the following green app email address:</p>
+			<input value="green-330@green-456901.iam.gserviceaccount.com" readOnly />
 			<p>
-				Now create a google sheet{" "}
+				Create a Google Sheet and share it with green-330@green-456901.iam.gserviceaccount.com as an Editor
 				<a href="https://docs.google.com/spreadsheets/create" target="_blank" rel="noopener">
-					[click here]
+					[Click here to create a new Google Sheet in a new tab]
 				</a>
 			</p>
-			<p>And share it with green-330@green-456901.iam.gserviceaccount.com as an Editor</p>
 		</>
 	);
 }
