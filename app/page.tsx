@@ -80,24 +80,6 @@ export default function Home() {
 
 	return (
 		<>
-			{/* {session ? (
-				<div>
-					<h2 className="text-lg font-medium text-gray-700">Welcome, {session.user!.name}!</h2>
-					<button
-						onClick={() => signOut()}
-						className="px-4 py-2 mt-4 text-white bg-red-500 rounded-lg hover:bg-red-600"
-					>
-						Sign Out
-					</button>
-				</div>
-			) : (
-				<button
-					onClick={() => signIn("google")}
-					className="tour-sign-in px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-				>
-					Sign in with Google
-				</button>
-			)} */}
 			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
 			{/* night mode toggle */}
 			<div style={{ position: "absolute", right: 0, top: 0 }}>
