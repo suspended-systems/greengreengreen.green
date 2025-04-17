@@ -53,8 +53,11 @@ export default function Home() {
 		// @ts-ignore
 		if (spreadsheetId == null && session?.accessToken) {
 			getSpreadSheet().then((sheets) => {
-				setSpreadsheetId(sheets![0].id!);
-				setIsDemoMode(false);
+				const [sheet] = sheets ?? [];
+				if (sheet) {
+					setSpreadsheetId(sheets![0].id!);
+					setIsDemoMode(false);
+				}
 			});
 		}
 	}, [session]);
