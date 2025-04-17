@@ -40,24 +40,20 @@ const TOUR_STEPS = [
 		content: "You can edit or remove a transaction here",
 		disableBeacon: true,
 	},
-	{
-		target: ".tour-sign-in",
-		content: "Sign in with Google to save your transactions (they are synced in a Sheet)",
-		disableBeacon: true,
-	},
 ];
 
 export default function Tour({ isTourComplete, callback }: { isTourComplete?: boolean; callback: Callback }) {
 	return (
 		!isTourComplete && (
 			<JoyRide
-				disableScrolling
+				disableOverlay
+				// disableScrolling
 				callback={callback}
 				steps={TOUR_STEPS}
 				continuous
 				showSkipButton
 				locale={{
-					last: "Complete (back to calendar) 🎉",
+					last: "Complete 🎉",
 				}}
 				styles={{
 					tooltipContainer: {

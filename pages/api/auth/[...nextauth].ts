@@ -6,30 +6,36 @@ export const authOptions = {
 		GoogleProvider({
 			clientId: process.env.GOOGLE_CLIENT_ID!,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-			// Request access to Google Sheets along with basic profile info:
+			/**
+			 * Google only provides Refresh Token to an application the first time a user signs in.
+
+To force Google to re-issue a Refresh Token, the user needs to remove the application from their account and sign in again: https://myaccount.google.com/permissions
+
+Alternatively, you can also pass options in the params object of authorization which will force the Refresh Token to always be provided on sign in, however this will ask all users to confirm if they wish to grant your application access every time they sign in.
+
+If you need access to the RefreshToken or AccessToken for a Google account and you are not using a database to persist user accounts, this may be something you need to do.
+			 */
 			authorization: {
 				params: {
-					// Add other scopes if needed
-					scope:
-						"https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
+					prompt: "consent",
+					access_type: "offline",
+					response_type: "code",
 				},
 			},
 		}),
 	],
 	secret: process.env.NEXTAUTH_SECRET,
 	callbacks: {
-		// Persist the OAuth access token and refresh token in the JWT
-		async jwt({ token, account }: any) {
+		async jwt(data: any) {
+			const { token, account } = data;
 			if (account) {
 				token.accessToken = account.access_token;
 				token.refreshToken = account.refresh_token;
-				// Optionally, save the access token expiry time if provided:
-				token.accessTokenExpires = Date.now() + account.expires_in * 1000;
 			}
 			return token;
 		},
-		// Make the access token available in the session
-		async session({ session, token }: any) {
+		async session(data: any) {
+			const { session, token } = data;
 			session.accessToken = token.accessToken;
 			session.refreshToken = token.refreshToken;
 			return session;

@@ -20,10 +20,15 @@ import { APP_NAME, GreenColor } from "./utils";
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import getSpreadSheet from "./get-spread-sheet";
 
 export default function Home() {
 	const { data: session } = useSession();
+
+	const [isDemoMode, setIsDemoMode] = useState(true);
+
+	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
 
 	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
 
@@ -43,59 +48,36 @@ export default function Home() {
 		pageSize: 10,
 	} as PaginationState);
 
+	const [spreadsheetId, setSpreadsheetId] = useState<string | null>(null);
+	useIsomorphicLayoutEffect(() => {
+		// @ts-ignore
+		if (spreadsheetId == null && session?.accessToken) {
+			getSpreadSheet().then((sheets) => {
+				setSpreadsheetId(sheets![0].id!);
+				setIsDemoMode(false);
+			});
+		}
+	}, [session]);
+
 	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
 		const manageTransactionsIndex = 4;
 
 		if (action === "next" && index === manageTransactionsIndex) {
+			setIsDemoWarningClosed(true);
 			setActiveTab("transactions");
 		}
 
 		if (action === "reset") {
-			setActiveTab("calendar");
+			// setActiveTab("calendar");
+			setIsDemoMode(false);
+			setIsDemoWarningClosed(false);
 			setTourComplete(true);
 		}
 	};
 
-	const [spreadsheetId, setSpreadsheetId] = useState(null);
-
-	// On session load, create a new spreadsheet and load data from it (if any)
-	useIsomorphicLayoutEffect(() => {
-		if (session && !spreadsheetId) {
-			fetch("/api/sheets/init")
-				.then((res) => res.json())
-				.then((data) => {
-					if (data.spreadsheetId) {
-						setSpreadsheetId(data.spreadsheetId);
-						// If you want to load existing transactions from the sheet, do it here.
-						// For now, we assume the sheet is new/empty.
-					}
-				})
-				.catch((err) => console.error("Error initializing sheet:", err));
-		}
-	}, [session, spreadsheetId]);
-
-	// Sync transactions to the spreadsheet every time the state changes.
-	useIsomorphicLayoutEffect(() => {
-		if (spreadsheetId) {
-			console.log("posting trans");
-
-			// It’s a good idea to debounce/throttle if the changes are very frequent.
-			fetch("/api/sheets/transactions", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ spreadsheetId, transactions }),
-			})
-				.then((res) => res.json())
-				.then((data) => {
-					console.log("Spreadsheet updated:", data);
-				})
-				.catch((err) => console.error("Error updating transactions:", err));
-		}
-	}, [transactions, spreadsheetId]);
-
 	return (
 		<>
-			{session ? (
+			{/* {session ? (
 				<div>
 					<h2 className="text-lg font-medium text-gray-700">Welcome, {session.user!.name}!</h2>
 					<button
@@ -112,7 +94,7 @@ export default function Home() {
 				>
 					Sign in with Google
 				</button>
-			)}
+			)} */}
 			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
 			{/* night mode toggle */}
 			<div style={{ position: "absolute", right: 0, top: 0 }}>
@@ -177,7 +159,20 @@ export default function Home() {
 						/>
 					</TabContentItem>
 					<TabContentItem name="transactions">
-						<TransactionsTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+						<TransactionsTable
+							{...{
+								spreadsheetId,
+								isDemoWarningClosed,
+								setIsDemoWarningClosed,
+								isDemoMode,
+								setIsDemoMode,
+								columns,
+								transactions,
+								setTransactions,
+								pagination,
+								setPagination,
+							}}
+						/>
 					</TabContentItem>
 				</Tabs>
 			</section>

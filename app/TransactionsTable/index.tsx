@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useSession, signIn, signOut } from "next-auth/react";
 
-import { EyeOffIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
+import { EyeOffIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, XIcon } from "lucide-react";
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -33,6 +34,11 @@ import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../transactions";
 
 interface TransactionsTableProps<TData, TValue> {
+	spreadsheetId: string | null;
+	isDemoWarningClosed: boolean;
+	setIsDemoWarningClosed: React.Dispatch<React.SetStateAction<boolean>>;
+	isDemoMode: boolean;
+	setIsDemoMode: React.Dispatch<React.SetStateAction<boolean>>;
 	columns: ColumnDef<TData, TValue>[];
 	transactions: TData[];
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
@@ -41,6 +47,11 @@ interface TransactionsTableProps<TData, TValue> {
 }
 
 export function TransactionsTable<TData, TValue>({
+	spreadsheetId,
+	isDemoWarningClosed,
+	setIsDemoWarningClosed,
+	isDemoMode,
+	setIsDemoMode,
 	columns,
 	transactions,
 	setTransactions,
@@ -71,95 +82,117 @@ export function TransactionsTable<TData, TValue>({
 		autoResetPageIndex: false,
 	});
 
-	return (
-		<>
-			<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-				<div className="flex gap-4">
-					<AddTransaction {...{ setTransactions }} />
-					<Input
-						placeholder="Search..."
-						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-						className="max-w-sm text-sm hide-box-shadow"
-					/>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="outline" className="ml-auto">
-								<EyeOffIcon />
-								<span className="sr-only">Toggle transaction table columns</span>
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							{table
-								.getAllColumns()
-								.filter((column) => column.getCanHide())
-								.map((column) => {
-									return (
-										<DropdownMenuCheckboxItem
-											key={column.id}
-											className="capitalize"
-											checked={column.getIsVisible()}
-											onCheckedChange={(value) => column.toggleVisibility(!!value)}
-										>
+	return !isDemoMode ? (
+		!spreadsheetId ? (
+			<div className="flex flex-col items-center gap-3">
+				<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+				or
+				<Button variant="outline" onClick={() => setIsDemoMode(true)}>
+					Continue in demo mode
+				</Button>
+			</div>
+		) : (
+			<a href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}`}>[Go to linked Google Sheet]</a>
+		)
+	) : (
+		<div className="flex flex-col gap-4">
+			{!isDemoWarningClosed && (
+				<div className="relative rounded-md border p-6 self-center flex flex-col gap-3 items-center">
+					<button
+						onClick={() => setIsDemoWarningClosed(true)}
+						// copied from Dialog.Close
+						className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+					>
+						<XIcon />
+						<span className="sr-only">Hide</span>
+					</button>
+					<p className="text-lg font-semibold">⚠️ Warning</p>
+					<p>
+						You are in demo mode. <span className="font-medium">Data will not save.</span>
+					</p>
+					<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+				</div>
+			)}
+			<div className="flex gap-4">
+				<AddTransaction {...{ setTransactions }} />
+				<Input
+					placeholder="Search..."
+					value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+					onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+					className="max-w-sm text-sm hide-box-shadow"
+				/>
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" className="ml-auto">
+							<EyeOffIcon />
+							<span className="sr-only">Toggle transaction table columns</span>
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						{table
+							.getAllColumns()
+							.filter((column) => column.getCanHide())
+							.map((column) => {
+								return (
+									<DropdownMenuCheckboxItem
+										key={column.id}
+										className="capitalize"
+										checked={column.getIsVisible()}
+										onCheckedChange={(value) => column.toggleVisibility(!!value)}
+									>
+										{
 											{
-												{
-													disabled: "Toggle",
-													name: "Name",
-													date: "Date",
-													freq: "Recurrence",
-													amount: "Amount",
-													actions: "Delete",
-												}[column.id]
-											}
-										</DropdownMenuCheckboxItem>
+												disabled: "Toggle",
+												name: "Name",
+												date: "Date",
+												freq: "Recurrence",
+												amount: "Amount",
+												actions: "Delete",
+											}[column.id]
+										}
+									</DropdownMenuCheckboxItem>
+								);
+							})}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</div>
+			<div className="rounded-md border">
+				<Table>
+					<TableHeader>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow key={headerGroup.id}>
+								{headerGroup.headers.map((header) => {
+									return (
+										<TableHead key={header.id}>
+											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHead>
 									);
 								})}
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</div>
-				<div className="rounded-md border">
-					<Table>
-						<TableHeader>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => {
-										return (
-											<TableHead key={header.id}>
-												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-											</TableHead>
-										);
-									})}
-								</TableRow>
-							))}
-						</TableHeader>
-						<TableBody>
-							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
-							) : (
-								<TableRow>
-									<TableCell colSpan={columns.length} className="h-24 text-center">
-										No results.
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</div>
-				<div className="flex items-center justify-end space-x-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
-					>
-						<ChevronLeftIcon />
-					</Button>
-					<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-						<ChevronRightIcon />
-					</Button>
-				</div>
+							</TableRow>
+						))}
+					</TableHeader>
+					<TableBody>
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
+						) : (
+							<TableRow>
+								<TableCell colSpan={columns.length} className="h-24 text-center">
+									No results.
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
 			</div>
-		</>
+			<div className="flex items-center justify-end space-x-2">
+				<Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+					<ChevronLeftIcon />
+				</Button>
+				<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+					<ChevronRightIcon />
+				</Button>
+			</div>
+		</div>
 	);
 }
 
@@ -213,5 +246,55 @@ function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number })
 				);
 			})}
 		</TableRow>
+	);
+}
+
+function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string | null }) {
+	const { data: session } = useSession();
+
+	// source: https://github.com/arye321/nextauth-google-popup-login
+	// @ts-ignore
+	const popupCenter = (url, title) => {
+		const dualScreenLeft = window.screenLeft ?? window.screenX;
+		const dualScreenTop = window.screenTop ?? window.screenY;
+
+		const width = window.innerWidth ?? document.documentElement.clientWidth ?? screen.width;
+
+		const height = window.innerHeight ?? document.documentElement.clientHeight ?? screen.height;
+
+		const systemZoom = width / window.screen.availWidth;
+
+		const left = (width - 500) / 2 / systemZoom + dualScreenLeft;
+		const top = (height - 550) / 2 / systemZoom + dualScreenTop;
+
+		const newWindow = window.open(
+			url,
+			title,
+			`width=${500 / systemZoom},height=${550 / systemZoom},top=${top},left=${left}`,
+		);
+
+		newWindow?.focus();
+	};
+
+	{
+		/* <Button variant="outline" className="w-fit" onClick={() => signOut()}>
+		Sign out
+	</Button> */
+	}
+
+	return !session ? (
+		<Button variant="outline" className="w-fit" onClick={() => popupCenter("/google-signin", "Sign in with Google")}>
+			Set up with Google Sheets
+		</Button>
+	) : (
+		<>
+			<p>
+				Now create a google sheet{" "}
+				<a href="https://docs.google.com/spreadsheets/create" target="_blank" rel="noopener">
+					[click here]
+				</a>
+			</p>
+			<p>And share it with green-330@green-456901.iam.gserviceaccount.com as an Editor</p>
+		</>
 	);
 }
