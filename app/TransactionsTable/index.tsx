@@ -83,17 +83,24 @@ export function TransactionsTable<TData, TValue>({
 	});
 
 	return !isDemoMode ? (
-		!spreadsheetId ? (
-			<div className="flex flex-col items-center gap-3">
-				<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
-				or
-				<Button variant="outline" onClick={() => setIsDemoMode(true)}>
-					Continue in demo mode
-				</Button>
-			</div>
-		) : (
-			<a href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}`}>[Go to linked Google Sheet]</a>
-		)
+		<div className="flex flex-col items-center gap-3">
+			{!spreadsheetId ? (
+				<>
+					<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+					or
+					<Button variant="outline" onClick={() => setIsDemoMode(true)}>
+						Continue in demo mode
+					</Button>
+				</>
+			) : (
+				<>
+					<a href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}`}>[Go to linked Google Sheet]</a>
+					<Button variant="outline" className="w-fit" onClick={() => signOut()}>
+						Sign out
+					</Button>
+				</>
+			)}
+		</div>
 	) : (
 		<div className="flex flex-col gap-4">
 			{!isDemoWarningClosed && (
@@ -275,12 +282,6 @@ function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string 
 
 		newWindow?.focus();
 	};
-
-	{
-		/* <Button variant="outline" className="w-fit" onClick={() => signOut()}>
-		Sign out
-	</Button> */
-	}
 
 	return !session ? (
 		<Button variant="outline" className="w-fit" onClick={() => popupCenter("/google-signin", "Sign in with Google")}>
