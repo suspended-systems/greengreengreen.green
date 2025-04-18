@@ -67,15 +67,26 @@
 ...
 
 
-- disabled column in sheets
+###- disabled column in sheets
+
+###- make columns amount & date turn into actual types
+
+- token persistence (invalid credentials error)
+
+- clean up UI/UX for sheets
+    -copy input for green email to share with
 
 - replace name unique check with ids
 
 - style={{}} cleanup replace with tailwind
 
+
+
+
 future roadmap:
-- reintroduce gsap?
+- mobile friendliness
 - make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
+- reintroduce gsap?
 - onboarding
 - assign happiness points to transactions
 - categorize transactions

@@ -65,16 +65,26 @@ export default function Home() {
 						/**
 						 * Initialize the sheet data to match the currently loaded data (should be the default data)
 						 */
-						const headers = ["Transaction", "Amount", "Date", "Recurrence"];
+						const headers: [string, string, string, string, string] = [
+							"Transaction",
+							"Amount",
+							"Date",
+							"Recurrence",
+							"Enabled",
+						];
 
 						await initSheet(sheet.id, [
 							headers,
-							...transactions.map((tx) => [
-								tx.name,
-								String(tx.amount),
-								new Date(tx.date).toLocaleDateString(),
-								tx.freq ? txRRule(tx).toText() : "",
-							]),
+							...transactions.map(
+								(tx) =>
+									[
+										tx.name,
+										tx.amount,
+										new Date(tx.date).toLocaleDateString(),
+										tx.freq ? txRRule(tx).toText() : "",
+										!tx.disabled,
+									] as [string, number, string, string, boolean],
+							),
 						]);
 					} else {
 						/**

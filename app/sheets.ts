@@ -5,6 +5,7 @@ import { getServerSession, Session } from "next-auth";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
 import { Transaction } from "./transactions";
 import { RRule } from "rrule";
+import { z } from "zod";
 
 const keyFile = "./green-google-service-account.json";
 
@@ -45,18 +46,22 @@ export default async function getSpreadSheet() {
 					await google
 						.sheets({ version: "v4", auth })
 						.spreadsheets.values.get({ spreadsheetId: sheet.id, range: "Sheet1!A:Z" })
-				).data.values ?? []) as string[][]
+				).data.values ?? []) as [string, number, string, string, string][]
 		  )
 				// skip headers
 				.slice(1)
-				.map(([name, amount, date, recurrence]) => ({
+				.filter((_) => z.tuple([z.string().nonempty(), z.number(), z.string(), z.string()]))
+				.map(([name, amount, date, recurrence, enabled]) => ({
 					name,
-					date: new Date(date).getTime(),
 					amount: Number(amount),
-					...(recurrence && {
-						freq: RRule.fromText(recurrence).options.freq,
-						interval: RRule.fromText(recurrence).options.interval,
-					}),
+					date: new Date(date).getTime(),
+					...(recurrence &&
+						// todo: verify malformed recurrence is handled gracefully
+						RRule.fromText(recurrence) && {
+							freq: RRule.fromText(recurrence).options.freq,
+							interval: RRule.fromText(recurrence).options.interval,
+						}),
+					disabled: !Boolean(enabled),
 				}))
 		: [];
 
@@ -141,23 +146,26 @@ async function getFirstSheet(spreadsheetId: string) {
 }
 
 /** 1) Overwrite the first sheet with a 2D array of values */
-export async function initSheet(spreadsheetId: string, data: string[][]) {
+export async function initSheet(
+	spreadsheetId: string,
+	data: [[string, string, string, string, string], ...[string, number, string, string, boolean][]],
+) {
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 	await sheetsApi.spreadsheets.values.update({
 		spreadsheetId,
 		range: `${sheetName}!A1`,
-		valueInputOption: "RAW",
+		valueInputOption: "USER_ENTERED",
 		requestBody: { values: data },
 	});
 }
 
 /** 2) Append a single row at the bottom of the first sheet */
-export async function appendSheetsRow(spreadsheetId: string, row: string[]) {
+export async function appendSheetsRow(spreadsheetId: string, row: [string, number, string, string, boolean]) {
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 	await sheetsApi.spreadsheets.values.append({
 		spreadsheetId,
 		range: sheetName,
-		valueInputOption: "RAW",
+		valueInputOption: "USER_ENTERED",
 		insertDataOption: "INSERT_ROWS",
 		requestBody: { values: [row] },
 	});
@@ -182,8 +190,8 @@ export async function updateSheetsRow({
 	spreadsheetId: string;
 	filterColumn?: string;
 	filterValue: string | number;
-	columnOrRow: string | string[];
-	newValue?: string;
+	columnOrRow: string | [string, number, string, string, boolean];
+	newValue?: string | number | boolean;
 }) {
 	filterColumn = filterColumn ?? "A";
 
@@ -222,7 +230,7 @@ export async function updateSheetsRow({
 	await sheetsApi.spreadsheets.values.update({
 		spreadsheetId,
 		range,
-		valueInputOption: "RAW",
+		valueInputOption: "USER_ENTERED",
 		requestBody: { values },
 	});
 }

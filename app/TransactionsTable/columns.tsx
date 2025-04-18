@@ -20,7 +20,8 @@ import NumericInput from "@/components/NumericInput";
 
 import { Transaction, txRRule } from "../transactions";
 import { formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
-import { updateSheetsRow } from "../sheets";
+import { deleteSheetsRow, updateSheetsRow } from "../sheets";
+import { Frequency, RRule } from "rrule";
 
 declare module "@tanstack/react-table" {
 	interface CellContext<TData extends RowData, TValue> {
@@ -33,6 +34,7 @@ function HeaderWithSort({ column, title }: { column: Column<Transaction, unknown
 		<Button
 			size={!title ? "icon" : undefined}
 			variant={column.getIsSorted() ? "secondary" : "ghost"}
+			className={`w-full ${title === "Amount" ? "justify-end" : "justify-start"}`}
 			onClick={() =>
 				column.getIsSorted() === "desc" ? column.clearSorting() : column.toggleSorting(column.getIsSorted() === "asc")
 			}
@@ -66,6 +68,15 @@ export const columns = ({
 					setTransactions((value) =>
 						value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, disabled: !isToggled } : tx)),
 					);
+
+					if (spreadsheetId) {
+						await updateSheetsRow({
+							spreadsheetId,
+							filterValue: row.getValue("name"),
+							columnOrRow: "E",
+							newValue: isToggled,
+						});
+					}
 				}}
 				aria-label="Toggle transaction"
 			/>
@@ -153,7 +164,7 @@ export const columns = ({
 							<Calendar
 								mode="single"
 								selected={new Date(row.getValue("date"))}
-								onSelect={(day) => {
+								onSelect={async (day) => {
 									if (!day) return;
 
 									setTransactions((value) =>
@@ -161,6 +172,19 @@ export const columns = ({
 											tx.name === row.getValue("name") ? { ...tx, date: day.setHours(0, 0, 0, 0) } : tx,
 										),
 									);
+
+									/**
+									 * todo: debounce
+									 */
+									if (spreadsheetId) {
+										await updateSheetsRow({
+											spreadsheetId,
+											filterValue: row.getValue("name"),
+											columnOrRow: "C",
+											// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
+											newValue: new Date(day.setHours(0, 0, 0, 0)).toISOString().split("T")[0],
+										});
+									}
 								}}
 								initialFocus
 								className="rounded-md border shadow"
@@ -194,7 +218,7 @@ export const columns = ({
 							tx={val}
 							handleInputFocus={() => setInputSelected(true)}
 							handleInputBlur={() => setInputSelected(false)}
-							{...{ setDropDownOpen, setTransactions }}
+							{...{ spreadsheetId, setDropDownOpen, setTransactions }}
 						/>
 					)}
 				</div>
@@ -234,11 +258,23 @@ export const columns = ({
 							<NumericInput
 								onFocus={handleFocus}
 								onBlur={handleBlur}
-								onValidatedChange={(amount) => {
+								onValidatedChange={async (amount) => {
 									if (amount !== 0) {
 										setTransactions((value) =>
 											value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
 										);
+
+										/**
+										 * todo: debounce
+										 */
+										if (spreadsheetId) {
+											await updateSheetsRow({
+												spreadsheetId,
+												filterValue: row.getValue("name"),
+												columnOrRow: "B",
+												newValue: amount,
+											});
+										}
 									}
 								}}
 								initialValue={numberAmount.toFixed(2)}
@@ -263,7 +299,13 @@ export const columns = ({
 					<div className="text-right">
 						<Button
 							variant="outline"
-							onClick={() => setTransactions((value) => value.filter((tx) => tx.name !== row.getValue("name")))}
+							onClick={async () => {
+								setTransactions((value) => value.filter((tx) => tx.name !== row.getValue("name")));
+
+								if (spreadsheetId) {
+									await deleteSheetsRow({ spreadsheetId, filterValue: row.getValue("name") });
+								}
+							}}
 						>
 							<TrashIcon />
 						</Button>
@@ -276,12 +318,14 @@ export const columns = ({
 
 function InlineFrequencyEditor({
 	tx,
+	spreadsheetId,
 	setDropDownOpen,
 	handleInputFocus,
 	handleInputBlur,
 	setTransactions,
 }: {
 	tx: Transaction;
+	spreadsheetId: string | null;
 	setDropDownOpen: Dispatch<SetStateAction<boolean>>;
 	handleInputFocus: () => void;
 	handleInputBlur: () => void;
@@ -304,7 +348,7 @@ function InlineFrequencyEditor({
 				min="1"
 				style={{ width: 60 }}
 				value={tx.interval ?? 1}
-				onChange={(e) =>
+				onChange={async (e) => {
 					setTransactions((value) =>
 						value.map((t) =>
 							t.name === tx.name
@@ -314,8 +358,20 @@ function InlineFrequencyEditor({
 								  }
 								: t,
 						),
-					)
-				}
+					);
+
+					/**
+					 * todo: debounce
+					 */
+					if (spreadsheetId) {
+						await updateSheetsRow({
+							spreadsheetId,
+							filterValue: tx.name,
+							columnOrRow: "D",
+							newValue: new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: Number(e.target.value) }).toText(),
+						});
+					}
+				}}
 				className="text-sm"
 			/>
 			<DropdownMenu modal onOpenChange={setDropDownOpen}>
@@ -334,7 +390,7 @@ function InlineFrequencyEditor({
 					{frequenciesStrings.map((item, i) => (
 						<DropdownMenuItem
 							key={`freq-dropdown-item:${i}`}
-							onClick={() =>
+							onClick={async () => {
 								setTransactions((value) =>
 									value.map((t) =>
 										t.name === tx.name
@@ -344,8 +400,20 @@ function InlineFrequencyEditor({
 											  }
 											: t,
 									),
-								)
-							}
+								);
+
+								/**
+								 * todo: debounce
+								 */
+								if (spreadsheetId) {
+									await updateSheetsRow({
+										spreadsheetId,
+										filterValue: tx.name,
+										columnOrRow: "D",
+										newValue: new RRule({ freq: frequencies[i], interval: tx.interval ?? 1 }).toText(),
+									});
+								}
+							}}
 						>
 							{item}
 						</DropdownMenuItem>

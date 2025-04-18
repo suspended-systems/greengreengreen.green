@@ -91,9 +91,11 @@ export function TransactionForm({
 		if (spreadsheetId) {
 			await appendSheetsRow(spreadsheetId, [
 				transaction.name,
-				String(transaction.amount),
-				new Date(transaction.date).toLocaleDateString(),
+				transaction.amount,
+				// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
+				new Date(transaction.date).toISOString().split("T")[0],
 				transaction.freq ? txRRule(transaction).toText() : "",
+				!transaction.disabled,
 			]);
 		}
 

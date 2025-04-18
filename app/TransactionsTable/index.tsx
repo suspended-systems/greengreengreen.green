@@ -1,9 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
-import { EyeOffIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, XIcon } from "lucide-react";
+import {
+	EyeOffIcon,
+	ChevronLeftIcon,
+	ChevronRightIcon,
+	PlusIcon,
+	XIcon,
+	RefreshCcwIcon,
+	SquareArrowOutUpRightIcon,
+} from "lucide-react";
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -32,6 +40,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../transactions";
+import getSpreadSheet from "../sheets";
 
 interface TransactionsTableProps<TData, TValue> {
 	spreadsheetId: string | null;
@@ -58,6 +67,7 @@ export function TransactionsTable<TData, TValue>({
 	pagination,
 	setPagination,
 }: TransactionsTableProps<TData, TValue>) {
+	const { data: session } = useSession();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -82,7 +92,7 @@ export function TransactionsTable<TData, TValue>({
 		autoResetPageIndex: false,
 	});
 
-	return !spreadsheetId ? (
+	return !spreadsheetId && !isDemoMode ? (
 		<div className="flex flex-col items-center gap-3">
 			<>
 				<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
@@ -94,12 +104,6 @@ export function TransactionsTable<TData, TValue>({
 		</div>
 	) : (
 		<div className="flex flex-col gap-4">
-			<div>
-				<a href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}`}>[Go to linked Google Sheet]</a>
-				<Button variant="outline" className="w-fit" onClick={() => signOut()}>
-					Sign out
-				</Button>
-			</div>
 			{isDemoMode && !isDemoWarningClosed && (
 				<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
 					<button
@@ -125,6 +129,29 @@ export function TransactionsTable<TData, TValue>({
 					onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
 					className="max-w-sm text-sm hide-box-shadow"
 				/>
+				{spreadsheetId && (
+					<Button
+						variant="outline"
+						onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
+					>
+						<SquareArrowOutUpRightIcon />
+						Open in Sheets
+					</Button>
+				)}
+				{spreadsheetId && (
+					<Button
+						variant="outline"
+						onClick={() =>
+							getSpreadSheet().then(({ transactions: spreadsheetTransactions }) =>
+								setTransactions(spreadsheetTransactions),
+							)
+						}
+					>
+						<RefreshCcwIcon />
+						Pull Sheets Changes
+						<span className="sr-only">Sync from Google Sheets</span>
+					</Button>
+				)}
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button variant="outline" className="ml-auto">
@@ -196,6 +223,13 @@ export function TransactionsTable<TData, TValue>({
 					<ChevronRightIcon />
 				</Button>
 			</div>
+			{session && (
+				<div className="self-end mt-8">
+					<Button variant="outline" className="w-fit" onClick={() => signOut()}>
+						Sign out
+					</Button>
+				</div>
+			)}
 		</div>
 	);
 }
@@ -297,7 +331,7 @@ function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string 
 			<p>
 				Create a Google Sheet and share it with green-330@green-456901.iam.gserviceaccount.com as an Editor
 				<a href="https://docs.google.com/spreadsheets/create" target="_blank" rel="noopener">
-					[Click here to create a new Google Sheet in a new tab]
+					[Click here to create a new Google Sheet (opens in a new tab)]
 				</a>
 			</p>
 		</>
