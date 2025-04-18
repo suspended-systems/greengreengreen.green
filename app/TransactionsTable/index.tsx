@@ -82,28 +82,25 @@ export function TransactionsTable<TData, TValue>({
 		autoResetPageIndex: false,
 	});
 
-	return !isDemoMode ? (
+	return !spreadsheetId ? (
 		<div className="flex flex-col items-center gap-3">
-			{!spreadsheetId ? (
-				<>
-					<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
-					or
-					<Button variant="outline" onClick={() => setIsDemoMode(true)}>
-						Continue in demo mode
-					</Button>
-				</>
-			) : (
-				<>
-					<a href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}`}>[Go to linked Google Sheet]</a>
-					<Button variant="outline" className="w-fit" onClick={() => signOut()}>
-						Sign out
-					</Button>
-				</>
-			)}
+			<>
+				<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+				or
+				<Button variant="outline" onClick={() => setIsDemoMode(true)}>
+					Continue in demo mode
+				</Button>
+			</>
 		</div>
 	) : (
 		<div className="flex flex-col gap-4">
-			{!isDemoWarningClosed && (
+			<div>
+				<a href={`https://docs.google.com/spreadsheets/d/${spreadsheetId}`}>[Go to linked Google Sheet]</a>
+				<Button variant="outline" className="w-fit" onClick={() => signOut()}>
+					Sign out
+				</Button>
+			</div>
+			{isDemoMode && !isDemoWarningClosed && (
 				<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
 					<button
 						onClick={() => setIsDemoWarningClosed(true)}
@@ -121,7 +118,7 @@ export function TransactionsTable<TData, TValue>({
 				</div>
 			)}
 			<div className="flex gap-4">
-				<AddTransaction {...{ setTransactions }} />
+				<AddTransaction {...{ spreadsheetId, setTransactions }} />
 				<Input
 					placeholder="Search..."
 					value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -203,7 +200,13 @@ export function TransactionsTable<TData, TValue>({
 	);
 }
 
-function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>> }) {
+function AddTransaction({
+	spreadsheetId,
+	setTransactions,
+}: {
+	spreadsheetId: string | null;
+	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+}) {
 	return (
 		<Dialog modal>
 			<DialogTrigger asChild>
@@ -217,7 +220,7 @@ function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<R
 				<DialogHeader>
 					<DialogTitle>Add transaction</DialogTitle>
 				</DialogHeader>
-				<TransactionForm {...{ setTransactions }} />
+				<TransactionForm {...{ spreadsheetId, setTransactions }} />
 			</DialogContent>
 		</Dialog>
 	);

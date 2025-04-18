@@ -22,8 +22,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import NumericInput from "@/components/NumericInput";
 
 import { frequenciesStrings, GreenColor } from "../app/utils";
-import { Transaction } from "../app/transactions";
+import { Transaction, txRRule } from "../app/transactions";
 import { Frequency } from "rrule";
+import { appendSheetsRow } from "./sheets";
 
 const FormSchema = z.object({
 	txname: z.string().nonempty("Name can't be empty."),
@@ -49,8 +50,10 @@ const FormSchema = z.object({
 });
 
 export function TransactionForm({
+	spreadsheetId,
 	setTransactions,
 }: {
+	spreadsheetId: string | null;
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 }) {
 	// This flag toggles whenever you reset the form.
@@ -68,9 +71,9 @@ export function TransactionForm({
 		},
 	});
 
-	function onSubmit(data: z.infer<typeof FormSchema>) {
+	async function onSubmit(data: z.infer<typeof FormSchema>) {
 		const transaction: Transaction = {
-			txname: data.txname,
+			name: data.txname,
 			amount: Number(data.amount),
 			date: data.date.getTime(),
 			...(data.recurringFrequency && {
@@ -84,6 +87,15 @@ export function TransactionForm({
 			}),
 		};
 		setTransactions((value) => [transaction, ...value]);
+
+		if (spreadsheetId) {
+			await appendSheetsRow(spreadsheetId, [
+				transaction.name,
+				String(transaction.amount),
+				new Date(transaction.date).toLocaleDateString(),
+				transaction.freq ? txRRule(transaction).toText() : "",
+			]);
+		}
 
 		form.reset();
 

@@ -62,7 +62,12 @@
 
 ###- mobile move tabs to bottom and gsap reverse, hide logo in banner, make tabs taller and big icon
 
-- transactions saving / google sheets integration
+###- transactions saving / google sheets integration
+
+...
+
+
+- disabled column in sheets
 
 - replace name unique check with ids
 
@@ -74,3 +79,5 @@ future roadmap:
 - onboarding
 - assign happiness points to transactions
 - categorize transactions
+
+

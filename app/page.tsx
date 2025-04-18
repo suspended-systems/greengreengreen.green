@@ -14,14 +14,14 @@ import { columns as columnsData } from "./TransactionsTable/columns";
 import { TransactionsTable } from "./TransactionsTable";
 import { ModeSwitcher } from "./ModeSwitcher";
 
-import { defaultTransactions, Transaction } from "./transactions";
+import { defaultTransactions, Transaction, txRRule } from "./transactions";
 import { APP_NAME, GreenColor } from "./utils";
 
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
 import { useSession } from "next-auth/react";
-import getSpreadSheet from "./get-spread-sheet";
+import getSpreadSheet, { initSheet, isSheetContentUnedited } from "./sheets";
 
 export default function Home() {
 	const { data: session } = useSession();
@@ -42,21 +42,46 @@ export default function Home() {
 
 	const [month, onMonthChange] = useState(new Date());
 
-	const columns: ColumnDef<Transaction>[] = useMemo(() => columnsData(setTransactions), [setTransactions]);
 	const [pagination, setPagination] = useState({
 		pageIndex: 0,
 		pageSize: 10,
 	} as PaginationState);
 
 	const [spreadsheetId, setSpreadsheetId] = useState<string | null>(null);
+
+	const columns: ColumnDef<Transaction>[] = useMemo(
+		() => columnsData({ spreadsheetId, setTransactions }),
+		[spreadsheetId, setTransactions],
+	);
+
 	useIsomorphicLayoutEffect(() => {
-		// @ts-ignore
 		if (spreadsheetId == null && session?.accessToken) {
-			getSpreadSheet().then((sheets) => {
-				const [sheet] = sheets ?? [];
-				if (sheet) {
-					setSpreadsheetId(sheets![0].id!);
+			getSpreadSheet().then(async ({ sheet, transactions: spreadsheetTransactions }) => {
+				if (sheet?.id) {
+					setSpreadsheetId(sheet.id);
 					setIsDemoMode(false);
+
+					if ((await isSheetContentUnedited(sheet.id)) && spreadsheetTransactions.length === 0) {
+						/**
+						 * Initialize the sheet data to match the currently loaded data (should be the default data)
+						 */
+						const headers = ["Transaction", "Amount", "Date", "Recurrence"];
+
+						await initSheet(sheet.id, [
+							headers,
+							...transactions.map((tx) => [
+								tx.name,
+								String(tx.amount),
+								new Date(tx.date).toLocaleDateString(),
+								tx.freq ? txRRule(tx).toText() : "",
+							]),
+						]);
+					} else {
+						/**
+						 * Load the sheet data into app state's transactions
+						 */
+						setTransactions(spreadsheetTransactions);
+					}
 				}
 			});
 		}

@@ -20,6 +20,7 @@ import NumericInput from "@/components/NumericInput";
 
 import { Transaction, txRRule } from "../transactions";
 import { formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
+import { updateSheetsRow } from "../sheets";
 
 declare module "@tanstack/react-table" {
 	interface CellContext<TData extends RowData, TValue> {
@@ -48,18 +49,24 @@ function HeaderWithSort({ column, title }: { column: Column<Transaction, unknown
 	);
 }
 
-export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>): ColumnDef<Transaction>[] => [
+export const columns = ({
+	spreadsheetId,
+	setTransactions,
+}: {
+	spreadsheetId: string | null;
+	setTransactions: Dispatch<SetStateAction<Transaction[]>>;
+}): ColumnDef<Transaction>[] => [
 	{
 		accessorKey: "disabled",
 		header: ({ column }) => <HeaderWithSort {...{ column }} />,
 		cell: ({ row }) => (
 			<Switch
 				checked={!row.getValue("disabled")}
-				onCheckedChange={(isToggled) =>
+				onCheckedChange={async (isToggled) => {
 					setTransactions((value) =>
 						value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, disabled: !isToggled } : tx)),
-					)
-				}
+					);
+				}}
 				aria-label="Toggle transaction"
 			/>
 		),
@@ -87,12 +94,24 @@ export const columns = (setTransactions: Dispatch<SetStateAction<Transaction[]>>
 							onFocus={handleFocus}
 							onBlur={handleBlur}
 							type="text"
-							onChange={(event) => {
+							onChange={async (event) => {
 								const name = event.target.value;
 
 								setTransactions((value) =>
 									value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, name } : tx)),
 								);
+
+								/**
+								 * todo: debounce
+								 */
+								if (spreadsheetId) {
+									await updateSheetsRow({
+										spreadsheetId,
+										filterValue: row.getValue("name"),
+										columnOrRow: "A",
+										newValue: name,
+									});
+								}
 							}}
 							value={row.getValue("name")}
 							placeholder="Enter a transaction name..."
