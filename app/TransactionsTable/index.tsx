@@ -41,6 +41,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../transactions";
 import getSpreadSheet from "../sheets";
+import { CopyableInput } from "../../components/CopyableInput";
+import Image from "next/image";
 
 interface TransactionsTableProps<TData, TValue> {
 	spreadsheetId: string | null;
@@ -105,21 +107,75 @@ export function TransactionsTable<TData, TValue>({
 	) : (
 		<div className="flex flex-col gap-4">
 			{isDemoMode && !isDemoWarningClosed && (
-				<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
-					<button
-						onClick={() => setIsDemoWarningClosed(true)}
-						// copied from Dialog.Close
-						className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-					>
-						<XIcon />
-						<span className="sr-only">Hide</span>
-					</button>
-					<p className="text-lg font-semibold absolute top-4">⚠️ Warning</p>
-					<p className="mt-8">
-						You are in demo mode. <span className="font-medium">Data will not save.</span>
-					</p>
-					<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
-				</div>
+				<>
+					<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
+						<button
+							onClick={() => setIsDemoWarningClosed(true)}
+							// copied from Dialog.Close
+							className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+						>
+							<XIcon />
+							<span className="sr-only">Hide</span>
+						</button>
+						<p className="text-lg font-semibold absolute top-4">Google Sheets Setup</p>
+
+						{!session ? (
+							<>
+								<p className="mt-8">Store your transactions in Google Sheets.</p>
+								<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+							</>
+						) : (
+							<>
+								<div className="prose mt-8">
+									<ol className="list-decimal list-inside space-y-4">
+										<li>
+											Copy the email to share with:
+											<code className="text-muted-foreground">
+												<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
+											</code>
+										</li>
+										<li>
+											<a
+												href="https://docs.google.com/spreadsheets/create"
+												target="_blank"
+												rel="noopener"
+												className="inline-flex items-baseline"
+											>
+												<SquareArrowOutUpRightIcon size={18} className="self-center" />
+												<span className="pl-1">Create a Sheet</span>
+											</a>
+										</li>
+										<li>
+											Share it
+											<Image src="/assets/sheets-setup-step-1.png" alt="Sheets Setup Step 1" width={600} height={600} />
+											<Image src="/assets/sheets-setup-step-2.png" alt="Sheets Setup Step 2" width={600} height={600} />
+										</li>
+										<li>
+											<p>You're done! 🎉</p>
+											<p>Refresh the page if it does not update automatically.</p>
+										</li>
+									</ol>
+								</div>
+							</>
+						)}
+					</div>
+
+					<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
+						<button
+							onClick={() => setIsDemoWarningClosed(true)}
+							// copied from Dialog.Close
+							className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+						>
+							<XIcon />
+							<span className="sr-only">Hide</span>
+						</button>
+						<p className="text-lg font-semibold absolute top-4">⚠️ Warning</p>
+						<p className="mt-8">
+							You are in demo mode. <span className="font-medium">Data will not save.</span>
+						</p>
+						<p>Set up Google Sheets to save.</p>
+					</div>
+				</>
 			)}
 			<div className="flex gap-4">
 				<AddTransaction {...{ spreadsheetId, setTransactions }} />
@@ -294,8 +350,6 @@ function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number })
 }
 
 function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string | null }) {
-	const { data: session } = useSession();
-
 	// source: https://github.com/arye321/nextauth-google-popup-login
 	// @ts-ignore
 	const popupCenter = (url, title) => {
@@ -320,20 +374,36 @@ function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string 
 		newWindow?.focus();
 	};
 
-	return !session ? (
+	return (
 		<Button variant="outline" className="w-fit" onClick={() => popupCenter("/google-signin", "Sign in with Google")}>
-			Set up with Google Sheets
+			<div className="gsi-material-button-icon">
+				<svg
+					version="1.1"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 48 48"
+					xmlnsXlink="http://www.w3.org/1999/xlink"
+					style={{ display: "block" }}
+				>
+					<path
+						fill="#EA4335"
+						d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+					></path>
+					<path
+						fill="#4285F4"
+						d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+					></path>
+					<path
+						fill="#FBBC05"
+						d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+					></path>
+					<path
+						fill="#34A853"
+						d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+					></path>
+					<path fill="none" d="M0 0h48v48H0z"></path>
+				</svg>
+			</div>
+			<span className="pl-1">Sign in with Google</span>
 		</Button>
-	) : (
-		<>
-			<p>Now copy the following green app email address:</p>
-			<input value="green-330@green-456901.iam.gserviceaccount.com" readOnly />
-			<p>
-				Create a Google Sheet and share it with green-330@green-456901.iam.gserviceaccount.com as an Editor
-				<a href="https://docs.google.com/spreadsheets/create" target="_blank" rel="noopener">
-					[Click here to create a new Google Sheet (opens in a new tab)]
-				</a>
-			</p>
-		</>
 	);
 }

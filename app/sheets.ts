@@ -1,6 +1,6 @@
 "use server";
 import { google } from "googleapis";
-import { APP_NAME } from "./utils";
+// import { APP_NAME } from "./utils";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
 import { Transaction } from "./transactions";
@@ -28,7 +28,7 @@ export default async function getSpreadSheet() {
 				"mimeType='application/vnd.google-apps.spreadsheet'",
 				"trashed = false",
 				`'${email}' in owners`,
-				`name = '${APP_NAME}'`,
+				// `name = '${APP_NAME}'`,
 			].join(" AND "),
 			orderBy: "createdTime asc",
 			pageSize: 1,
