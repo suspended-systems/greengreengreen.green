@@ -284,7 +284,7 @@ export function TransactionsTable<TData, TValue>({
 				</Button>
 			</div>
 			{session && (
-				<div className="self-end fixed bottom-0 mb-4">
+				<div className="self-end mt-auto">
 					<Button variant="outline" className="w-fit" onClick={() => signOut()}>
 						Sign out
 					</Button>

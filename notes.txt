@@ -83,6 +83,8 @@
     ###- add price to buttons
     ###- improve recommendation strategy so it's actually useful!
 
+###- sign out button styling/pos
+
 - g sheet form validation
 
 - replace name unique check with ids
