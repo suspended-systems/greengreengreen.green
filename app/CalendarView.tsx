@@ -123,11 +123,11 @@ export default function CalendarView({
 														{tx.name}
 														{tx.amount < 0 && tx.freq && (
 															<Popover>
-																<PopoverTrigger asChild className="ml-2">
+																<PopoverTrigger asChild>
 																	<Button
 																		variant="ghost"
 																		className="justify-start text-xs text-left font-normal h-6"
-																		style={{ paddingInline: 4 }}
+																		style={{ paddingInline: 4, marginLeft: 3, position: "relative", bottom: 3 }}
 																	>
 																		<BotMessageSquareIcon />
 																	</Button>
