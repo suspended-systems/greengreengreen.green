@@ -3,7 +3,9 @@
 import { Dispatch, SetStateAction } from "react";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Alternative } from "@/types/chat";
 
+import ChatWindow from "@/components/ChatWindow";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarCustomized } from "@/components/ui/calendar-customized";
@@ -123,6 +125,35 @@ export default function CalendarView({
 											))}
 									</tbody>
 								</table>
+								{true && (
+									<div>
+										<Popover>
+											<PopoverTrigger asChild>
+												<Button
+													variant="outline"
+													className={cn("justify-start text-left font-normal", !startDate && "text-muted-foreground")}
+													style={{ width: 120 }}
+												>
+													Open Chat
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent
+												className="w-auto p-0"
+												side="bottom" /* force below the trigger */
+												align="end" /* align the right‐hand edges */
+												sideOffset={4} /* leave 4px gap between trigger & content */
+												avoidCollisions={false}
+											>
+												<ChatWindow
+													initialPayload={{ name: "DoorDash", amount: "$30", freq: "daily" }}
+													onSelectAlternative={(data) => {
+														console.log("selected", { data });
+													}}
+												/>
+											</PopoverContent>
+										</Popover>
+									</div>
+								)}
 							</>
 						) : (
 							<p className="text-sm" style={{ opacity: 0.5 }}>
