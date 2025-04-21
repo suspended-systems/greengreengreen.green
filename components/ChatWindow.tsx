@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChatMessage, Alternative } from "../types/chat";
+import { ArrowUpIcon } from "lucide-react";
 
 interface ChatWindowProps {
 	initialPayload: Record<string, any>;
@@ -9,118 +10,143 @@ interface ChatWindowProps {
 const ChatWindow: React.FC<ChatWindowProps> = ({ initialPayload, onSelectAlternative }) => {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [input, setInput] = useState("");
-	const endRef = useRef<HTMLDivElement>(null);
+	const [loading, setLoading] = useState(false);
+	const lastMsgRef = useRef<HTMLDivElement>(null);
 
-	// Scroll to bottom on new messages
+	// Scroll newest message into view at top
 	useEffect(() => {
-		endRef.current?.scrollIntoView({ behavior: "smooth" });
+		lastMsgRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 	}, [messages]);
 
-	// When opened, seed the system payload + first assistant question
+	// Seed system prompt + first question
 	useEffect(() => {
-		const firstQ: ChatMessage = {
-			id: "assistant-0",
-			role: "assistant",
-			content: `What value does ${initialPayload.name} ${initialPayload.freq} provide for you? What should an alternative make sure to have?	`,
-		};
+		const systemPrompt = `
+  You are a helpful assistant. Given the payload ${JSON.stringify(initialPayload)}, ask: 
+  "What value does ${initialPayload.name} ${initialPayload.freq} provide you?" Then:
+1) Output a concise summary of that value, **ending with** one bridge sentence introducing your money‑saving alternatives.
+2) Generate exactly five cheaper alternatives, normalized to the input frequency.
+3) **For each alternative, set**  
+   – **name**: a brief noun phrase (e.g. “Drive‑thru pickup”, “Meal kit”, “Grocery delivery kit”),  
+   – **cons**: an array of tradeoffs,  
+   etc.
+Return via function "extractAlternatives".`;
 		setMessages([
+			{ id: "system-0", role: "system", content: systemPrompt },
 			{
-				id: "assistant-1",
+				id: "assistant-0",
 				role: "assistant",
-				content: `Let's save you money by finding a cheaper alternative to ${initialPayload.name} without losing out on its value proposition to you.`,
+				content: `What value does ${initialPayload.name} ${initialPayload.freq} provide you?`,
 			},
-			firstQ,
 		]);
 	}, [initialPayload]);
 
-	// Send to your API + render response
+	// Send user message + fetch assistant reply
 	const sendMessage = async (text: string) => {
-		const userMsg: ChatMessage = {
-			id: `u${Date.now()}`,
-			role: "user",
-			content: text,
-		};
-		const convo = [
-			...messages,
-			userMsg,
-			{
-				id: `aaa${Date.now()}`,
-				role: "user",
-				content:
-					"please find me alternatives to save me money with the least amount of tradeoffs in convenience and experience",
-			} as ChatMessage,
-		];
+		const userMsg: ChatMessage = { id: `u${Date.now()}`, role: "user", content: text };
+		const convo = [...messages, userMsg];
 		setMessages(convo);
 		setInput("");
+		setLoading(true);
 
-		const res = await fetch("/api/chat", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ messages: convo.map((m) => ({ role: m.role, content: m.content })) }),
-		});
-		const data = await res.json();
-
-		let assistantMsg: ChatMessage;
-		if (data.function_call) {
-			// parse the returned JSON
-			const args = JSON.parse(data.function_call.arguments);
-			assistantMsg = {
-				id: `a${Date.now()}`,
-				role: "assistant",
-				content: "", // we’ll render buttons, not text
-				alternatives: args.alternatives,
-			};
-		} else {
-			assistantMsg = {
-				id: `a${Date.now()}`,
-				role: "assistant",
-				content: data.content,
-			};
+		try {
+			const res = await fetch("/api/chat", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ messages: convo.map((m) => ({ role: m.role, content: m.content })) }),
+			});
+			const data = await res.json();
+			let assistantMsg: ChatMessage;
+			if (data.function_call) {
+				const args = JSON.parse(data.function_call.arguments);
+				assistantMsg = {
+					id: `a${Date.now()}`,
+					role: "assistant",
+					content: args.summary,
+					alternatives: args.alternatives,
+				};
+			} else {
+				assistantMsg = { id: `a${Date.now()}`, role: "assistant", content: data.content };
+			}
+			setMessages((prev) => [...prev, assistantMsg]);
+		} catch (err) {
+			console.error(err);
+		} finally {
+			setLoading(false);
 		}
-
-		setMessages((prev) => [...prev, assistantMsg]);
 	};
 
 	return (
 		<div className="fixed bottom-4 right-4 w-80 h-96 bg-white shadow-lg flex flex-col">
 			<div className="flex-1 overflow-y-auto p-2">
-				{messages.map((m) => (
-					<div key={m.id} className={`mb-2 ${m.role === "user" ? "text-right" : "text-left"}`}>
-						{m.content && <div className="inline-block px-2 py-1 rounded bg-gray-100">{m.content}</div>}
-						{m.alternatives && (
-							<div className="mt-1 flex flex-col space-y-1">
-								{m.alternatives.map((alt) => (
-									<button
-										key={alt.id}
-										className="self-start px-2 py-1 border rounded hover:bg-gray-50"
-										onClick={() => onSelectAlternative(alt)}
-									>
-										{alt.name}
-									</button>
-								))}
+				{messages
+					.filter((m) => m.role !== "system")
+					.map((m, i, arr) => {
+						const isLast = i === arr.length - 1;
+						return (
+							<div
+								key={m.id}
+								ref={isLast ? lastMsgRef : undefined}
+								className={`mb-2 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+							>
+								<div>
+									{m.content && (
+										<div
+											className={`inline-block px-2 py-1 rounded ${
+												m.role === "user" ? "bg-[#519c6b] text-white" : "bg-gray-100 text-gray-900"
+											}`}
+										>
+											{m.content}
+										</div>
+									)}
+									{m.alternatives && (
+										<>
+											<div className="mt-2 text-sm font-semibold">Options:</div>
+											{m.alternatives.slice(0, 5).map((alt) => (
+												<div key={alt.id} className="p-2 border rounded mb-2">
+													<button
+														className="font-medium cursor-pointer bg-[#519c6b] text-white px-2 py-1 rounded"
+														onClick={() => onSelectAlternative(alt)}
+														disabled={loading}
+													>
+														{`$${alt.price} (save ${alt.percentageSavings}%) — ${alt.name} (save $${alt.annualSavings} annually)`}
+													</button>
+													<div className="text-xs mt-1">
+														<div className="font-semibold">Tradeoffs:</div>
+														<ul className="list-disc list-inside text-xs">
+															{alt.cons.map((con, i) => (
+																<li key={i}>{con}</li>
+															))}
+														</ul>
+													</div>
+												</div>
+											))}
+										</>
+									)}
+								</div>
 							</div>
-						)}
-					</div>
-				))}
-				<div ref={endRef} />
+						);
+					})}
+				{loading && <div className="text-center text-sm text-gray-500">Assistant is typing...</div>}
 			</div>
 
 			<div className="p-2 border-t flex">
-				<input
-					className="flex-1 px-2 py-1 border rounded"
+				<textarea
+					rows={3}
+					className="flex-1 px-2 py-1 border rounded resize-none"
 					value={input}
+					disabled={loading}
 					onChange={(e) => setInput(e.target.value)}
-					onKeyDown={(e) => {
-						if (e.key === "Enter" && input.trim()) sendMessage(input.trim());
-					}}
+					onKeyDown={(e) =>
+						e.key === "Enter" && !e.shiftKey && input.trim() && (e.preventDefault(), sendMessage(input.trim()))
+					}
 					placeholder="Type your message…"
 				/>
 				<button
-					className="ml-2 px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50"
-					disabled={!input.trim()}
+					className="ml-2 px-3 py-1 bg-[#519c6b] text-white rounded disabled:opacity-50 cursor-pointer"
+					disabled={!input.trim() || loading}
 					onClick={() => sendMessage(input.trim())}
 				>
-					Send
+					<ArrowUpIcon />
 				</button>
 			</div>
 		</div>

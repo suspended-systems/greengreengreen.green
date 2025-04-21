@@ -1,13 +1,18 @@
-export interface ChatMessage {
-	id: string;
-	role: "system" | "assistant" | "user";
-	content: string;
-	// if the assistant “called” our function, we’ll stash the parsed array here:
-	alternatives?: Alternative[];
-}
-
 export interface Alternative {
 	id: string;
 	name: string;
-	description: string;
+	price: number;
+	frequency: string;
+	percentageSavings: number;
+	annualSavings: number;
+	pros: string[];
+	cons: string[];
+}
+
+export interface ChatMessage {
+	id: string;
+	role: "assistant" | "user" | "system";
+	content: string;
+	summary?: string;
+	alternatives?: Alternative[];
 }

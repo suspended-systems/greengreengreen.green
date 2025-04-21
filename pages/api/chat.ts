@@ -1,26 +1,26 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-	apiKey: process.env.OPENAI_API_KEY,
-});
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { messages } = req.body as {
-			messages: { role: "system" | "assistant" | "user"; content: string }[];
-		};
+		const { messages } = req.body as { messages: { role: string; content: string }[] };
 
 		const completion = await openai.chat.completions.create({
-			model: "gpt-4o-mini", // or 'gpt-4' / 'gpt-3.5-turbo'
+			model: "gpt-4o-mini",
+			temperature: 0.7,
+			// @ts-ignore
 			messages,
 			functions: [
 				{
 					name: "extractAlternatives",
-					description: "Extract a list of alternative options for the user",
+					description:
+						"Return a concise summary and exactly five diverse, cheaper alternatives with metadata, normalized to the input frequency",
 					parameters: {
 						type: "object",
 						properties: {
+							summary: { type: "string" },
 							alternatives: {
 								type: "array",
 								items: {
@@ -28,24 +28,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 									properties: {
 										id: { type: "string" },
 										name: { type: "string" },
-										description: { type: "string" },
 										price: { type: "number" },
+										frequency: { type: "string" },
+										percentageSavings: { type: "number" },
+										annualSavings: { type: "number" },
+										pros: { type: "array", items: { type: "string" } },
+										cons: { type: "array", items: { type: "string" } },
 									},
-									required: ["id", "name", "description", "price"],
+									required: ["id", "name", "price", "frequency", "percentageSavings", "annualSavings", "pros", "cons"],
 								},
 							},
 						},
-						required: ["alternatives"],
+						required: ["summary", "alternatives"],
 					},
 				},
 			],
 			function_call: "auto",
 		});
 
-		const msg = completion.choices[0].message;
-		return res.status(200).json(msg);
-	} catch (e: any) {
-		console.error(e);
-		return res.status(500).json({ error: e.message });
+		return res.status(200).json(completion.choices[0].message);
+	} catch (error: any) {
+		console.error(error);
+		return res.status(500).json({ error: error.message });
 	}
 }

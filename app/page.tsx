@@ -175,6 +175,8 @@ export default function Home() {
 								endDate,
 								setEndDate,
 								transactions,
+								setTransactions,
+								spreadsheetId,
 							}}
 						/>
 					</TabContentItem>
