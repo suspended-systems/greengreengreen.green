@@ -78,12 +78,12 @@
 
 ###- sync delete recurrence
 
-- g sheet form validation
+###- finish money saving prompt
+    ###- select button to add transaction
+    ###- add price to buttons
+    ###- improve recommendation strategy so it's actually useful!
 
-- finish money saving prompt
-    - select button to add transaction
-    - add price to buttons
-    - improve recommendation strategy so it's actually useful!
+- g sheet form validation
 
 - replace name unique check with ids
 
