@@ -108,73 +108,77 @@ export function TransactionsTable<TData, TValue>({
 		<div className="flex flex-col gap-4">
 			{isDemoMode && !isDemoWarningClosed && (
 				<>
-					<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
-						<button
-							onClick={() => setIsDemoWarningClosed(true)}
-							// copied from Dialog.Close
-							className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-						>
-							<XIcon />
-							<span className="sr-only">Hide</span>
-						</button>
-						<p className="text-lg font-semibold absolute top-4">Google Sheets Setup</p>
-
-						{!session ? (
+					<InfoBannerBox
+						onClose={() => setIsDemoWarningClosed(true)}
+						title="Google Sheets Setup"
+						content={
 							<>
-								<p className="mt-8">Store your transactions in Google Sheets.</p>
-								<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+								{!session ? (
+									<>
+										<p>Store your transactions in Google Sheets.</p>
+										<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+									</>
+								) : (
+									<>
+										<div className="prose">
+											<ol className="list-decimal list-inside space-y-4">
+												<li>
+													Copy the email to share with:
+													<code className="text-muted-foreground">
+														<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
+													</code>
+												</li>
+												<li>
+													<a
+														href="https://docs.google.com/spreadsheets/create"
+														target="_blank"
+														rel="noopener"
+														className="inline-flex items-baseline"
+													>
+														<SquareArrowOutUpRightIcon size={18} className="self-center" />
+														<span className="pl-1">Create a Sheet</span>
+													</a>
+												</li>
+												<li>
+													Share it
+													<div className="flex flex-col items-center">
+														<Image
+															src="/assets/sheets-setup-step-1.png"
+															alt="Sheets Setup Step 1"
+															width={600}
+															height={600}
+														/>
+														<Image
+															src="/assets/sheets-setup-step-2.png"
+															alt="Sheets Setup Step 2"
+															width={300}
+															height={300}
+														/>
+													</div>
+												</li>
+												<li>
+													<p>You're done! 🎉</p>
+													<p>Refresh the page if it does not update automatically.</p>
+												</li>
+											</ol>
+										</div>
+									</>
+								)}
 							</>
-						) : (
+						}
+					/>
+					<InfoBannerBox
+						onClose={() => setIsDemoWarningClosed(true)}
+						title="⚠️ Warning"
+						content={
 							<>
-								<div className="prose mt-8">
-									<ol className="list-decimal list-inside space-y-4">
-										<li>
-											Copy the email to share with:
-											<code className="text-muted-foreground">
-												<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
-											</code>
-										</li>
-										<li>
-											<a
-												href="https://docs.google.com/spreadsheets/create"
-												target="_blank"
-												rel="noopener"
-												className="inline-flex items-baseline"
-											>
-												<SquareArrowOutUpRightIcon size={18} className="self-center" />
-												<span className="pl-1">Create a Sheet</span>
-											</a>
-										</li>
-										<li>
-											Share it
-											<Image src="/assets/sheets-setup-step-1.png" alt="Sheets Setup Step 1" width={600} height={600} />
-											<Image src="/assets/sheets-setup-step-2.png" alt="Sheets Setup Step 2" width={600} height={600} />
-										</li>
-										<li>
-											<p>You're done! 🎉</p>
-											<p>Refresh the page if it does not update automatically.</p>
-										</li>
-									</ol>
-								</div>
+								<p className="mt-8">
+									You are in demo mode. <span className="font-medium">Data will not save.</span>
+								</p>
+								<p>Set up Google Sheets to save.</p>
 							</>
-						)}
-					</div>
-
-					<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
-						<button
-							onClick={() => setIsDemoWarningClosed(true)}
-							// copied from Dialog.Close
-							className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-						>
-							<XIcon />
-							<span className="sr-only">Hide</span>
-						</button>
-						<p className="text-lg font-semibold absolute top-4">⚠️ Warning</p>
-						<p className="mt-8">
-							You are in demo mode. <span className="font-medium">Data will not save.</span>
-						</p>
-						<p>Set up Google Sheets to save.</p>
-					</div>
+						}
+					/>
 				</>
 			)}
 			<div className="flex gap-4">
@@ -405,5 +409,31 @@ function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string 
 			</div>
 			<span className="pl-1">Sign in with Google</span>
 		</Button>
+	);
+}
+
+function InfoBannerBox({
+	title,
+	content,
+	onClose,
+}: {
+	title: string;
+	content: React.JSX.Element;
+	onClose: () => void;
+}) {
+	return (
+		<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
+			<button
+				onClick={() => onClose()}
+				// copied from Dialog.Close
+				className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+			>
+				<XIcon />
+				<span className="sr-only">Hide</span>
+			</button>
+			<p className="text-lg font-semibold absolute top-4">{title}</p>
+
+			<div className="prose mt-8">{content}</div>
+		</div>
 	);
 }
