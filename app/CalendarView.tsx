@@ -1,9 +1,8 @@
 "use client";
 
 import { Dispatch, SetStateAction } from "react";
-import { CalendarIcon } from "lucide-react";
+import { BadgeDollarSignIcon, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Alternative } from "@/types/chat";
 
 import ChatWindow from "@/components/ChatWindow";
 import { Button } from "@/components/ui/button";
@@ -12,7 +11,7 @@ import { CalendarCustomized } from "@/components/ui/calendar-customized";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import NumericInput from "@/components/NumericInput";
 
-import { getTransactionsOnDay, Transaction } from "./transactions";
+import { getTransactionsOnDay, Transaction, txRRule } from "./transactions";
 import { formatMoney, GreenColor } from "./utils";
 
 /**
@@ -120,40 +119,38 @@ export default function CalendarView({
 														{tx.amount > -1 ? "+" : ""}
 														{formatMoney(tx.amount)}
 													</td>
-													<td style={{ fontWeight: 500 }}>{tx.name}</td>
+													<td style={{ display: "flex", fontWeight: 500 }}>
+														{tx.name}
+														{tx.amount < 0 && tx.freq && (
+															<Popover>
+																<PopoverTrigger asChild className="ml-2">
+																	<Button
+																		variant="outline"
+																		className="justify-start text-xs text-left font-normal h-6"
+																		style={{ paddingInline: 4 }}
+																	>
+																		<BadgeDollarSignIcon />
+																	</Button>
+																</PopoverTrigger>
+																<PopoverContent className="w-auto p-0" align="end" side="bottom" sideOffset={400}>
+																	<ChatWindow
+																		initialPayload={{
+																			name: tx.name,
+																			amount: `$${Math.abs(tx.amount)}`,
+																			freq: txRRule(tx).toText(),
+																		}}
+																		onSelectAlternative={(data) => {
+																			console.log("selected", { data });
+																		}}
+																	/>
+																</PopoverContent>
+															</Popover>
+														)}
+													</td>
 												</tr>
 											))}
 									</tbody>
 								</table>
-								{true && (
-									<div>
-										<Popover>
-											<PopoverTrigger asChild>
-												<Button
-													variant="outline"
-													className={cn("justify-start text-left font-normal", !startDate && "text-muted-foreground")}
-													style={{ width: 120 }}
-												>
-													Open Chat
-												</Button>
-											</PopoverTrigger>
-											<PopoverContent
-												className="w-auto p-0"
-												side="bottom" /* force below the trigger */
-												align="end" /* align the right‐hand edges */
-												sideOffset={4} /* leave 4px gap between trigger & content */
-												avoidCollisions={false}
-											>
-												<ChatWindow
-													initialPayload={{ name: "DoorDash", amount: "$30", freq: "daily" }}
-													onSelectAlternative={(data) => {
-														console.log("selected", { data });
-													}}
-												/>
-											</PopoverContent>
-										</Popover>
-									</div>
-								)}
 							</>
 						) : (
 							<p className="text-sm" style={{ opacity: 0.5 }}>

@@ -2,16 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChatMessage, Alternative } from "../types/chat";
 
 interface ChatWindowProps {
-	// isOpen: boolean;
 	initialPayload: Record<string, any>;
 	onSelectAlternative: (alt: Alternative) => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({
-	// isOpen,
-	initialPayload,
-	onSelectAlternative,
-}) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ initialPayload, onSelectAlternative }) => {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [input, setInput] = useState("");
 	const endRef = useRef<HTMLDivElement>(null);
@@ -23,25 +18,20 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
 	// When opened, seed the system payload + first assistant question
 	useEffect(() => {
-		// if (!isOpen) {
-		// 	setMessages([]);
-		// 	return;
-		// }
-		const sys: ChatMessage = {
-			id: "system",
-			role: "system",
-			content: JSON.stringify(initialPayload),
-		};
 		const firstQ: ChatMessage = {
-			id: "assistant-1",
+			id: "assistant-0",
 			role: "assistant",
-			content: "What value does DoorDash every day provide you?",
+			content: `What value does ${initialPayload.name} ${initialPayload.freq} provide you?`,
 		};
-		setMessages([sys, firstQ]);
-	}, [
-		// isOpen,
-		initialPayload,
-	]);
+		setMessages([
+			{
+				id: "assistant-1",
+				role: "assistant",
+				content: `Let's save you money by finding a cheaper alternative to ${initialPayload.name}.`,
+			},
+			firstQ,
+		]);
+	}, [initialPayload]);
 
 	// Send to your API + render response
 	const sendMessage = async (text: string) => {
@@ -50,7 +40,16 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 			role: "user",
 			content: text,
 		};
-		const convo = [...messages, userMsg];
+		const convo = [
+			...messages,
+			userMsg,
+			{
+				id: `aaa${Date.now()}`,
+				role: "user",
+				content:
+					"please find me alternatives to save me money with the least amount of tradeoffs in convenience and experience",
+			} as ChatMessage,
+		];
 		setMessages(convo);
 		setInput("");
 
@@ -82,7 +81,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 		setMessages((prev) => [...prev, assistantMsg]);
 	};
 
-	// if (!isOpen) return null;
 	return (
 		<div className="fixed bottom-4 right-4 w-80 h-96 bg-white shadow-lg flex flex-col">
 			<div className="flex-1 overflow-y-auto p-2">
