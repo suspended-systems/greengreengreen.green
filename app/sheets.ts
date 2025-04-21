@@ -61,7 +61,7 @@ export default async function getSpreadSheet() {
 							freq: RRule.fromText(recurrence).options.freq,
 							interval: RRule.fromText(recurrence).options.interval,
 						}),
-					disabled: !Boolean(enabled),
+					disabled: enabled.toLowerCase() !== "true",
 				}))
 		: [];
 
