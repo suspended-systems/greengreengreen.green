@@ -71,12 +71,12 @@
 
 ###- make columns amount & date turn into actual types
 
+###- clean up UI/UX for sheets
+    ###-copy input for green email to share with
+
+###- token persistence (invalid credentials error)
+
 - sync delete recurrence
-
-- clean up UI/UX for sheets
-    -copy input for green email to share with
-
-- token persistence (invalid credentials error)
 
 - replace name unique check with ids
 
