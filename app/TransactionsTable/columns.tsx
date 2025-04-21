@@ -424,7 +424,7 @@ function InlineFrequencyEditor({
 			</DropdownMenu>
 			<Button
 				variant="outline"
-				onClick={() => {
+				onClick={async () => {
 					setIsRecurring(false);
 					setTransactions((value) =>
 						value.map((t) =>
@@ -437,6 +437,15 @@ function InlineFrequencyEditor({
 								: t,
 						),
 					);
+
+					if (spreadsheetId) {
+						await updateSheetsRow({
+							spreadsheetId,
+							filterValue: tx.name,
+							columnOrRow: "D",
+							newValue: "",
+						});
+					}
 				}}
 			>
 				<XIcon />

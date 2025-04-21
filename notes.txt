@@ -76,7 +76,7 @@
 
 ###- token persistence (invalid credentials error)
 
-- sync delete recurrence
+###- sync delete recurrence
 
 - replace name unique check with ids
 
