@@ -76,7 +76,7 @@ Return via function "extractAlternatives".`;
 	};
 
 	return (
-		<div className="fixed bottom-4 right-4 w-80 h-96 bg-white shadow-lg flex flex-col">
+		<div className="w-80 h-96 bg-white dark:bg-[#519c6b]/5 shadow-lg flex flex-col">
 			<div className="flex-1 overflow-y-auto p-2">
 				{messages
 					.filter((m) => m.role !== "system")
@@ -92,7 +92,9 @@ Return via function "extractAlternatives".`;
 									{m.content && (
 										<div
 											className={`inline-block px-2 py-1 rounded ${
-												m.role === "user" ? "bg-[#519c6b] text-white" : "bg-gray-100 text-gray-900"
+												m.role === "user"
+													? "bg-[#519c6b] text-white"
+													: "bg-gray-100 dark:bg-[#519c6b]/10 text-gray-900 dark:text-gray-100"
 											}`}
 										>
 											{m.content}
@@ -100,9 +102,9 @@ Return via function "extractAlternatives".`;
 									)}
 									{m.alternatives && (
 										<>
-											<div className="mt-2 text-sm font-semibold">Options:</div>
+											<div className="mt-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Options:</div>
 											{m.alternatives.slice(0, 5).map((alt) => (
-												<div key={alt.id} className="p-2 border rounded mb-2">
+												<div key={alt.id} className="p-2 border border-gray-300 dark:border-[#519c6b]/40 rounded mb-2">
 													<button
 														className="font-medium cursor-pointer bg-[#519c6b] text-white px-2 py-1 rounded"
 														onClick={() => onSelectAlternative(alt)}
@@ -110,7 +112,7 @@ Return via function "extractAlternatives".`;
 													>
 														{`$${alt.price} (save ${alt.percentageSavings}%) — ${alt.name} (save $${alt.annualSavings} annually)`}
 													</button>
-													<div className="text-xs mt-1">
+													<div className="text-xs mt-1 text-gray-800 dark:text-gray-200">
 														<div className="font-semibold">Tradeoffs:</div>
 														<ul className="list-disc list-inside text-xs">
 															{alt.cons.map((con, i) => (
@@ -126,13 +128,13 @@ Return via function "extractAlternatives".`;
 							</div>
 						);
 					})}
-				{loading && <div className="text-center text-sm text-gray-500">Assistant is typing...</div>}
+				{loading && <div className="text-center text-sm text-gray-500 dark:text-gray-400">Assistant is typing...</div>}
 			</div>
 
-			<div className="p-2 border-t flex">
+			<div className="p-2 border-t border-gray-200 dark:border-[#519c6b]/40 flex">
 				<textarea
 					rows={3}
-					className="flex-1 px-2 py-1 border rounded resize-none"
+					className="flex-1 px-2 py-1 border border-gray-300 dark:border-[#519c6b]/40 rounded resize-none bg-white dark:bg-[#519c6b]/10 text-gray-900 dark:text-gray-100"
 					value={input}
 					disabled={loading}
 					onChange={(e) => setInput(e.target.value)}

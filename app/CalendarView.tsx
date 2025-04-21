@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { BotMessageSquareIcon, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -128,68 +128,7 @@ export default function CalendarView({
 													<td style={{ display: "flex", fontWeight: 500 }}>
 														{tx.name}
 														{tx.amount < 0 && tx.freq && (
-															<>
-																<Button
-																	variant="ghost"
-																	className="justify-start text-xs text-left font-normal h-6"
-																	style={{ paddingInline: 4, marginLeft: 3, position: "relative", bottom: 3 }}
-																>
-																	<BotMessageSquareIcon />
-																</Button>
-																{true && (
-																	<ChatWindow
-																		initialPayload={{
-																			name: tx.name,
-																			amount: `$${Math.abs(tx.amount)}`,
-																			freq: txRRule(tx).toText(),
-																		}}
-																		onSelectAlternative={async (data) => {
-																			const transaction: Transaction = {
-																				name: data.name,
-																				amount: data.price * -1,
-																				date: tx.date,
-																				...(tx.freq && { freq: tx.freq, interval: tx.interval }),
-																			};
-
-																			/**
-																			 * Add the new transaction
-																			 */
-																			setTransactions((value) => [transaction, ...value]);
-
-																			if (spreadsheetId) {
-																				await appendSheetsRow(spreadsheetId, [
-																					transaction.name,
-																					transaction.amount,
-																					// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
-																					new Date(transaction.date).toISOString().split("T")[0],
-																					transaction.freq ? txRRule(transaction).toText() : "",
-																					!transaction.disabled,
-																				]);
-																			}
-
-																			toast(`Added new transaction "${transaction.name}"`);
-
-																			/**
-																			 * Disable the one we're replacing
-																			 */
-																			setTransactions((value) =>
-																				value.map((t) => (t.name === tx.name ? { ...t, disabled: true } : t)),
-																			);
-
-																			if (spreadsheetId) {
-																				await updateSheetsRow({
-																					spreadsheetId,
-																					filterValue: tx.name,
-																					columnOrRow: "E",
-																					newValue: false,
-																				});
-																			}
-
-																			toast(`Disabled existing transaction "${tx.name}"`);
-																		}}
-																	/>
-																)}
-															</>
+															<ChatWindowPopover {...{ tx, setTransactions, spreadsheetId }} />
 														)}
 													</td>
 												</tr>
@@ -223,5 +162,85 @@ export default function CalendarView({
 				className="tour-calendar mx-auto rounded-md md:border"
 			/>
 		</div>
+	);
+}
+
+function ChatWindowPopover({
+	tx,
+	setTransactions,
+	spreadsheetId,
+}: {
+	tx: Transaction;
+	setTransactions: Dispatch<SetStateAction<Transaction[]>>;
+	spreadsheetId: string | null;
+}) {
+	const [isPopoverOpen, setPopoverOpen] = useState(false);
+
+	return (
+		<Popover open={isPopoverOpen} onOpenChange={setPopoverOpen}>
+			<PopoverTrigger asChild>
+				<Button
+					variant="ghost"
+					className="justify-start text-xs text-left font-normal h-6"
+					style={{ paddingInline: 4, marginLeft: 3, position: "relative", bottom: 3 }}
+				>
+					<BotMessageSquareIcon />
+				</Button>
+			</PopoverTrigger>
+
+			<PopoverContent className="w-auto p-0" align="end">
+				<ChatWindow
+					initialPayload={{
+						name: tx.name,
+						amount: `$${Math.abs(tx.amount)}`,
+						freq: txRRule(tx).toText(),
+					}}
+					onSelectAlternative={async (data) => {
+						setPopoverOpen(false);
+
+						const transaction: Transaction = {
+							name: data.name,
+							amount: data.price * -1,
+							date: tx.date,
+							...(tx.freq && { freq: tx.freq, interval: tx.interval }),
+						};
+
+						/**
+						 * Add the new transaction
+						 */
+						setTransactions((value) => [transaction, ...value]);
+
+						if (spreadsheetId) {
+							await appendSheetsRow(spreadsheetId, [
+								transaction.name,
+								transaction.amount,
+								// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
+								new Date(transaction.date).toISOString().split("T")[0],
+								transaction.freq ? txRRule(transaction).toText() : "",
+								!transaction.disabled,
+							]);
+						}
+
+						toast(`Added new transaction "${transaction.name}"`);
+
+						/**
+						 * Disable the one we're replacing
+						 */
+						setTransactions((value) => value.map((t) => (t.name === tx.name ? { ...t, disabled: true } : t)));
+
+						if (spreadsheetId) {
+							await updateSheetsRow({
+								spreadsheetId,
+								filterValue: tx.name,
+								columnOrRow: "E",
+								newValue: false,
+							});
+						}
+
+						toast(`Disabled existing transaction "${tx.name}"`);
+					}}
+				/>
+			</PopoverContent>
+		</Popover>
 	);
 }
