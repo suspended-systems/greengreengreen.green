@@ -1,7 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction } from "react";
-import { BadgeDollarSignIcon, CalendarIcon } from "lucide-react";
+import { BotMessageSquareIcon, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import ChatWindow from "@/components/ChatWindow";
@@ -125,11 +125,11 @@ export default function CalendarView({
 															<Popover>
 																<PopoverTrigger asChild className="ml-2">
 																	<Button
-																		variant="outline"
+																		variant="ghost"
 																		className="justify-start text-xs text-left font-normal h-6"
 																		style={{ paddingInline: 4 }}
 																	>
-																		<BadgeDollarSignIcon />
+																		<BotMessageSquareIcon />
 																	</Button>
 																</PopoverTrigger>
 																<PopoverContent className="w-auto p-0" align="end" side="bottom" sideOffset={400}>

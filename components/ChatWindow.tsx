@@ -21,13 +21,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ initialPayload, onSelectAlterna
 		const firstQ: ChatMessage = {
 			id: "assistant-0",
 			role: "assistant",
-			content: `What value does ${initialPayload.name} ${initialPayload.freq} provide you?`,
+			content: `What value does ${initialPayload.name} ${initialPayload.freq} provide for you? What should an alternative make sure to have?	`,
 		};
 		setMessages([
 			{
 				id: "assistant-1",
 				role: "assistant",
-				content: `Let's save you money by finding a cheaper alternative to ${initialPayload.name}.`,
+				content: `Let's save you money by finding a cheaper alternative to ${initialPayload.name} without losing out on its value proposition to you.`,
 			},
 			firstQ,
 		]);
