@@ -29,6 +29,8 @@ declare module "@tanstack/react-table" {
 	}
 }
 
+const safariOnlyTextBottom = navigator.userAgent.includes("Safari") && { bottom: 0.5 };
+
 function HeaderWithSort({ column, title }: { column: Column<Transaction, unknown>; title?: string }) {
 	return (
 		<Button
@@ -126,7 +128,7 @@ export const columns = ({
 							}}
 							value={row.getValue("name")}
 							placeholder="Enter a transaction name..."
-							style={{ width: "fit-content", position: "relative", right: 13 }}
+							style={{ width: "fit-content", position: "relative", right: 13, ...safariOnlyTextBottom }}
 							className="text-sm"
 						/>
 					)}
@@ -254,7 +256,7 @@ export const columns = ({
 							{formattedString}
 						</span>
 					) : (
-						<span className="input-symbol" style={{ position: "relative", left: 59 }}>
+						<span className="input-symbol" style={{ position: "relative", left: 59, ...safariOnlyTextBottom }}>
 							<NumericInput
 								onFocus={handleFocus}
 								onBlur={handleBlur}

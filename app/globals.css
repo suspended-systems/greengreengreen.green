@@ -142,11 +142,6 @@
 	box-shadow: none;
 }
 
-/* For Chrome, Safari and Opera */
-.hide-scrollbar::-webkit-scrollbar {
-	display: none;
-}
-
 .input-symbol {
 	position: relative;
 }

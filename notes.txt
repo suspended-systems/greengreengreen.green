@@ -83,8 +83,6 @@
 - style={{}} cleanup replace with tailwind
 
 
-
-
 future roadmap:
 - mobile friendliness
 - make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
