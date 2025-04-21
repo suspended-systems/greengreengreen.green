@@ -86,6 +86,7 @@
 - replace name unique check with ids
 
 - style={{}} cleanup replace with tailwind
+    - green color as css
 
 
 future roadmap:
