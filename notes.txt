@@ -78,6 +78,8 @@
 
 ###- sync delete recurrence
 
+- g sheet form validation
+
 - finish money saving prompt
     - select button to add transaction
     - add price to buttons
