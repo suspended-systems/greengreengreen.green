@@ -88,6 +88,8 @@
 
 ###- replace name unique check with ids
 
+- enter keyboard press in amount input in form to submit
+
 - style={{}} cleanup replace with tailwind
     - green color as css
 
