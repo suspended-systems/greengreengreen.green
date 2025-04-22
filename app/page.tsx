@@ -65,12 +65,13 @@ export default function Home() {
 						/**
 						 * Initialize the sheet data to match the currently loaded data (should be the default data)
 						 */
-						const headers: [string, string, string, string, string] = [
+						const headers: [string, string, string, string, string, string] = [
 							"Transaction",
 							"Amount",
 							"Date",
 							"Recurrence",
 							"Enabled",
+							"UUID",
 						];
 
 						await initSheet(sheet.id, [
@@ -83,7 +84,8 @@ export default function Home() {
 										new Date(tx.date).toLocaleDateString(),
 										tx.freq ? txRRule(tx).toText() : "",
 										!tx.disabled,
-									] as [string, number, string, string, boolean],
+										tx.id,
+									] as [string, number, string, string, boolean, string],
 							),
 						]);
 					} else {

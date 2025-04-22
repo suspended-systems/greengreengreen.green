@@ -86,7 +86,7 @@
 ###- sign out button styling/pos
 
 
-- replace name unique check with ids
+###- replace name unique check with ids
 
 - style={{}} cleanup replace with tailwind
     - green color as css

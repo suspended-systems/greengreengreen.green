@@ -3,8 +3,9 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { BotMessageSquareIcon, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { v4 as uuid } from "uuid";
 
+import { cn } from "@/lib/utils";
 import ChatWindow from "@/components/ChatWindow";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -199,6 +200,7 @@ function ChatWindowPopover({
 						setPopoverOpen(false);
 
 						const transaction: Transaction = {
+							id: uuid(),
 							name: data.name,
 							amount: data.price * -1,
 							date: tx.date,
@@ -218,6 +220,7 @@ function ChatWindowPopover({
 								new Date(transaction.date).toISOString().split("T")[0],
 								transaction.freq ? txRRule(transaction).toText() : "",
 								!transaction.disabled,
+								transaction.id,
 							]);
 						}
 
@@ -226,12 +229,12 @@ function ChatWindowPopover({
 						/**
 						 * Disable the one we're replacing
 						 */
-						setTransactions((value) => value.map((t) => (t.name === tx.name ? { ...t, disabled: true } : t)));
+						setTransactions((value) => value.map((t) => (t.id === tx.id ? { ...t, disabled: true } : t)));
 
 						if (spreadsheetId) {
 							await updateSheetsRow({
 								spreadsheetId,
-								filterValue: tx.name,
+								filterValue: tx.id,
 								columnOrRow: "E",
 								newValue: false,
 							});

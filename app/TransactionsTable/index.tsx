@@ -120,8 +120,11 @@ export function TransactionsTable<TData, TValue>({
 									</>
 								) : (
 									<>
+										<p className="text-muted-foreground" style={{ maxWidth: 600 }}>
+											Make sure you are signed in to the same Google Account across green and Sheets.
+										</p>
 										<div className="prose">
-											<ol className="list-decimal list-inside space-y-4">
+											<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
 												<li>
 													Copy the email to share with:
 													<code className="text-muted-foreground">
@@ -136,7 +139,7 @@ export function TransactionsTable<TData, TValue>({
 														className="inline-flex items-baseline"
 													>
 														<SquareArrowOutUpRightIcon size={18} className="self-center" />
-														<span className="pl-1">Create a Sheet</span>
+														<span className="pl-1">Create a Sheet (and name it)</span>
 													</a>
 												</li>
 												<li>
@@ -156,10 +159,6 @@ export function TransactionsTable<TData, TValue>({
 														/>
 													</div>
 												</li>
-												<li>
-													<p>You're done! 🎉</p>
-													<p>Refresh the page if it does not update automatically.</p>
-												</li>
 											</ol>
 										</div>
 									</>
@@ -172,7 +171,7 @@ export function TransactionsTable<TData, TValue>({
 						title="⚠️ Warning"
 						content={
 							<>
-								<p className="mt-8">
+								<p>
 									You are in demo mode. <span className="font-medium">Data will not save.</span>
 								</p>
 								<p>Set up Google Sheets to save.</p>
@@ -379,36 +378,38 @@ function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string 
 	};
 
 	return (
-		<Button variant="outline" className="w-fit" onClick={() => popupCenter("/google-signin", "Sign in with Google")}>
-			<div className="gsi-material-button-icon">
-				<svg
-					version="1.1"
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 48 48"
-					xmlnsXlink="http://www.w3.org/1999/xlink"
-					style={{ display: "block" }}
-				>
-					<path
-						fill="#EA4335"
-						d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
-					></path>
-					<path
-						fill="#4285F4"
-						d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
-					></path>
-					<path
-						fill="#FBBC05"
-						d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
-					></path>
-					<path
-						fill="#34A853"
-						d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
-					></path>
-					<path fill="none" d="M0 0h48v48H0z"></path>
-				</svg>
-			</div>
-			<span className="pl-1">Sign in with Google</span>
-		</Button>
+		<div>
+			<Button variant="outline" className="w-fit" onClick={() => popupCenter("/google-signin", "Sign in with Google")}>
+				<div className="gsi-material-button-icon">
+					<svg
+						version="1.1"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 48 48"
+						xmlnsXlink="http://www.w3.org/1999/xlink"
+						style={{ display: "block" }}
+					>
+						<path
+							fill="#EA4335"
+							d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+						></path>
+						<path
+							fill="#4285F4"
+							d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+						></path>
+						<path
+							fill="#FBBC05"
+							d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+						></path>
+						<path
+							fill="#34A853"
+							d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+						></path>
+						<path fill="none" d="M0 0h48v48H0z"></path>
+					</svg>
+				</div>
+				<span className="pl-1">Sign in with Google</span>
+			</Button>
+		</div>
 	);
 }
 
@@ -433,7 +434,7 @@ function InfoBannerBox({
 			</button>
 			<p className="text-lg font-semibold absolute top-4">{title}</p>
 
-			<div className="prose mt-8">{content}</div>
+			<div className="prose mt-8 flex flex-col items-center gap-4">{content}</div>
 		</div>
 	);
 }

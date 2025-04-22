@@ -68,14 +68,14 @@ export const columns = ({
 				checked={!row.getValue("disabled")}
 				onCheckedChange={async (isToggled) => {
 					setTransactions((value) =>
-						value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, disabled: !isToggled } : tx)),
+						value.map((tx) => (tx.id === row.original.id ? { ...tx, disabled: !isToggled } : tx)),
 					);
 
 					if (spreadsheetId) {
 						await updateSheetsRow({
 							spreadsheetId,
-							filterValue: row.getValue("name"),
-							columnOrRow: "E",
+							filterValue: row.original.id,
+							columnOrRow: "F",
 							newValue: isToggled,
 						});
 					}
@@ -110,9 +110,7 @@ export const columns = ({
 							onChange={async (event) => {
 								const name = event.target.value;
 
-								setTransactions((value) =>
-									value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, name } : tx)),
-								);
+								setTransactions((value) => value.map((tx) => (tx.id === row.original.id ? { ...tx, name } : tx)));
 
 								/**
 								 * todo: debounce
@@ -120,7 +118,7 @@ export const columns = ({
 								if (spreadsheetId) {
 									await updateSheetsRow({
 										spreadsheetId,
-										filterValue: row.getValue("name"),
+										filterValue: row.original.id,
 										columnOrRow: "A",
 										newValue: name,
 									});
@@ -170,9 +168,7 @@ export const columns = ({
 									if (!day) return;
 
 									setTransactions((value) =>
-										value.map((tx) =>
-											tx.name === row.getValue("name") ? { ...tx, date: day.setHours(0, 0, 0, 0) } : tx,
-										),
+										value.map((tx) => (tx.id === row.original.id ? { ...tx, date: day.setHours(0, 0, 0, 0) } : tx)),
 									);
 
 									/**
@@ -181,7 +177,7 @@ export const columns = ({
 									if (spreadsheetId) {
 										await updateSheetsRow({
 											spreadsheetId,
-											filterValue: row.getValue("name"),
+											filterValue: row.original.id,
 											columnOrRow: "C",
 											// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
 											newValue: new Date(day.setHours(0, 0, 0, 0)).toISOString().split("T")[0],
@@ -262,9 +258,7 @@ export const columns = ({
 								onBlur={handleBlur}
 								onValidatedChange={async (amount) => {
 									if (amount !== 0) {
-										setTransactions((value) =>
-											value.map((tx) => (tx.name === row.getValue("name") ? { ...tx, amount } : tx)),
-										);
+										setTransactions((value) => value.map((tx) => (tx.id === row.original.id ? { ...tx, amount } : tx)));
 
 										/**
 										 * todo: debounce
@@ -272,7 +266,7 @@ export const columns = ({
 										if (spreadsheetId) {
 											await updateSheetsRow({
 												spreadsheetId,
-												filterValue: row.getValue("name"),
+												filterValue: row.original.id,
 												columnOrRow: "B",
 												newValue: amount,
 											});
@@ -302,10 +296,10 @@ export const columns = ({
 						<Button
 							variant="outline"
 							onClick={async () => {
-								setTransactions((value) => value.filter((tx) => tx.name !== row.getValue("name")));
+								setTransactions((value) => value.filter((tx) => tx.id !== row.original.id));
 
 								if (spreadsheetId) {
-									await deleteSheetsRow({ spreadsheetId, filterValue: row.getValue("name") });
+									await deleteSheetsRow({ spreadsheetId, filterValue: row.original.id });
 								}
 							}}
 						>
@@ -353,7 +347,7 @@ function InlineFrequencyEditor({
 				onChange={async (e) => {
 					setTransactions((value) =>
 						value.map((t) =>
-							t.name === tx.name
+							t.id === tx.id
 								? {
 										...t,
 										interval: Number(e.target.value),
@@ -368,7 +362,7 @@ function InlineFrequencyEditor({
 					if (spreadsheetId) {
 						await updateSheetsRow({
 							spreadsheetId,
-							filterValue: tx.name,
+							filterValue: tx.id,
 							columnOrRow: "D",
 							newValue: new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: Number(e.target.value) }).toText(),
 						});
@@ -395,7 +389,7 @@ function InlineFrequencyEditor({
 							onClick={async () => {
 								setTransactions((value) =>
 									value.map((t) =>
-										t.name === tx.name
+										t.id === tx.id
 											? {
 													...t,
 													freq: frequencies[i],
@@ -410,7 +404,7 @@ function InlineFrequencyEditor({
 								if (spreadsheetId) {
 									await updateSheetsRow({
 										spreadsheetId,
-										filterValue: tx.name,
+										filterValue: tx.id,
 										columnOrRow: "D",
 										newValue: new RRule({ freq: frequencies[i], interval: tx.interval ?? 1 }).toText(),
 									});
@@ -428,7 +422,7 @@ function InlineFrequencyEditor({
 					setIsRecurring(false);
 					setTransactions((value) =>
 						value.map((t) =>
-							t.name === tx.name
+							t.id === tx.id
 								? {
 										...t,
 										freq: undefined,
@@ -441,7 +435,7 @@ function InlineFrequencyEditor({
 					if (spreadsheetId) {
 						await updateSheetsRow({
 							spreadsheetId,
-							filterValue: tx.name,
+							filterValue: tx.id,
 							columnOrRow: "D",
 							newValue: "",
 						});

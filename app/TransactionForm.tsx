@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { v4 as uuid } from "uuid";
 import { CalendarIcon, PlusIcon, XIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -73,6 +74,7 @@ export function TransactionForm({
 
 	async function onSubmit(data: z.infer<typeof FormSchema>) {
 		const transaction: Transaction = {
+			id: uuid(),
 			name: data.txname,
 			amount: Number(data.amount),
 			date: data.date.getTime(),
@@ -96,6 +98,7 @@ export function TransactionForm({
 				new Date(transaction.date).toISOString().split("T")[0],
 				transaction.freq ? txRRule(transaction).toText() : "",
 				!transaction.disabled,
+				transaction.id,
 			]);
 		}
 

@@ -1,10 +1,10 @@
 "use server";
 import { google } from "googleapis";
-// import { APP_NAME } from "./utils";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
 import { Transaction } from "./transactions";
 import { RRule } from "rrule";
+import { v4 as uuid } from "uuid";
 import { z } from "zod";
 
 const keyFile = "./green-google-service-account.json";
@@ -41,28 +41,50 @@ export default async function getSpreadSheet() {
 	}))?.[0];
 
 	const transactions: Transaction[] = sheet?.id
-		? (
-				((
-					await google
-						.sheets({ version: "v4", auth })
-						.spreadsheets.values.get({ spreadsheetId: sheet.id, range: "Sheet1!A:Z" })
-				).data.values ?? []) as [string, number, string, string, string][]
+		? await Promise.all(
+				(
+					((
+						await google
+							.sheets({ version: "v4", auth })
+							.spreadsheets.values.get({ spreadsheetId: sheet.id, range: "Sheet1!A:Z" })
+					).data.values ?? []) as [string, number, string, string, string, string][]
+				)
+					// skip headers
+					.slice(1)
+					.filter((_) =>
+						z.tuple([
+							z.string().nonempty(),
+							z.number(),
+							z.string(),
+							z.literal("TRUE").or(z.literal("FALSE")),
+							z.string().uuid(),
+						]),
+					)
+					.map(async ([name, amount, date, recurrence, enabled, id]) => ({
+						id:
+							id ||
+							/**
+							 * Generate a UUID if one doesn't exist and then push it to the first sheets row which has an empty uuid field (an assumption we're forced to make)
+							 */
+							(await (async () => {
+								const id = uuid();
+
+								await updateSheetsRow({ spreadsheetId: sheet.id!, columnOrRow: "F", filterValue: "", newValue: id });
+
+								return id;
+							})()),
+						name,
+						amount: Number(amount),
+						date: new Date(date).getTime(),
+						...(recurrence &&
+							// todo: verify malformed recurrence is handled gracefully
+							RRule.fromText(recurrence) && {
+								freq: RRule.fromText(recurrence).options.freq,
+								interval: RRule.fromText(recurrence).options.interval,
+							}),
+						disabled: enabled.toLowerCase() !== "true",
+					})),
 		  )
-				// skip headers
-				.slice(1)
-				.filter((_) => z.tuple([z.string().nonempty(), z.number(), z.string(), z.string()]))
-				.map(([name, amount, date, recurrence, enabled]) => ({
-					name,
-					amount: Number(amount),
-					date: new Date(date).getTime(),
-					...(recurrence &&
-						// todo: verify malformed recurrence is handled gracefully
-						RRule.fromText(recurrence) && {
-							freq: RRule.fromText(recurrence).options.freq,
-							interval: RRule.fromText(recurrence).options.interval,
-						}),
-					disabled: enabled.toLowerCase() !== "true",
-				}))
 		: [];
 
 	return { sheet, transactions };
@@ -148,7 +170,7 @@ async function getFirstSheet(spreadsheetId: string) {
 /** 1) Overwrite the first sheet with a 2D array of values */
 export async function initSheet(
 	spreadsheetId: string,
-	data: [[string, string, string, string, string], ...[string, number, string, string, boolean][]],
+	data: [[string, string, string, string, string, string], ...[string, number, string, string, boolean, string][]],
 ) {
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 	await sheetsApi.spreadsheets.values.update({
@@ -160,7 +182,7 @@ export async function initSheet(
 }
 
 /** 2) Append a single row at the bottom of the first sheet */
-export async function appendSheetsRow(spreadsheetId: string, row: [string, number, string, string, boolean]) {
+export async function appendSheetsRow(spreadsheetId: string, row: [string, number, string, string, boolean, string]) {
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 	await sheetsApi.spreadsheets.values.append({
 		spreadsheetId,
@@ -190,21 +212,22 @@ export async function updateSheetsRow({
 	spreadsheetId: string;
 	filterColumn?: string;
 	filterValue: string | number;
-	columnOrRow: string | [string, number, string, string, boolean];
+	columnOrRow: string | [string, number, string, string, boolean, string];
 	newValue?: string | number | boolean;
 }) {
-	filterColumn = filterColumn ?? "A";
+	filterColumn = filterColumn ?? "F";
 
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 
 	// 1) pull only the filter column (including header)
-	const colRange = `${sheetName}!${filterColumn}:${filterColumn}`;
+	const colRange = `${sheetName}!E:${filterColumn}`;
 	const { data } = await sheetsApi.spreadsheets.values.get({
 		spreadsheetId,
 		range: colRange,
 	});
+	console.log({ values: data.values, colRange });
 	const vals = (data.values || []).slice(1); // drop header
-	const idx = vals.findIndex(([cell]) => String(cell) === String(filterValue));
+	const idx = vals.findIndex(([_, cell]) => String(cell ?? "") === String(filterValue));
 	if (idx < 0) throw new Error("No matching row found");
 	const rowNum = idx + 2; // account for header + 1‑based
 
@@ -248,7 +271,7 @@ export async function deleteSheetsRow({
 	filterValue: string | number;
 	filterColumn?: string;
 }) {
-	filterColumn = filterColumn ?? "A";
+	filterColumn = filterColumn ?? "F";
 
 	const { sheetsApi, sheetName, sheetId } = await getFirstSheet(spreadsheetId);
 
