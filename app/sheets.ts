@@ -7,7 +7,11 @@ import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 
-const keyFile = "./green-google-service-account.json";
+const credentials = {
+	project_id: "green-456901",
+	client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!,
+	private_key: process.env.GOOGLE_PRIVATE_KEY!,
+};
 
 export default async function getSpreadSheet() {
 	const session: Session | null = await getServerSession(authOptions);
@@ -18,7 +22,7 @@ export default async function getSpreadSheet() {
 	const { email } = await getEmailFromToken(accessToken);
 
 	const auth = new google.auth.GoogleAuth({
-		keyFile,
+		credentials,
 		scopes: ["https://www.googleapis.com/auth/drive.metadata.readonly", "https://www.googleapis.com/auth/spreadsheets"],
 	});
 
@@ -112,7 +116,7 @@ async function getEmailFromToken(accessToken: string) {
 export async function isSheetContentUnedited(fileId: string): Promise<boolean> {
 	// If you don't pass an authClient, this will pick up your default credentials
 	const auth = new google.auth.GoogleAuth({
-		keyFile,
+		credentials,
 		scopes: [
 			"https://www.googleapis.com/auth/drive.readonly",
 			"https://www.googleapis.com/auth/drive.activity.readonly",
@@ -154,7 +158,7 @@ export async function isSheetContentUnedited(fileId: string): Promise<boolean> {
 
 /** Helper: load sheets client & first‐tab metadata */
 async function getFirstSheet(spreadsheetId: string) {
-	const auth = new google.auth.GoogleAuth({ keyFile, scopes: ["https://www.googleapis.com/auth/spreadsheets"] });
+	const auth = new google.auth.GoogleAuth({ credentials, scopes: ["https://www.googleapis.com/auth/spreadsheets"] });
 	const sheetsApi = google.sheets({ version: "v4", auth });
 	const { data: meta } = await sheetsApi.spreadsheets.get({
 		spreadsheetId,
