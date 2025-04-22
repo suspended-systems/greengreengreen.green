@@ -33,6 +33,11 @@ Return via function "extractAlternatives".`;
 		setMessages([
 			{ id: "system-0", role: "system", content: systemPrompt },
 			{
+				id: "assistant-00",
+				role: "assistant",
+				content: `Let's help you save some green by finding cheaper alternatives to ${initialPayload.name} 🤑`,
+			},
+			{
 				id: "assistant-0",
 				role: "assistant",
 				content: `What value does ${initialPayload.name} ${initialPayload.freq} provide you?`,

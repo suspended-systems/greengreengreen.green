@@ -85,7 +85,6 @@
 
 ###- sign out button styling/pos
 
-- g sheet form validation
 
 - replace name unique check with ids
 
@@ -94,6 +93,11 @@
 
 
 future roadmap:
+-toggles for calendar day card view
+    -show all names of transactions
+    -show just totals
+    -show individiual
+- robust g sheet form validation
 - mobile friendlines
 - token persistence server side, right now it will ask for perm every login apparently?
 - make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
