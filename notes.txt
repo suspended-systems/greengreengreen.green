@@ -62,15 +62,48 @@
 
 ###- mobile move tabs to bottom and gsap reverse, hide logo in banner, make tabs taller and big icon
 
-- transactions saving / google sheets integration
+###- transactions saving / google sheets integration
 
-- replace name unique check with ids
+...
+
+
+###- disabled column in sheets
+
+###- make columns amount & date turn into actual types
+
+###- clean up UI/UX for sheets
+    ###-copy input for green email to share with
+
+###- token persistence (invalid credentials error)
+
+###- sync delete recurrence
+
+###- finish money saving prompt
+    ###- select button to add transaction
+    ###- add price to buttons
+    ###- improve recommendation strategy so it's actually useful!
+
+###- sign out button styling/pos
+
+
+###- replace name unique check with ids
 
 - style={{}} cleanup replace with tailwind
+    - green color as css
+
 
 future roadmap:
-- reintroduce gsap?
+-toggles for calendar day card view
+    -show all names of transactions
+    -show just totals
+    -show individiual
+- robust g sheet form validation
+- mobile friendlines
+- token persistence server side, right now it will ask for perm every login apparently?
 - make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
+- reintroduce gsap?
 - onboarding
 - assign happiness points to transactions
 - categorize transactions
+
+

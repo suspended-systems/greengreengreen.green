@@ -1,8 +1,10 @@
 import { partition } from "lodash";
 import { Frequency, RRule } from "rrule";
+import { v4 as uuid } from "uuid";
 import { DAY_MS } from "./utils";
 
 export type Transaction = {
+	id: string;
 	name: string;
 	date: number;
 	amount: number;
@@ -60,6 +62,7 @@ export function calcProjectedValue({
 
 export const defaultTransactions: Transaction[] = [
 	{
+		id: uuid(),
 		name: "Paycheck",
 		date: new Date().setDate(1),
 		amount: 2000,
@@ -67,24 +70,28 @@ export const defaultTransactions: Transaction[] = [
 		interval: 2,
 	},
 	{
+		id: uuid(),
 		name: "Rent",
 		date: new Date().setDate(1),
 		amount: -1500,
 		freq: Frequency.MONTHLY,
 	},
 	{
+		id: uuid(),
 		name: "Netflix",
 		date: new Date().setDate(4),
 		amount: -24.99,
 		freq: Frequency.MONTHLY,
 	},
 	{
+		id: uuid(),
 		name: "Internet Bill",
 		date: new Date().setDate(13),
 		amount: -80,
 		freq: Frequency.MONTHLY,
 	},
 	{
+		id: uuid(),
 		name: "Refund",
 		date: new Date().setDate(24),
 		amount: 200,

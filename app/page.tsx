@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useMemo, useState, PropsWithChildren } from "react";
-import { useLocalStorage } from "react-use";
+import { useIsomorphicLayoutEffect, useLocalStorage } from "react-use";
 import { CalendarDaysIcon, CircleDollarSignIcon } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
@@ -14,13 +14,22 @@ import { columns as columnsData } from "./TransactionsTable/columns";
 import { TransactionsTable } from "./TransactionsTable";
 import { ModeSwitcher } from "./ModeSwitcher";
 
-import { defaultTransactions, Transaction } from "./transactions";
+import { defaultTransactions, Transaction, txRRule } from "./transactions";
 import { APP_NAME, GreenColor } from "./utils";
 
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
+import { useSession } from "next-auth/react";
+import getSpreadSheet, { initSheet, isSheetContentUnedited } from "./sheets";
+
 export default function Home() {
+	const { data: session } = useSession();
+
+	const [isDemoMode, setIsDemoMode] = useState(true);
+
+	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
+
 	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
 
 	const [activeTab, setActiveTab] = useState("calendar");
@@ -33,21 +42,75 @@ export default function Home() {
 
 	const [month, onMonthChange] = useState(new Date());
 
-	const columns: ColumnDef<Transaction>[] = useMemo(() => columnsData(setTransactions), [setTransactions]);
 	const [pagination, setPagination] = useState({
 		pageIndex: 0,
 		pageSize: 10,
 	} as PaginationState);
 
+	const [spreadsheetId, setSpreadsheetId] = useState<string | null>(null);
+
+	const columns: ColumnDef<Transaction>[] = useMemo(
+		() => columnsData({ spreadsheetId, setTransactions }),
+		[spreadsheetId, setTransactions],
+	);
+
+	useIsomorphicLayoutEffect(() => {
+		if (spreadsheetId == null && session?.accessToken) {
+			getSpreadSheet().then(async ({ sheet, transactions: spreadsheetTransactions }) => {
+				if (sheet?.id) {
+					setSpreadsheetId(sheet.id);
+					setIsDemoMode(false);
+
+					if ((await isSheetContentUnedited(sheet.id)) && spreadsheetTransactions.length === 0) {
+						/**
+						 * Initialize the sheet data to match the currently loaded data (should be the default data)
+						 */
+						const headers: [string, string, string, string, string, string] = [
+							"Transaction",
+							"Amount",
+							"Date",
+							"Recurrence",
+							"Enabled",
+							"UUID",
+						];
+
+						await initSheet(sheet.id, [
+							headers,
+							...transactions.map(
+								(tx) =>
+									[
+										tx.name,
+										tx.amount,
+										new Date(tx.date).toLocaleDateString(),
+										tx.freq ? txRRule(tx).toText() : "",
+										!tx.disabled,
+										tx.id,
+									] as [string, number, string, string, boolean, string],
+							),
+						]);
+					} else {
+						/**
+						 * Load the sheet data into app state's transactions
+						 */
+						setTransactions(spreadsheetTransactions);
+					}
+				}
+			});
+		}
+	}, [session]);
+
 	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
 		const manageTransactionsIndex = 4;
 
 		if (action === "next" && index === manageTransactionsIndex) {
+			setIsDemoWarningClosed(true);
 			setActiveTab("transactions");
 		}
 
 		if (action === "reset") {
-			setActiveTab("calendar");
+			// setActiveTab("calendar");
+			setIsDemoMode(false);
+			setIsDemoWarningClosed(false);
 			setTourComplete(true);
 		}
 	};
@@ -114,11 +177,26 @@ export default function Home() {
 								endDate,
 								setEndDate,
 								transactions,
+								setTransactions,
+								spreadsheetId,
 							}}
 						/>
 					</TabContentItem>
 					<TabContentItem name="transactions">
-						<TransactionsTable {...{ columns, transactions, setTransactions, pagination, setPagination }} />
+						<TransactionsTable
+							{...{
+								spreadsheetId,
+								isDemoWarningClosed,
+								setIsDemoWarningClosed,
+								isDemoMode,
+								setIsDemoMode,
+								columns,
+								transactions,
+								setTransactions,
+								pagination,
+								setPagination,
+							}}
+						/>
 					</TabContentItem>
 				</Tabs>
 			</section>

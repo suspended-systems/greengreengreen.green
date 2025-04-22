@@ -46,13 +46,14 @@ export default function Tour({ isTourComplete, callback }: { isTourComplete?: bo
 	return (
 		!isTourComplete && (
 			<JoyRide
-				disableScrolling
+				disableOverlay
+				// disableScrolling
 				callback={callback}
 				steps={TOUR_STEPS}
 				continuous
 				showSkipButton
 				locale={{
-					last: "Complete (back to calendar) 🎉",
+					last: "Complete 🎉",
 				}}
 				styles={{
 					tooltipContainer: {

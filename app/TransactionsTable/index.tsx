@@ -1,8 +1,17 @@
 "use client";
 
 import * as React from "react";
+import { useSession, signOut } from "next-auth/react";
 
-import { EyeOffIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
+import {
+	EyeOffIcon,
+	ChevronLeftIcon,
+	ChevronRightIcon,
+	PlusIcon,
+	XIcon,
+	RefreshCcwIcon,
+	SquareArrowOutUpRightIcon,
+} from "lucide-react";
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -31,8 +40,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../transactions";
+import getSpreadSheet from "../sheets";
+import { CopyableInput } from "../../components/CopyableInput";
+import Image from "next/image";
 
 interface TransactionsTableProps<TData, TValue> {
+	spreadsheetId: string | null;
+	isDemoWarningClosed: boolean;
+	setIsDemoWarningClosed: React.Dispatch<React.SetStateAction<boolean>>;
+	isDemoMode: boolean;
+	setIsDemoMode: React.Dispatch<React.SetStateAction<boolean>>;
 	columns: ColumnDef<TData, TValue>[];
 	transactions: TData[];
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
@@ -41,12 +58,18 @@ interface TransactionsTableProps<TData, TValue> {
 }
 
 export function TransactionsTable<TData, TValue>({
+	spreadsheetId,
+	isDemoWarningClosed,
+	setIsDemoWarningClosed,
+	isDemoMode,
+	setIsDemoMode,
 	columns,
 	transactions,
 	setTransactions,
 	pagination,
 	setPagination,
 }: TransactionsTableProps<TData, TValue>) {
+	const { data: session } = useSession();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -71,99 +94,212 @@ export function TransactionsTable<TData, TValue>({
 		autoResetPageIndex: false,
 	});
 
-	return (
-		<>
-			<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-				<div className="flex gap-4">
-					<AddTransaction {...{ setTransactions }} />
-					<Input
-						placeholder="Search..."
-						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-						className="max-w-sm text-sm hide-box-shadow"
+	return !spreadsheetId && !isDemoMode ? (
+		<div className="flex flex-col items-center gap-3">
+			<>
+				<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+				or
+				<Button variant="outline" onClick={() => setIsDemoMode(true)}>
+					Continue in demo mode
+				</Button>
+			</>
+		</div>
+	) : (
+		<div className="flex flex-col gap-4">
+			{isDemoMode && !isDemoWarningClosed && (
+				<>
+					<InfoBannerBox
+						onClose={() => setIsDemoWarningClosed(true)}
+						title="Google Sheets Setup"
+						content={
+							<>
+								{!session ? (
+									<>
+										<p>Store your transactions in Google Sheets.</p>
+										<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+									</>
+								) : (
+									<>
+										<p className="text-muted-foreground" style={{ maxWidth: 600 }}>
+											Make sure you are signed in to the same Google Account across green and Sheets.
+										</p>
+										<div className="prose">
+											<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
+												<li>
+													Copy the email to share with:
+													<code className="text-muted-foreground">
+														<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
+													</code>
+												</li>
+												<li>
+													<a
+														href="https://docs.google.com/spreadsheets/create"
+														target="_blank"
+														rel="noopener"
+														className="inline-flex items-baseline"
+													>
+														<SquareArrowOutUpRightIcon size={18} className="self-center" />
+														<span className="pl-1">Create a Sheet (and name it)</span>
+													</a>
+												</li>
+												<li>
+													Share it
+													<div className="flex flex-col items-center">
+														<Image
+															src="/assets/sheets-setup-step-1.png"
+															alt="Sheets Setup Step 1"
+															width={600}
+															height={600}
+														/>
+														<Image
+															src="/assets/sheets-setup-step-2.png"
+															alt="Sheets Setup Step 2"
+															width={300}
+															height={300}
+														/>
+													</div>
+												</li>
+											</ol>
+										</div>
+									</>
+								)}
+							</>
+						}
 					/>
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="outline" className="ml-auto">
-								<EyeOffIcon />
-								<span className="sr-only">Toggle transaction table columns</span>
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							{table
-								.getAllColumns()
-								.filter((column) => column.getCanHide())
-								.map((column) => {
-									return (
-										<DropdownMenuCheckboxItem
-											key={column.id}
-											className="capitalize"
-											checked={column.getIsVisible()}
-											onCheckedChange={(value) => column.toggleVisibility(!!value)}
-										>
-											{
-												{
-													disabled: "Toggle",
-													name: "Name",
-													date: "Date",
-													freq: "Recurrence",
-													amount: "Amount",
-													actions: "Delete",
-												}[column.id]
-											}
-										</DropdownMenuCheckboxItem>
-									);
-								})}
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</div>
-				<div className="rounded-md border">
-					<Table>
-						<TableHeader>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => {
-										return (
-											<TableHead key={header.id}>
-												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-											</TableHead>
-										);
-									})}
-								</TableRow>
-							))}
-						</TableHeader>
-						<TableBody>
-							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
-							) : (
-								<TableRow>
-									<TableCell colSpan={columns.length} className="h-24 text-center">
-										No results.
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</div>
-				<div className="flex items-center justify-end space-x-2">
+					<InfoBannerBox
+						onClose={() => setIsDemoWarningClosed(true)}
+						title="⚠️ Warning"
+						content={
+							<>
+								<p>
+									You are in demo mode. <span className="font-medium">Data will not save.</span>
+								</p>
+								<p>Set up Google Sheets to save.</p>
+							</>
+						}
+					/>
+				</>
+			)}
+			<div className="flex gap-4">
+				<AddTransaction {...{ spreadsheetId, setTransactions }} />
+				<Input
+					placeholder="Search..."
+					value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+					onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+					className="max-w-sm text-sm hide-box-shadow"
+				/>
+				{spreadsheetId && (
 					<Button
 						variant="outline"
-						size="sm"
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
+						onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
 					>
-						<ChevronLeftIcon />
+						<SquareArrowOutUpRightIcon />
+						Open in Sheets
 					</Button>
-					<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-						<ChevronRightIcon />
+				)}
+				{spreadsheetId && (
+					<Button
+						variant="outline"
+						onClick={() =>
+							getSpreadSheet().then(({ transactions: spreadsheetTransactions }) =>
+								setTransactions(spreadsheetTransactions),
+							)
+						}
+					>
+						<RefreshCcwIcon />
+						Pull Sheets Changes
+						<span className="sr-only">Sync from Google Sheets</span>
+					</Button>
+				)}
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" className="ml-auto">
+							<EyeOffIcon />
+							<span className="sr-only">Toggle transaction table columns</span>
+						</Button>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						{table
+							.getAllColumns()
+							.filter((column) => column.getCanHide())
+							.map((column) => {
+								return (
+									<DropdownMenuCheckboxItem
+										key={column.id}
+										className="capitalize"
+										checked={column.getIsVisible()}
+										onCheckedChange={(value) => column.toggleVisibility(!!value)}
+									>
+										{
+											{
+												disabled: "Toggle",
+												name: "Name",
+												date: "Date",
+												freq: "Recurrence",
+												amount: "Amount",
+												actions: "Delete",
+											}[column.id]
+										}
+									</DropdownMenuCheckboxItem>
+								);
+							})}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</div>
+			<div className="rounded-md border">
+				<Table>
+					<TableHeader>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow key={headerGroup.id}>
+								{headerGroup.headers.map((header) => {
+									return (
+										<TableHead key={header.id}>
+											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHead>
+									);
+								})}
+							</TableRow>
+						))}
+					</TableHeader>
+					<TableBody>
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
+						) : (
+							<TableRow>
+								<TableCell colSpan={columns.length} className="h-24 text-center">
+									No results.
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
+			</div>
+			<div className="flex items-center justify-end space-x-2">
+				<Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+					<ChevronLeftIcon />
+				</Button>
+				<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+					<ChevronRightIcon />
+				</Button>
+			</div>
+			{session && (
+				<div className="self-end mt-auto mb-4">
+					<Button variant="outline" className="w-fit" onClick={() => signOut()}>
+						Sign out
 					</Button>
 				</div>
-			</div>
-		</>
+			)}
+		</div>
 	);
 }
 
-function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>> }) {
+function AddTransaction({
+	spreadsheetId,
+	setTransactions,
+}: {
+	spreadsheetId: string | null;
+	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+}) {
 	return (
 		<Dialog modal>
 			<DialogTrigger asChild>
@@ -177,7 +313,7 @@ function AddTransaction({ setTransactions }: { setTransactions: React.Dispatch<R
 				<DialogHeader>
 					<DialogTitle>Add transaction</DialogTitle>
 				</DialogHeader>
-				<TransactionForm {...{ setTransactions }} />
+				<TransactionForm {...{ spreadsheetId, setTransactions }} />
 			</DialogContent>
 		</Dialog>
 	);
@@ -213,5 +349,92 @@ function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number })
 				);
 			})}
 		</TableRow>
+	);
+}
+
+function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string | null }) {
+	// source: https://github.com/arye321/nextauth-google-popup-login
+	// @ts-ignore
+	const popupCenter = (url, title) => {
+		const dualScreenLeft = window.screenLeft ?? window.screenX;
+		const dualScreenTop = window.screenTop ?? window.screenY;
+
+		const width = window.innerWidth ?? document.documentElement.clientWidth ?? screen.width;
+
+		const height = window.innerHeight ?? document.documentElement.clientHeight ?? screen.height;
+
+		const systemZoom = width / window.screen.availWidth;
+
+		const left = (width - 500) / 2 / systemZoom + dualScreenLeft;
+		const top = (height - 550) / 2 / systemZoom + dualScreenTop;
+
+		const newWindow = window.open(
+			url,
+			title,
+			`width=${500 / systemZoom},height=${550 / systemZoom},top=${top},left=${left}`,
+		);
+
+		newWindow?.focus();
+	};
+
+	return (
+		<div>
+			<Button variant="outline" className="w-fit" onClick={() => popupCenter("/google-signin", "Sign in with Google")}>
+				<div className="gsi-material-button-icon">
+					<svg
+						version="1.1"
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 48 48"
+						xmlnsXlink="http://www.w3.org/1999/xlink"
+						style={{ display: "block" }}
+					>
+						<path
+							fill="#EA4335"
+							d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+						></path>
+						<path
+							fill="#4285F4"
+							d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+						></path>
+						<path
+							fill="#FBBC05"
+							d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+						></path>
+						<path
+							fill="#34A853"
+							d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+						></path>
+						<path fill="none" d="M0 0h48v48H0z"></path>
+					</svg>
+				</div>
+				<span className="pl-1">Sign in with Google</span>
+			</Button>
+		</div>
+	);
+}
+
+function InfoBannerBox({
+	title,
+	content,
+	onClose,
+}: {
+	title: string;
+	content: React.JSX.Element;
+	onClose: () => void;
+}) {
+	return (
+		<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
+			<button
+				onClick={() => onClose()}
+				// copied from Dialog.Close
+				className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+			>
+				<XIcon />
+				<span className="sr-only">Hide</span>
+			</button>
+			<p className="text-lg font-semibold absolute top-4">{title}</p>
+
+			<div className="prose mt-8 flex flex-col items-center gap-4">{content}</div>
+		</div>
 	);
 }
