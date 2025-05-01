@@ -69,6 +69,8 @@ export function TransactionsTable<TData, TValue>({
 	pagination,
 	setPagination,
 }: TransactionsTableProps<TData, TValue>) {
+	const [pullSheetsLoading, setPullSheetsLoading] = React.useState(false);
+
 	const { data: session } = useSession();
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -200,13 +202,25 @@ export function TransactionsTable<TData, TValue>({
 				{spreadsheetId && (
 					<Button
 						variant="outline"
-						onClick={() =>
-							getSpreadSheet().then(({ transactions: spreadsheetTransactions }) =>
-								setTransactions(spreadsheetTransactions),
-							)
-						}
+						onClick={async () => {
+							const spinStart = Date.now();
+							setPullSheetsLoading(true);
+
+							try {
+								await getSpreadSheet().then(({ transactions: spreadsheetTransactions }) =>
+									setTransactions(spreadsheetTransactions),
+								);
+							} finally {
+								// how long since we kicked off the spin?
+								const elapsed = (Date.now() - spinStart) % 1000;
+								// wait until the end of that 1 s cycle so the animation completes fully
+								setTimeout(() => setPullSheetsLoading(false), 1000 - elapsed);
+							}
+						}}
 					>
-						<RefreshCcwIcon />
+						<RefreshCcwIcon
+							className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
+						/>
 						Pull Sheets Changes
 						<span className="sr-only">Sync from Google Sheets</span>
 					</Button>
