@@ -75,7 +75,7 @@ export const columns = ({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: row.original.id,
-							columnOrRow: "F",
+							columnOrRow: "E",
 							newValue: isToggled,
 						});
 					}
