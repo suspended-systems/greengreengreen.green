@@ -45,8 +45,8 @@ function CalendarCustomized({
 					buttonVariants({ variant: "outline" }),
 					"size-7 bg-transparent p-0 opacity-50 hover:opacity-100",
 				),
-				nav_button_previous: "absolute left-1",
-				nav_button_next: "absolute right-1",
+				nav_button_previous: "absolute left-1 size-14 md:size-7",
+				nav_button_next: "absolute right-1 size-14 md:size-7",
 				table: "w-full border-collapse space-x-1",
 				head_row: "flex py-4",
 				head_cell: `text-muted-foreground rounded-md w-12 md:w-24 font-normal text-[0.8rem]`,
@@ -157,10 +157,11 @@ function CalendarCustomized({
 									overflow: "visible",
 									alignSelf: "start",
 									position: "relative",
-									paddingRight: "16px",
+									// paddingRight: "16px",
 									width: "100%",
-									textAlign: "right",
+									// textAlign: "right",
 								}}
+								className="text-center md:text-right md:pr-[16px]"
 							>
 								{props.date.getDate()}
 							</span>
@@ -180,16 +181,16 @@ function CalendarCustomized({
 										: "inherit",
 								}}
 							>
-								{projectedValue && <div className="text-[6px] md:text-xs">{formatMoney(projectedValue)}</div>}
+								{projectedValue && <div className="text-[8px] md:text-xs">{formatMoney(projectedValue)}</div>}
 
 								<div style={{ fontWeight: "bold" }}>
 									{incomesTotal > 0 && (
-										<p className="text-[8px] md:text-sm" style={{ color: GreenColor }}>
+										<p className="text-[10px] md:text-sm" style={{ color: GreenColor }}>
 											+{formatMoney(incomesTotal)}
 										</p>
 									)}
 									{expensesTotal < 0 && (
-										<p className="text-[8px] md:text-sm" style={{ color: "red" }}>
+										<p className="text-[10px] md:text-sm" style={{ color: "red" }}>
 											{formatMoney(expensesTotal)}
 										</p>
 									)}
