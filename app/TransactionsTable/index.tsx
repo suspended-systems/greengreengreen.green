@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useSession, signOut } from "next-auth/react";
+import Image from "next/image";
 
 import {
 	EyeOffIcon,
@@ -13,6 +14,7 @@ import {
 	SquareArrowOutUpRightIcon,
 	Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import {
 	ColumnDef,
 	ColumnFiltersState,
@@ -38,12 +40,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CopyableInput } from "@/components/CopyableInput";
 
 import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../transactions";
 import getSpreadSheet from "../sheets";
-import { CopyableInput } from "../../components/CopyableInput";
-import Image from "next/image";
 
 interface TransactionsTableProps<TData, TValue> {
 	spreadsheetId: string | null;
@@ -216,6 +217,8 @@ export function TransactionsTable<TData, TValue>({
 									await getSpreadSheet().then(({ transactions: spreadsheetTransactions }) =>
 										setTransactions(spreadsheetTransactions),
 									);
+
+									toast("Successfully imported sheets transactions");
 								} finally {
 									// how long since we kicked off the spin?
 									const elapsed = (Date.now() - spinStart) % 1000;
