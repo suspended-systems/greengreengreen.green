@@ -286,7 +286,12 @@ export function TransactionsTable<TData, TValue>({
 								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
 							) : (
 								<TableRow>
-									<TableCell colSpan={columns.length} className="h-24 text-center">
+									<TableCell
+										colSpan={columns.length}
+										className="h-24 text-center"
+										// cheaphax: prevent table width from changing when no results
+										style={{ width: 970 }}
+									>
 										No results.
 									</TableCell>
 								</TableRow>
