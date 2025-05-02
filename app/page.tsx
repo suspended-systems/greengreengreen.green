@@ -157,7 +157,7 @@ export default function Home() {
 			/>
 			{/* tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab}>
-				<TabsList className="grid grid-cols-2 w-full fixed md:relative bottom-0 h-18 md:h-9">
+				<TabsList className="z-100 grid grid-cols-2 w-full fixed md:relative bottom-0 h-18 md:h-9">
 					<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
 						<CalendarDaysIcon className="size-8 md:size-4" />
 						Calendar
