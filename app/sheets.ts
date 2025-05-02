@@ -229,7 +229,6 @@ export async function updateSheetsRow({
 		spreadsheetId,
 		range: colRange,
 	});
-	console.log({ values: data.values, colRange });
 	const vals = (data.values || []).slice(1); // drop header
 	const idx = vals.findIndex(([_, cell]) => String(cell ?? "") === String(filterValue));
 	if (idx < 0) throw new Error("No matching row found");
