@@ -105,7 +105,7 @@ export const defaultTransactions: Transaction[] = [
 	},
 	{
 		id: uuid(),
-		name: "Internet Bill",
+		name: "Internet bill",
 		date: new Date().setDate(13),
 		amount: -80,
 		freq: Frequency.MONTHLY,
