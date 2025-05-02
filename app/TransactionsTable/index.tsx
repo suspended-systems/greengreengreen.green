@@ -218,7 +218,7 @@ export function TransactionsTable<TData, TValue>({
 										setTransactions(spreadsheetTransactions),
 									);
 
-									toast("Successfully imported sheets transactions");
+									toast("Successfully imported Sheets transactions");
 								} finally {
 									// how long since we kicked off the spin?
 									const elapsed = (Date.now() - spinStart) % 1000;
