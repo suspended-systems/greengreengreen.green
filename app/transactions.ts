@@ -85,6 +85,19 @@ export const defaultTransactions: Transaction[] = [
 	},
 	{
 		id: uuid(),
+		name: "Hulu",
+		date: new Date().setDate(4),
+		amount: -18.99,
+		freq: Frequency.MONTHLY,
+	},
+	{
+		id: uuid(),
+		name: "Investments cash out",
+		date: new Date().setDate(4),
+		amount: 2000,
+	},
+	{
+		id: uuid(),
 		name: "DoorDash",
 		date: new Date().setDate(7),
 		amount: -30,
