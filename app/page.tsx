@@ -156,59 +156,53 @@ export default function Home() {
 				className="mx-auto mb-4 md:mb-0"
 			/>
 			{/* tabs */}
-			<section className="gsap-tab-container">
-				<span className="gsap-tab-trigger-line"></span>
-				<Tabs value={activeTab} onValueChange={setActiveTab}>
-					<TabsList className="grid grid-cols-2 w-full fixed md:relative bottom-0 h-18 md:h-9">
-						<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
-							<CalendarDaysIcon className="size-8 md:size-4" />
-							Calendar
-						</TabsTrigger>
-						<TabsTrigger
-							value="transactions"
-							className="tour-transactions flex flex-col md:flex-row text-xs md:text-sm"
-						>
-							<CircleDollarSignIcon className="size-8 md:size-4" />
-							Transactions
-						</TabsTrigger>
-					</TabsList>
+			<Tabs value={activeTab} onValueChange={setActiveTab}>
+				<TabsList className="grid grid-cols-2 w-full fixed md:relative bottom-0 h-18 md:h-9">
+					<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
+						<CalendarDaysIcon className="size-8 md:size-4" />
+						Calendar
+					</TabsTrigger>
+					<TabsTrigger value="transactions" className="tour-transactions flex flex-col md:flex-row text-xs md:text-sm">
+						<CircleDollarSignIcon className="size-8 md:size-4" />
+						Transactions
+					</TabsTrigger>
+				</TabsList>
 
-					<TabContentItem name="calendar">
-						<CalendarView
-							{...{
-								month,
-								onMonthChange,
-								startValue,
-								setStartValue,
-								startDate,
-								setStartDate,
-								endDate,
-								setEndDate,
-								transactions,
-								setTransactions,
-								spreadsheetId,
-							}}
-						/>
-					</TabContentItem>
-					<TabContentItem name="transactions">
-						<TransactionsTable
-							{...{
-								spreadsheetId,
-								isDemoWarningClosed,
-								setIsDemoWarningClosed,
-								isDemoMode,
-								setIsDemoMode,
-								columns,
-								transactions,
-								setTransactions,
-								pagination,
-								setPagination,
-								isSheetLoading,
-							}}
-						/>
-					</TabContentItem>
-				</Tabs>
-			</section>
+				<TabContentItem name="calendar">
+					<CalendarView
+						{...{
+							month,
+							onMonthChange,
+							startValue,
+							setStartValue,
+							startDate,
+							setStartDate,
+							endDate,
+							setEndDate,
+							transactions,
+							setTransactions,
+							spreadsheetId,
+						}}
+					/>
+				</TabContentItem>
+				<TabContentItem name="transactions">
+					<TransactionsTable
+						{...{
+							spreadsheetId,
+							isDemoWarningClosed,
+							setIsDemoWarningClosed,
+							isDemoMode,
+							setIsDemoMode,
+							columns,
+							transactions,
+							setTransactions,
+							pagination,
+							setPagination,
+							isSheetLoading,
+						}}
+					/>
+				</TabContentItem>
+			</Tabs>
 			<Toaster />
 		</>
 	);
@@ -218,7 +212,7 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 	return (
 		<TabsContent className="tab-content mx-auto w-full" value={name}>
 			{/* -15 instead of -16 to account for the green bar */}
-			<div className={`flex justify-center lg:mx-4 h-[calc(100vh-15px)] md:h-[calc(100vh-16px)]`}>
+			<div className={`flex justify-center px-2 lg:mx-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]`}>
 				<div className="flex justify-start" style={{ overflowX: "auto" }}>
 					{children}
 				</div>

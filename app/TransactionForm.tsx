@@ -166,7 +166,12 @@ export function TransactionForm({
 						<span style={{ fontWeight: 300 }}> (optional)</span>
 					</div>
 					{!isRecurring ? (
-						<Button variant="outline" onClick={() => setIsRecurring(true)} style={{ width: "fit-content" }}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setIsRecurring(true)}
+							style={{ width: "fit-content" }}
+						>
 							<PlusIcon />
 						</Button>
 					) : (
@@ -228,6 +233,7 @@ export function TransactionForm({
 								)}
 							/>
 							<Button
+								type="button"
 								variant="outline"
 								onClick={() => {
 									setIsRecurring(false);

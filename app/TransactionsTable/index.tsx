@@ -187,127 +187,134 @@ export function TransactionsTable<TData, TValue>({
 					/>
 				</>
 			)}
-			<div className="flex gap-4">
-				<AddTransaction {...{ spreadsheetId, setTransactions }} />
-				<Input
-					placeholder="Search..."
-					value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-					onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-					className="max-w-sm text-sm hide-box-shadow"
-				/>
-				{spreadsheetId && (
-					<Button
-						variant="outline"
-						onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
-					>
-						<SquareArrowOutUpRightIcon />
-						Open in Sheets
-					</Button>
-				)}
-				{spreadsheetId && (
-					<Button
-						variant="outline"
-						onClick={async () => {
-							const spinStart = Date.now();
-							setPullSheetsLoading(true);
-
-							try {
-								await getSpreadSheet().then(({ transactions: spreadsheetTransactions }) =>
-									setTransactions(spreadsheetTransactions),
-								);
-							} finally {
-								// how long since we kicked off the spin?
-								const elapsed = (Date.now() - spinStart) % 1000;
-								// wait until the end of that 1 s cycle so the animation completes fully
-								setTimeout(() => setPullSheetsLoading(false), 1000 - elapsed);
-							}
-						}}
-					>
-						<RefreshCcwIcon
-							className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
-						/>
-						Pull Sheets Changes
-						<span className="sr-only">Sync from Google Sheets</span>
-					</Button>
-				)}
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="ml-auto">
-							<EyeOffIcon />
-							<span className="sr-only">Toggle transaction table columns</span>
+			<div className="flex flex-col gap-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]">
+				<div className="flex gap-4">
+					<AddTransaction {...{ spreadsheetId, setTransactions }} />
+					<Input
+						placeholder="Search..."
+						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+						className="max-w-sm text-sm hide-box-shadow"
+					/>
+					{spreadsheetId && (
+						<Button
+							variant="outline"
+							onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
+						>
+							<SquareArrowOutUpRightIcon />
+							Open in Sheets
 						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						{table
-							.getAllColumns()
-							.filter((column) => column.getCanHide())
-							.map((column) => {
-								return (
-									<DropdownMenuCheckboxItem
-										key={column.id}
-										className="capitalize"
-										checked={column.getIsVisible()}
-										onCheckedChange={(value) => column.toggleVisibility(!!value)}
-									>
-										{
-											{
-												disabled: "Toggle",
-												name: "Name",
-												date: "Date",
-												freq: "Recurrence",
-												amount: "Amount",
-												actions: "Delete",
-											}[column.id]
-										}
-									</DropdownMenuCheckboxItem>
-								);
-							})}
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</div>
-			<div className="rounded-md border">
-				<Table>
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => {
+					)}
+					{spreadsheetId && (
+						<Button
+							variant="outline"
+							onClick={async () => {
+								const spinStart = Date.now();
+								setPullSheetsLoading(true);
+
+								try {
+									await getSpreadSheet().then(({ transactions: spreadsheetTransactions }) =>
+										setTransactions(spreadsheetTransactions),
+									);
+								} finally {
+									// how long since we kicked off the spin?
+									const elapsed = (Date.now() - spinStart) % 1000;
+									// wait until the end of that 1 s cycle so the animation completes fully
+									setTimeout(() => setPullSheetsLoading(false), 1000 - elapsed);
+								}
+							}}
+						>
+							<RefreshCcwIcon
+								className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
+							/>
+							Pull Sheets Changes
+							<span className="sr-only">Sync from Google Sheets</span>
+						</Button>
+					)}
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="outline" className="ml-auto">
+								<EyeOffIcon />
+								<span className="sr-only">Toggle transaction table columns</span>
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							{table
+								.getAllColumns()
+								.filter((column) => column.getCanHide())
+								.map((column) => {
 									return (
-										<TableHead key={header.id}>
-											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-										</TableHead>
+										<DropdownMenuCheckboxItem
+											key={column.id}
+											className="capitalize"
+											checked={column.getIsVisible()}
+											onCheckedChange={(value) => column.toggleVisibility(!!value)}
+										>
+											{
+												{
+													disabled: "Toggle",
+													name: "Name",
+													date: "Date",
+													freq: "Recurrence",
+													amount: "Amount",
+													actions: "Delete",
+												}[column.id]
+											}
+										</DropdownMenuCheckboxItem>
 									);
 								})}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
-						) : (
-							<TableRow>
-								<TableCell colSpan={columns.length} className="h-24 text-center">
-									No results.
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
-			<div className="flex items-center justify-end space-x-2">
-				<Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-					<ChevronLeftIcon />
-				</Button>
-				<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-					<ChevronRightIcon />
-				</Button>
-			</div>
-			{session && (
-				<div className="self-end mt-auto mb-4">
-					<Button variant="outline" className="w-fit" onClick={() => signOut()}>
-						Sign out
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+				<div className="rounded-md border">
+					<Table>
+						<TableHeader>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<TableRow key={headerGroup.id}>
+									{headerGroup.headers.map((header) => {
+										return (
+											<TableHead key={header.id}>
+												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+											</TableHead>
+										);
+									})}
+								</TableRow>
+							))}
+						</TableHeader>
+						<TableBody>
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
+							) : (
+								<TableRow>
+									<TableCell colSpan={columns.length} className="h-24 text-center">
+										No results.
+									</TableCell>
+								</TableRow>
+							)}
+						</TableBody>
+					</Table>
+				</div>
+				<div className="pb-4 flex items-center justify-end space-x-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => table.previousPage()}
+						disabled={!table.getCanPreviousPage()}
+					>
+						<ChevronLeftIcon />
+					</Button>
+					<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+						<ChevronRightIcon />
 					</Button>
 				</div>
-			)}
+				{session && (
+					<div className="self-end mt-auto mb-4">
+						<Button variant="outline" className="w-fit" onClick={() => signOut()}>
+							Sign out
+						</Button>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

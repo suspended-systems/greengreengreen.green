@@ -103,6 +103,7 @@
 
 
 future roadmap:
+-save starting date and value into txs sheet as a separate sheet tab/Sheet2
 -toggles for calendar day card view
     -show all names of transactions
     -show just totals
