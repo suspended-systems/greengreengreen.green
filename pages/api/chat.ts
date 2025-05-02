@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const completion = await openai.chat.completions.create({
 			model: "gpt-4o-mini",
-			temperature: 0.7,
+			// temperature: 0.7,
 			// @ts-ignore
 			messages,
 			functions: [

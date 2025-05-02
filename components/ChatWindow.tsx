@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChatMessage, Alternative } from "../types/chat";
-import { ArrowUpIcon } from "lucide-react";
+import { ArrowUpIcon, TriangleAlertIcon } from "lucide-react";
 
 interface ChatWindowProps {
 	initialPayload: Record<string, any>;
@@ -156,6 +156,10 @@ Return via function "extractAlternatives".`;
 					<ArrowUpIcon />
 				</button>
 			</div>
+			<p className="inline-flex gap-1 items-center p-2 text-muted-foreground text-sm">
+				<TriangleAlertIcon size={14} />
+				Chat recommendations are in beta
+			</p>
 		</div>
 	);
 };

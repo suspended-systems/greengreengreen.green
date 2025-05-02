@@ -85,6 +85,13 @@ export const defaultTransactions: Transaction[] = [
 	},
 	{
 		id: uuid(),
+		name: "DoorDash",
+		date: new Date().setDate(7),
+		amount: -30,
+		freq: Frequency.WEEKLY,
+	},
+	{
+		id: uuid(),
 		name: "Internet Bill",
 		date: new Date().setDate(13),
 		amount: -80,

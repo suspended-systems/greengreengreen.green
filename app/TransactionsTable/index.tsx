@@ -11,6 +11,7 @@ import {
 	XIcon,
 	RefreshCcwIcon,
 	SquareArrowOutUpRightIcon,
+	Loader2,
 } from "lucide-react";
 import {
 	ColumnDef,
@@ -55,6 +56,7 @@ interface TransactionsTableProps<TData, TValue> {
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 	pagination: PaginationState;
 	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
+	isSheetLoading: boolean;
 }
 
 export function TransactionsTable<TData, TValue>({
@@ -68,6 +70,7 @@ export function TransactionsTable<TData, TValue>({
 	setTransactions,
 	pagination,
 	setPagination,
+	isSheetLoading,
 }: TransactionsTableProps<TData, TValue>) {
 	const [pullSheetsLoading, setPullSheetsLoading] = React.useState(false);
 
@@ -106,6 +109,8 @@ export function TransactionsTable<TData, TValue>({
 				</Button>
 			</>
 		</div>
+	) : isSheetLoading ? (
+		<Loader2 className="animate-spin h-5 w-5 text-current" aria-label="Loading…" />
 	) : (
 		<div className="flex flex-col gap-4">
 			{isDemoMode && !isDemoWarningClosed && (
@@ -437,7 +442,7 @@ function InfoBannerBox({
 	onClose: () => void;
 }) {
 	return (
-		<div className="relative rounded-md border p-6 self-center flex flex-col gap-4 items-center">
+		<div className="relative w-full rounded-md border p-6 self-center flex flex-col gap-4 items-center">
 			<button
 				onClick={() => onClose()}
 				// copied from Dialog.Close
