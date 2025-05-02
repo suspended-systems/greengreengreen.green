@@ -86,7 +86,21 @@ export default async function getSpreadSheet() {
 								freq: RRule.fromText(recurrence).options.freq,
 								interval: RRule.fromText(recurrence).options.interval,
 							}),
-						disabled: enabled.toLowerCase() !== "true",
+						disabled: enabled
+							? enabled.toLowerCase() !== "true"
+							: await (async () => {
+									await updateSheetsRow({
+										spreadsheetId: sheet.id!,
+										filterColumn: id ? "F" : "E",
+										filterValue: id ? id : "",
+										columnOrRow: "E",
+										// flipped because in the sheet we store "enabled"
+										newValue: true,
+									});
+
+									// in the app we store "disabled"
+									return false;
+							  })(),
 					})),
 		  )
 		: [];
@@ -219,18 +233,25 @@ export async function updateSheetsRow({
 	columnOrRow: string | [string, number, string, string, boolean, string];
 	newValue?: string | number | boolean;
 }) {
-	filterColumn = filterColumn ?? "F";
+	filterColumn = filterColumn ?? "F"; // "F" is UUID
 
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 
 	// 1) pull only the filter column (including header)
-	const colRange = `${sheetName}!E:${filterColumn}`;
+	const colRange = `${sheetName}!A:${filterColumn}`;
 	const { data } = await sheetsApi.spreadsheets.values.get({
 		spreadsheetId,
 		range: colRange,
 	});
 	const vals = (data.values || []).slice(1); // drop header
-	const idx = vals.findIndex(([_, cell]) => String(cell ?? "") === String(filterValue));
+	const idx = vals.findIndex(([txName, txAmt, txDate, txRecur, txEnabled, txUUID]) => {
+		// todo: cleanup
+		if (filterColumn === "F") {
+			return String(txUUID ?? "") === String(filterValue);
+		} else if (filterColumn === "E") {
+			return String(txEnabled ?? "") === String(filterValue);
+		}
+	});
 	if (idx < 0) throw new Error("No matching row found");
 	const rowNum = idx + 2; // account for header + 1‑based
 
