@@ -90,14 +90,15 @@
 
 ###- disabling one added custom is being weird sending FALSE to UUID column
 
-- initial page loading session detection
-    - can use session {status} to help with this
-    - show a Loading spinner while status is loading, use lucide-react to do it
+###- initial page loading session detection
+    ###- can use session {status} to help with this
+    ###- show a Loading spinner while status is loading, use lucide-react to do it
 
 - enter keyboard press in amount input in form to submit
 
-- style={{}} cleanup replace with tailwind
-    - green color as css
+###- style={{}} cleanup replace with tailwind
+
+- green color as css
 
 
 
