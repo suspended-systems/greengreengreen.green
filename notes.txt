@@ -98,6 +98,10 @@
 
 ###- style={{}} cleanup replace with tailwind
 
+###- mobile drop decimals on cal
+
+- calendar loading like sign in loading
+
 - green color as css
 
 

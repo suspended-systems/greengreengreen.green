@@ -181,18 +181,43 @@ function CalendarCustomized({
 										: "inherit",
 								}}
 							>
-								{projectedValue && <div className="text-[8px] md:text-xs">{formatMoney(projectedValue)}</div>}
+								{projectedValue && (
+									<>
+										{/* On mobile, drop the decimals unless selected */}
+										<div className="block md:hidden text-[8px]">
+											{/* Round down remaining */}
+											{formatMoney(props.activeModifiers.selected ? projectedValue : Math.floor(projectedValue)).slice(
+												0,
+												props.activeModifiers.selected ? Infinity : -3,
+											)}
+										</div>
+										<div className="hidden md:block text-xs">{formatMoney(projectedValue)}</div>
+									</>
+								)}
 
 								<div style={{ fontWeight: "bold" }}>
 									{incomesTotal > 0 && (
-										<p className="text-[10px] md:text-sm" style={{ color: GreenColor }}>
-											+{formatMoney(incomesTotal)}
-										</p>
+										<>
+											{/* On mobile, drop the decimals */}
+											<p className="block md:hidden text-[10px]" style={{ color: GreenColor }}>
+												{/* Round down income */}+{formatMoney(Math.floor(incomesTotal)).slice(0, -3)}
+											</p>
+											<p className="hidden md:block text-sm" style={{ color: GreenColor }}>
+												+{formatMoney(incomesTotal)}
+											</p>
+										</>
 									)}
 									{expensesTotal < 0 && (
-										<p className="text-[10px] md:text-sm" style={{ color: "red" }}>
-											{formatMoney(expensesTotal)}
-										</p>
+										<>
+											{/* On mobile, drop the decimals */}
+											<p className="block md:hidden text-[10px]" style={{ color: "red" }}>
+												{/* Round up expenses, because it's negative we do floor */}
+												{formatMoney(Math.floor(expensesTotal)).slice(0, -3)}
+											</p>
+											<p className="hidden md:block text-sm" style={{ color: "red" }}>
+												{formatMoney(expensesTotal)}
+											</p>
+										</>
 									)}
 								</div>
 							</div>
