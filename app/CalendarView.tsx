@@ -152,14 +152,28 @@ export default function CalendarView({
 								</table>
 							</>
 						) : (
-							<p className="text-sm" style={{ opacity: 0.5 }}>
-								No transactions on{" "}
-								{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
-									month: "long",
-									weekday: "long",
-									day: "numeric",
-								})}
-							</p>
+							<>
+								<p className="text-sm" style={{ opacity: 0.5 }}>
+									No transactions on{" "}
+									{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
+										month: "long",
+										weekday: "long",
+										day: "numeric",
+									})}
+								</p>
+								{startValue && startDate && transactions && (
+									<div className="block md:hidden text-sm" style={{ opacity: 0.5 }}>
+										{formatMoney(
+											calcProjectedValue({
+												startValue,
+												startDate,
+												endDate: new Date(endDate.getTime() + DAY_MS - 1),
+												transactions,
+											}),
+										)}
+									</div>
+								)}
+							</>
 						)
 					) : (
 						<p className="italic text-sm" style={{ opacity: 0.5 }}>
