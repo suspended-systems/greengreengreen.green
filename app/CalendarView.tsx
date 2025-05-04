@@ -13,8 +13,8 @@ import { CalendarCustomized } from "@/components/ui/calendar-customized";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import NumericInput from "@/components/NumericInput";
 
-import { getTransactionsOnDay, Transaction, txRRule } from "./transactions";
-import { formatMoney, GreenColor } from "./utils";
+import { calcProjectedValue, getTransactionsOnDay, Transaction, txRRule } from "./transactions";
+import { DAY_MS, formatMoney, GreenColor } from "./utils";
 import { appendSheetsRow, updateSheetsRow } from "./sheets";
 
 /**
@@ -112,6 +112,18 @@ export default function CalendarView({
 										day: "numeric",
 									})}
 								</div>
+								{startValue && startDate && transactions && (
+									<div className="block md:hidden text-sm">
+										{formatMoney(
+											calcProjectedValue({
+												startValue,
+												startDate,
+												endDate: new Date(endDate.getTime() + DAY_MS - 1),
+												transactions,
+											}),
+										)}
+									</div>
+								)}
 								<table
 									className="border border-transparent border-spacing-4"
 									style={{ borderCollapse: "separate", borderSpacing: 8 }}

@@ -183,17 +183,19 @@ function CalendarCustomized({
 								}}
 							>
 								{projectedValue && (
-									<>
-										{/* On mobile, drop the decimals unless selected */}
-										<div className="block md:hidden text-[8px]">
-											{/* Round down remaining */}
-											{formatMoney(props.activeModifiers.selected ? projectedValue : Math.floor(projectedValue)).slice(
-												0,
-												props.activeModifiers.selected ? Infinity : -3,
-											)}
-										</div>
-										<div className="hidden md:block text-xs">{formatMoney(projectedValue)}</div>
-									</>
+									// <>
+									// 	{/* On mobile, drop the decimals unless selected */}
+									// 	<div className="block md:hidden text-[8px]">
+									// 		{/* Round down remaining */}
+									// 		{formatMoney(props.activeModifiers.selected ? projectedValue : Math.floor(projectedValue)).slice(
+									// 			0,
+									// 			props.activeModifiers.selected ? Infinity : -3,
+									// 		)}
+									// 	</div>
+									// 	<div className="hidden md:block text-xs">{formatMoney(projectedValue)}</div>
+									// </>
+									// hidden on mobile
+									<div className="hidden md:block text-xs">{formatMoney(projectedValue)}</div>
 								)}
 
 								<div style={{ fontWeight: "bold" }}>
