@@ -1,7 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, useState } from "react";
-import { BotMessageSquareIcon, CalendarIcon } from "lucide-react";
+import { BotMessageSquareIcon, CalendarIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
@@ -32,6 +32,7 @@ export default function CalendarView({
 	endDate,
 	setEndDate,
 	spreadsheetId,
+	isSheetLoading,
 }: {
 	month: Date;
 	onMonthChange: Dispatch<SetStateAction<Date>>;
@@ -44,6 +45,7 @@ export default function CalendarView({
 	endDate: Date | undefined;
 	setEndDate: Dispatch<SetStateAction<Date | undefined>>;
 	spreadsheetId: string | null;
+	isSheetLoading: boolean;
 }) {
 	const enabledTransactions = transactions.filter((tx) => !tx.disabled);
 
@@ -156,12 +158,19 @@ export default function CalendarView({
 			</div>
 			{/* right panel */}
 			<CalendarCustomized
-				{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions }}
+				{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions, isSheetLoading }}
 				mode="single"
 				selected={endDate}
 				onSelect={setEndDate}
 				className="tour-calendar mx-auto rounded-md md:border"
 			/>
+			{isSheetLoading && (
+				<Loader2
+					size={64}
+					className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 animate-spin text-current"
+					aria-label="Loading…"
+				/>
+			)}
 		</div>
 	);
 }

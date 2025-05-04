@@ -100,7 +100,7 @@
 
 ###- mobile drop decimals on cal
 
-- calendar loading like sign in loading
+- redo loading logic so calendar doesn't load default always
 
 - green color as css
 

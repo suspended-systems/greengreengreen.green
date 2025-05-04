@@ -182,6 +182,7 @@ export default function Home() {
 							transactions,
 							setTransactions,
 							spreadsheetId,
+							isSheetLoading,
 						}}
 					/>
 				</TabContentItem>
