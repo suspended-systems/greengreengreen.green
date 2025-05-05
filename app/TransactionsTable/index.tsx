@@ -12,7 +12,6 @@ import {
 	XIcon,
 	RefreshCcwIcon,
 	SquareArrowOutUpRightIcon,
-	Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -51,13 +50,11 @@ interface TransactionsTableProps<TData, TValue> {
 	isDemoWarningClosed: boolean;
 	setIsDemoWarningClosed: React.Dispatch<React.SetStateAction<boolean>>;
 	isDemoMode: boolean;
-	setIsDemoMode: React.Dispatch<React.SetStateAction<boolean>>;
 	columns: ColumnDef<TData, TValue>[];
 	transactions: TData[];
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 	pagination: PaginationState;
 	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
-	isSheetLoading: boolean;
 }
 
 export function TransactionsTable<TData, TValue>({
@@ -65,13 +62,11 @@ export function TransactionsTable<TData, TValue>({
 	isDemoWarningClosed,
 	setIsDemoWarningClosed,
 	isDemoMode,
-	setIsDemoMode,
 	columns,
 	transactions,
 	setTransactions,
 	pagination,
 	setPagination,
-	isSheetLoading,
 }: TransactionsTableProps<TData, TValue>) {
 	const [pullSheetsLoading, setPullSheetsLoading] = React.useState(false);
 
@@ -100,19 +95,7 @@ export function TransactionsTable<TData, TValue>({
 		autoResetPageIndex: false,
 	});
 
-	return !spreadsheetId && !isDemoMode ? (
-		<div className="flex flex-col items-center gap-3">
-			<>
-				<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
-				or
-				<Button variant="outline" onClick={() => setIsDemoMode(true)}>
-					Continue in demo mode
-				</Button>
-			</>
-		</div>
-	) : isSheetLoading ? (
-		<Loader2 className="animate-spin h-5 w-5 text-current" aria-label="Loading…" />
-	) : (
+	return (
 		<div className="flex flex-col gap-4">
 			{isDemoMode && !isDemoWarningClosed && (
 				<>
@@ -386,7 +369,7 @@ function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number })
 	);
 }
 
-function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string | null }) {
+export function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string | null }) {
 	// source: https://github.com/arye321/nextauth-google-popup-login
 	// @ts-ignore
 	const popupCenter = (url, title) => {

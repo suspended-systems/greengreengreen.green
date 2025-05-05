@@ -3,15 +3,16 @@
 import dynamic from "next/dynamic";
 import { useMemo, useState, PropsWithChildren } from "react";
 import { useIsomorphicLayoutEffect, useLocalStorage } from "react-use";
-import { CalendarDaysIcon, CircleDollarSignIcon } from "lucide-react";
+import { CalendarDaysIcon, CircleDollarSignIcon, Loader2 } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
+import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CalendarView from "@/app/CalendarView";
 import { columns as columnsData } from "./TransactionsTable/columns";
-import { TransactionsTable } from "./TransactionsTable";
+import { SetUpWithGoogleSheetsButton, TransactionsTable } from "./TransactionsTable";
 import { ModeSwitcher } from "./ModeSwitcher";
 
 import { defaultTransactions, Transaction, txRRule } from "./transactions";
@@ -168,41 +169,58 @@ export default function Home() {
 					</TabsTrigger>
 				</TabsList>
 
-				<TabContentItem name="calendar">
-					<CalendarView
-						{...{
-							month,
-							onMonthChange,
-							startValue,
-							setStartValue,
-							startDate,
-							setStartDate,
-							endDate,
-							setEndDate,
-							transactions,
-							setTransactions,
-							spreadsheetId,
-							isSheetLoading,
-						}}
-					/>
-				</TabContentItem>
-				<TabContentItem name="transactions">
-					<TransactionsTable
-						{...{
-							spreadsheetId,
-							isDemoWarningClosed,
-							setIsDemoWarningClosed,
-							isDemoMode,
-							setIsDemoMode,
-							columns,
-							transactions,
-							setTransactions,
-							pagination,
-							setPagination,
-							isSheetLoading,
-						}}
-					/>
-				</TabContentItem>
+				{!spreadsheetId && !isDemoMode ? (
+					<div className="flex flex-col items-center gap-3">
+						<>
+							<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+							or
+							<Button variant="outline" onClick={() => setIsDemoMode(true)}>
+								Continue in demo mode
+							</Button>
+						</>
+					</div>
+				) : isSheetLoading ? (
+					<div className="flex flex-col items-center h-full text-current">
+						<Loader2 className="animate-spin" size={64} aria-label="Loading…" />
+						<p>Retrieving Sheets transactions...</p>
+					</div>
+				) : (
+					<>
+						<TabContentItem name="calendar">
+							<CalendarView
+								{...{
+									month,
+									onMonthChange,
+									startValue,
+									setStartValue,
+									startDate,
+									setStartDate,
+									endDate,
+									setEndDate,
+									transactions,
+									setTransactions,
+									spreadsheetId,
+								}}
+							/>
+						</TabContentItem>
+						<TabContentItem name="transactions">
+							<TransactionsTable
+								{...{
+									spreadsheetId,
+									isDemoWarningClosed,
+									setIsDemoWarningClosed,
+									isDemoMode,
+									setIsDemoMode,
+									columns,
+									transactions,
+									setTransactions,
+									pagination,
+									setPagination,
+								}}
+							/>
+						</TabContentItem>
+					</>
+				)}
 			</Tabs>
 			<Toaster />
 		</>
@@ -213,7 +231,7 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 	return (
 		<TabsContent className="tab-content mx-auto w-full" value={name}>
 			{/* -15 instead of -16 to account for the green bar */}
-			<div className={`flex justify-center px-2 lg:mx-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]`}>
+			<div className={`flex justify-center px-2 lg:mx-4 min-h-[calc(100dvh-15px)] md:min-h-[calc(100dvh-16px)]`}>
 				<div className="flex justify-start" style={{ overflowX: "auto" }}>
 					{children}
 				</div>

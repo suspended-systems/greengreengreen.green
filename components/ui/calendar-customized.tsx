@@ -21,9 +21,8 @@ function CalendarCustomized({
 	startDate?: Date;
 	endDate?: Date;
 	transactions?: Transaction[];
-	isSheetLoading: boolean;
 } & React.ComponentProps<typeof DayPicker>) {
-	const { startValue, startDate, endDate, transactions, isSheetLoading, month, onMonthChange } = props;
+	const { startValue, startDate, endDate, transactions, month, onMonthChange } = props;
 
 	return (
 		<DayPicker
