@@ -433,7 +433,7 @@ function InfoBannerBox({
 	onClose: () => void;
 }) {
 	return (
-		<div className="relative w-full rounded-md border p-6 self-center flex flex-col gap-4 items-center">
+		<div className="relative w-fit md:w-full rounded-md border p-6 flex flex-col gap-4 items-center">
 			<button
 				onClick={() => onClose()}
 				// copied from Dialog.Close
