@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 
 import {
@@ -107,7 +107,7 @@ export function TransactionsTable<TData, TValue>({
 								{!session ? (
 									<>
 										<p>Store your transactions in Google Sheets.</p>
-										<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+										<SetUpWithGoogleSheetsButton />
 									</>
 								) : (
 									<>
@@ -298,13 +298,6 @@ export function TransactionsTable<TData, TValue>({
 						<ChevronRightIcon />
 					</Button>
 				</div>
-				{session && (
-					<div className="self-end mt-auto mb-4">
-						<Button variant="outline" className="w-fit" onClick={() => signOut()}>
-							Sign out
-						</Button>
-					</div>
-				)}
 			</div>
 		</div>
 	);
@@ -369,7 +362,7 @@ function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number })
 	);
 }
 
-export function SetUpWithGoogleSheetsButton({ spreadsheetId }: { spreadsheetId: string | null }) {
+export function SetUpWithGoogleSheetsButton() {
 	// source: https://github.com/arye321/nextauth-google-popup-login
 	// @ts-ignore
 	const popupCenter = (url, title) => {

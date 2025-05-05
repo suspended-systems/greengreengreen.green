@@ -3,14 +3,16 @@
 import dynamic from "next/dynamic";
 import { useMemo, useState, PropsWithChildren } from "react";
 import { useIsomorphicLayoutEffect, useLocalStorage } from "react-use";
-import { CalendarDaysIcon, CircleDollarSignIcon, Loader2 } from "lucide-react";
+import { CalendarDaysIcon, CircleDollarSignIcon, CogIcon, Loader2 } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CalendarView from "@/app/CalendarView";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+import CalendarView from "./CalendarView";
 import { columns as columnsData } from "./TransactionsTable/columns";
 import { SetUpWithGoogleSheetsButton, TransactionsTable } from "./TransactionsTable";
 import { ModeSwitcher } from "./ModeSwitcher";
@@ -21,7 +23,7 @@ import { APP_NAME, GreenColor } from "./utils";
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import getSpreadSheet, { initSheet, isSheetContentUnedited } from "./sheets";
 
 export default function Home() {
@@ -128,9 +130,36 @@ export default function Home() {
 		<>
 			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
 			{/* night mode toggle */}
-			<div style={{ position: "absolute", right: 0, top: 0 }}>
-				<ModeSwitcher />
+			<div style={{ position: "absolute", right: 3, top: 3 }}>
+				<Popover>
+					<PopoverTrigger>
+						<CogIcon className="text-muted-foreground" />
+					</PopoverTrigger>
+					<PopoverContent className="w-fit flex flex-col gap-4 justify-center">
+						<ModeSwitcher />
+						<div className="flex flex-col gap-4 mx-auto">
+							{session ? (
+								<>
+									<span className="text-sm text-muted-foreground">Signed in to {session.user?.email}</span>
+									<Button
+										variant="outline"
+										className="w-fit"
+										style={{ alignSelf: "flex-end", color: "#c75757" }}
+										onClick={() => signOut()}
+									>
+										Sign out
+									</Button>
+								</>
+							) : (
+								<>
+									<SetUpWithGoogleSheetsButton />
+								</>
+							)}
+						</div>
+					</PopoverContent>
+				</Popover>
 			</div>
+
 			{/* banner */}
 			<div
 				className="text-center"
@@ -158,7 +187,7 @@ export default function Home() {
 			/>
 			{/* tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab}>
-				<TabsList className="z-100 grid grid-cols-2 w-full fixed md:relative bottom-0 h-18 md:h-9">
+				<TabsList className="z-50 grid grid-cols-2 w-full fixed md:relative bottom-0 h-18 md:h-9">
 					<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
 						<CalendarDaysIcon className="size-8 md:size-4" />
 						Calendar
@@ -172,7 +201,7 @@ export default function Home() {
 				{!spreadsheetId && !isDemoMode ? (
 					<div className="flex flex-col items-center gap-3">
 						<>
-							<SetUpWithGoogleSheetsButton {...{ spreadsheetId }} />
+							<SetUpWithGoogleSheetsButton />
 							or
 							<Button variant="outline" onClick={() => setIsDemoMode(true)}>
 								Continue in demo mode
