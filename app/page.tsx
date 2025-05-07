@@ -112,7 +112,6 @@ export default function Home() {
 
 	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
 		const manageTransactionsIndex = 4;
-
 		if (action === "next" && index === manageTransactionsIndex) {
 			setIsDemoWarningClosed(true);
 			setActiveTab("transactions");
@@ -261,9 +260,7 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 		<TabsContent className="tab-content mx-auto w-full" value={name}>
 			{/* -15 instead of -16 to account for the green bar */}
 			<div className={`flex justify-center px-2 lg:mx-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]`}>
-				<div className="flex justify-start" style={{ overflowX: "auto" }}>
-					{children}
-				</div>
+				<div className="flex justify-start">{children}</div>
 			</div>
 		</TabsContent>
 	);
