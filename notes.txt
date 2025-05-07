@@ -98,7 +98,9 @@
 
 ###- style={{}} cleanup replace with tailwind
 
-###- mobile drop decimals on cal
+###- mobile drop decimals on call
+
+- tour "skip" button setting tutorial complete (bug with library callback, needs hacky injection instead)
 
 - redo loading logic so calendar doesn't load default always
 
