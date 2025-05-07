@@ -86,15 +86,12 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 								tx: [name, amount, date, recurrence, enabled, id],
 								tz,
 								dateBefore: new Date(date).getTime(),
-								dateAfter: toZonedTime(
-									`${format(new Date(date) || new Date(), "yyyy-MM-dd", { timeZone: tz })}T00:00:00`,
+								dateAfter: toZonedTime(new Date(date) || new Date(), tz).getTime(),
+								dateAfterXplicitUTC: toZonedTime(
+									`${format(new Date(date) || new Date(), "yyyy-MM-dd", { timeZone: "UTC" })}T00:00:00`,
 									tz,
 								).getTime(),
-							}) ||
-							toZonedTime(
-								`${format(new Date(date) || new Date(), "yyyy-MM-dd", { timeZone: tz })}T00:00:00`,
-								tz,
-							).getTime(),
+							}) || toZonedTime(new Date(date) || new Date(), tz).getTime(),
 						...(recurrence &&
 							// todo: verify malformed recurrence is handled gracefully
 							RRule.fromText(recurrence) && {
