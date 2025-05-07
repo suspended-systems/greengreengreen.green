@@ -81,7 +81,13 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 							})()),
 						name,
 						amount: Number(amount),
-						date: toZonedTime(parse(date, "M/d/yyyy", new Date()), tz).getTime(),
+						date:
+							// @ts-ignore
+							void console.log({
+								tz,
+								date: new Date(date).getTime(),
+								parsed: parse(date, "M/d/yyyy", new Date()).getTime(),
+							}) || toZonedTime(parse(date, "M/d/yyyy", new Date()), tz).getTime(),
 						...(recurrence &&
 							// todo: verify malformed recurrence is handled gracefully
 							RRule.fromText(recurrence) && {
