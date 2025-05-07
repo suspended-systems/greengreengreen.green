@@ -6,7 +6,7 @@ import { Transaction } from "./transactions";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
-import { format, toZonedTime } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 
 const credentials = {
 	project_id: "green-456901",
@@ -81,17 +81,7 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 						name,
 						amount: Number(amount),
 						date:
-							// @ts-ignore
-							void console.log({
-								tx: [name, amount, date, recurrence, enabled, id],
-								tz,
-								dateBefore: new Date(date).getTime(),
-								dateAfter: toZonedTime(new Date(date) || new Date(), tz).getTime(),
-								dateAfterXplicitUTC: toZonedTime(
-									`${format(new Date(date) || new Date(), "yyyy-MM-dd", { timeZone: "UTC" })}T00:00:00`,
-									tz,
-								).getTime(),
-							}) || toZonedTime(new Date(date) || new Date(), tz).getTime(),
+							fromZonedTime(new Date(date) || new Date(), tz).getTime(),
 						...(recurrence &&
 							// todo: verify malformed recurrence is handled gracefully
 							RRule.fromText(recurrence) && {
