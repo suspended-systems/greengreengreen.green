@@ -65,7 +65,8 @@ export default function Home() {
 			if (spreadsheetId == null && session?.accessToken) {
 				setSheetLoading(true);
 
-				await getSpreadSheet().then(async ({ sheet, transactions: spreadsheetTransactions }) => {
+				const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+				await getSpreadSheet({ tz }).then(async ({ sheet, transactions: spreadsheetTransactions }) => {
 					if (sheet?.id) {
 						setSpreadsheetId(sheet.id);
 						setIsDemoMode(false);

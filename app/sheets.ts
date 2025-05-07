@@ -6,6 +6,8 @@ import { Transaction } from "./transactions";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
+import { parse } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 const credentials = {
 	project_id: "green-456901",
@@ -13,7 +15,7 @@ const credentials = {
 	private_key: process.env.GOOGLE_PRIVATE_KEY!,
 };
 
-export default async function getSpreadSheet() {
+export default async function getSpreadSheet({ tz }: { tz: string }) {
 	const session: Session | null = await getServerSession(authOptions);
 	const accessToken = session?.accessToken;
 
@@ -79,9 +81,7 @@ export default async function getSpreadSheet() {
 							})()),
 						name,
 						amount: Number(amount),
-						date:
-							// @ts-ignore
-							void console.log({ tx: [name, amount, date, recurrence, enabled, id], date }) || new Date(date).getTime(),
+						date: toZonedTime(parse(date, "M/d/yyyy", new Date()), tz).getTime(),
 						...(recurrence &&
 							// todo: verify malformed recurrence is handled gracefully
 							RRule.fromText(recurrence) && {

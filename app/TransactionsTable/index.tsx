@@ -197,7 +197,8 @@ export function TransactionsTable<TData, TValue>({
 								setPullSheetsLoading(true);
 
 								try {
-									await getSpreadSheet().then(({ transactions: spreadsheetTransactions }) =>
+									const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+									await getSpreadSheet({ tz }).then(({ transactions: spreadsheetTransactions }) =>
 										setTransactions(spreadsheetTransactions),
 									);
 
