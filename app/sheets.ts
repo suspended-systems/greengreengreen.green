@@ -79,7 +79,9 @@ export default async function getSpreadSheet() {
 							})()),
 						name,
 						amount: Number(amount),
-						date: new Date(date).getTime(),
+						date:
+							// @ts-ignore
+							void console.log({ tx: [name, amount, date, recurrence, enabled, id], date }) || new Date(date).getTime(),
 						...(recurrence &&
 							// todo: verify malformed recurrence is handled gracefully
 							RRule.fromText(recurrence) && {
