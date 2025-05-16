@@ -156,7 +156,7 @@ Return via function "extractAlternatives".`;
 					<ArrowUpIcon />
 				</button>
 			</div>
-			<p className="inline-flex gap-1 items-center p-2 text-muted-foreground text-sm">
+			<p className="pointer-events-none inline-flex gap-1 items-center p-2 text-muted-foreground text-sm">
 				<TriangleAlertIcon size={14} />
 				Chat recommendations are in beta
 			</p>
