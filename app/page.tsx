@@ -260,8 +260,8 @@ function TabContentItem({ children, name }: PropsWithChildren & { name: string }
 	return (
 		<TabsContent className="tab-content mx-auto w-full" value={name}>
 			{/* -15 instead of -16 to account for the green bar */}
-			<div className={`flex justify-center px-2 lg:mx-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]`}>
-				<div className="flex justify-start">{children}</div>
+			<div className={`flex overflow-x-auto px-2 lg:mx-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]`}>
+				<div className="mx-auto">{children}</div>
 			</div>
 		</TabsContent>
 	);

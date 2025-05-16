@@ -109,7 +109,7 @@
 
 
 future roadmap:
--save starting date and value into txs sheet as a separate sheet tab/Sheet2
+-save starting date and value into txs sheet as a separate sheet tab/Sheet2 OR JUST SHIFT EVERYTHING ELSE DOWN 3 ROWS AND RESERVE FIRST 2 ROWS FOR THIS 
 -toggles for calendar day card view
     -show all names of transactions
     -show just totals
