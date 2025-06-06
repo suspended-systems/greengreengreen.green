@@ -98,78 +98,68 @@ export function TransactionsTable<TData, TValue>({
 	return (
 		<div className="flex flex-col gap-4">
 			{isDemoMode && !isDemoWarningClosed && (
-				<>
-					<InfoBannerBox
-						onClose={() => setIsDemoWarningClosed(true)}
-						title="Google Sheets Setup"
-						content={
-							<>
-								{!session ? (
-									<>
-										<p>Store your transactions in Google Sheets.</p>
-										<SetUpWithGoogleSheetsButton />
-									</>
-								) : (
-									<>
-										<p className="text-muted-foreground" style={{ maxWidth: 600 }}>
-											Make sure you are signed in to the same Google Account across green and Sheets.
-										</p>
-										<div className="prose">
-											<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
-												<li>
-													Copy the email to share with:
-													<code className="text-muted-foreground">
-														<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
-													</code>
-												</li>
-												<li>
-													<a
-														href="https://docs.google.com/spreadsheets/create"
-														target="_blank"
-														rel="noopener"
-														className="inline-flex items-baseline"
-													>
-														<SquareArrowOutUpRightIcon size={18} className="self-center" />
-														<span className="pl-1">Create a Sheet (and name it)</span>
-													</a>
-												</li>
-												<li>
-													Share it
-													<div className="flex flex-col items-center">
-														<Image
-															src="/assets/sheets-setup-step-1.png"
-															alt="Sheets Setup Step 1"
-															width={600}
-															height={600}
-														/>
-														<Image
-															src="/assets/sheets-setup-step-2.png"
-															alt="Sheets Setup Step 2"
-															width={300}
-															height={300}
-														/>
-													</div>
-												</li>
-											</ol>
-										</div>
-									</>
-								)}
-							</>
-						}
-					/>
-					<InfoBannerBox
-						onClose={() => setIsDemoWarningClosed(true)}
-						title="⚠️ Warning"
-						content={
-							<>
-								<p>
-									You are in demo mode. <span className="font-medium">Data will not save.</span>
-								</p>
-								<p>Set up Google Sheets to save.</p>
-							</>
-						}
-					/>
-				</>
+				<InfoBannerBox
+					onClose={() => setIsDemoWarningClosed(true)}
+					title={session ? "Google Sheets Setup" : "⚠️ Warning"}
+					content={
+						<>
+							{!session ? (
+								<>
+									<p>
+										You are in demo mode. <span className="font-medium">Data will not save.</span>
+									</p>
+									<p>Set up with Google Sheets to store your transactions.</p>
+									<SetUpWithGoogleSheetsButton />
+								</>
+							) : (
+								<>
+									<p className="text-muted-foreground max-w-[600px]">⚠️ Data will not save until setup is complete.</p>
+									<p className="text-muted-foreground max-w-[600px]">
+										❗️ Make sure you are signed in to the same Google Account across green and Sheets.
+									</p>
+									<div className="prose">
+										<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
+											<li>
+												Copy the email to share with:
+												<code className="text-muted-foreground">
+													<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
+												</code>
+											</li>
+											<li>
+												<a
+													href="https://docs.google.com/spreadsheets/create"
+													target="_blank"
+													rel="noopener"
+													className="inline-flex items-baseline"
+												>
+													<SquareArrowOutUpRightIcon size={18} className="self-center" />
+													<span className="pl-1">Create a Sheet (and name it)</span>
+												</a>
+											</li>
+											<li>
+												Share it
+												<div className="flex flex-col items-center">
+													<Image
+														src="/assets/sheets-setup-step-1.png"
+														alt="Sheets Setup Step 1"
+														width={600}
+														height={600}
+													/>
+													<Image
+														src="/assets/sheets-setup-step-2.png"
+														alt="Sheets Setup Step 2"
+														width={300}
+														height={300}
+													/>
+												</div>
+											</li>
+										</ol>
+									</div>
+								</>
+							)}
+						</>
+					}
+				/>
 			)}
 			<div className="flex flex-col gap-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]">
 				<div className="flex gap-4">
@@ -434,7 +424,7 @@ function InfoBannerBox({
 	onClose: () => void;
 }) {
 	return (
-		<div className="relative w-fit md:w-full rounded-md border p-6 flex flex-col gap-4 items-center">
+		<div className="relative w-screen md:w-full rounded-md border p-6 flex flex-col gap-4 items-center">
 			<button
 				onClick={() => onClose()}
 				// copied from Dialog.Close

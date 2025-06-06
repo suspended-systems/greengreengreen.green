@@ -13,8 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import CalendarView from "./CalendarView";
-import { columns as columnsData } from "./TransactionsTable/columns";
-import { SetUpWithGoogleSheetsButton, TransactionsTable } from "./TransactionsTable";
+import { columns as columnsData } from "./TransactionsView/columns";
+import { SetUpWithGoogleSheetsButton, TransactionsTable } from "./TransactionsView";
 import { ModeSwitcher } from "./ModeSwitcher";
 
 import { defaultTransactions, Transaction, txRRule } from "./transactions";
