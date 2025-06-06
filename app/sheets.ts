@@ -2,12 +2,15 @@
 import { google } from "googleapis";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
-import { Transaction } from "./transactions";
+import { defaultTransactions, Transaction, txRRule } from "./transactions";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { fromZonedTime } from "date-fns-tz";
 import { COLUMNS, letterToIndex } from "./utils";
+
+export type SheetsHeaderRow = [string, string, string, string, string, string];
+export type SheetsRow = [string, number, string, string, boolean, string];
 
 const credentials = {
 	project_id: "green-456901",
@@ -15,8 +18,17 @@ const credentials = {
 	private_key: process.env.GOOGLE_PRIVATE_KEY!,
 };
 
-export type SheetsHeaderRow = [string, string, string, string, string, string];
-export type SheetsRow = [string, number, string, string, boolean, string];
+const TRANSACTIONS_SHEET_NAME = "Transactions";
+const STARTING_VALUES_SHEET_NAME = "Starting Values";
+
+const TransactionRowValidator = z.tuple([
+	z.string().nonempty(),
+	z.coerce.number(),
+	z.string(),
+	z.string(),
+	z.literal("TRUE").or(z.literal("FALSE")),
+	z.string().uuid(),
+]);
 
 export default async function getSpreadSheet({ tz }: { tz: string }) {
 	const session: Session | null = await getServerSession(authOptions);
@@ -48,26 +60,32 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 		owners: file.owners?.map((o) => o.emailAddress).join(", "),
 	}))?.[0];
 
+	if (sheetFileFromGreenDrive?.id && (await isSpreadsheetEmpty(sheetFileFromGreenDrive?.id))) {
+		await initSheet(sheetFileFromGreenDrive.id);
+	}
+
+	const malformedTransactions: any[] = [];
 	const transactions: Transaction[] = sheetFileFromGreenDrive?.id
 		? await Promise.all(
 				(
 					((
-						await google
-							.sheets({ version: "v4", auth })
-							.spreadsheets.values.get({ spreadsheetId: sheetFileFromGreenDrive.id, range: "Sheet1!A:Z" })
-					).data.values ?? []) as [string, number, string, string, string, string][]
+						await google.sheets({ version: "v4", auth }).spreadsheets.values.get({
+							spreadsheetId: sheetFileFromGreenDrive.id,
+							range: `${TRANSACTIONS_SHEET_NAME}!A:Z`,
+						})
+					).data.values ?? []) as [string, string, string, string, string, string][]
 				)
 					// skip headers
 					.slice(1)
-					.filter((_) =>
-						z.tuple([
-							z.string().nonempty(),
-							z.number(),
-							z.string(),
-							z.literal("TRUE").or(z.literal("FALSE")),
-							z.string().uuid(),
-						]),
-					)
+					.filter((row) => {
+						try {
+							TransactionRowValidator.parse(row);
+							return true;
+						} catch (e) {
+							malformedTransactions.push(row);
+							return false;
+						}
+					})
 					.map(async ([name, amount, date, recurrence, enabled, id]) => ({
 						id:
 							id ||
@@ -113,7 +131,17 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 		  )
 		: [];
 
-	return { sheetFileFromGreenDrive, transactions };
+	const { date, amount } = sheetFileFromGreenDrive?.id
+		? await getStartingValues(sheetFileFromGreenDrive?.id)
+		: { date: undefined, amount: undefined };
+
+	return {
+		sheet: sheetFileFromGreenDrive,
+		transactions,
+		startDate: date ? new Date(fromZonedTime(new Date(date) || new Date(), tz).getTime()) : undefined,
+		startValue: Number(amount),
+		malformedTransactions,
+	};
 }
 
 /**
@@ -195,14 +223,33 @@ async function getFirstSheet(spreadsheetId: string) {
 }
 
 // Overwrite the first sheet with a 2D array of values
-export async function initSheet(spreadsheetId: string, data: [SheetsHeaderRow, ...SheetsRow[]]) {
-	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
+export async function initSheet(spreadsheetId: string) {
+	// tab names, headers, starting value text
+	const { sheetsApi } = await initializeTabs(spreadsheetId);
+
+	// add default txs
 	await sheetsApi.spreadsheets.values.update({
 		spreadsheetId,
-		range: `${sheetName}!A1`,
+		range: `${TRANSACTIONS_SHEET_NAME}!A2`,
 		valueInputOption: "USER_ENTERED",
-		requestBody: { values: data },
+		requestBody: {
+			values: defaultTransactions.map(
+				(tx) =>
+					[
+						tx.name,
+						tx.amount,
+						new Date(tx.date).toLocaleDateString(),
+						tx.freq ? txRRule(tx).toText() : "",
+						!tx.disabled,
+						tx.id,
+					] as SheetsRow,
+			),
+		},
 	});
+
+	// add default starting values
+	await updateStartingDate(spreadsheetId, new Date());
+	await updateStartingNumber(spreadsheetId, 5000);
 }
 
 // Append a single row at the bottom of the first sheet
@@ -261,18 +308,14 @@ const findSheetRowIndex = async ({
  *    • Full‐row replace:
  *        updateSheetsRow(id, "A", "foo", [1,2,3,4])
  */
-export async function updateSheetsRow(
-	input: {
-		spreadsheetId: string;
-		filterColumn?: (typeof COLUMNS)[keyof typeof COLUMNS];
-		filterValue: string | number;
-	} & ({ column: string; cellValue: string | number | boolean } | { rowVal: SheetsRow }),
-) {
-	const { spreadsheetId, filterColumn, filterValue } = input;
-
-	// args allow for updating a row or a cell
-	const [column, cellValue] = "cellValue" in input ? [input.column, input.cellValue] : [undefined, undefined];
-	const rowVal = "rowVal" in input ? input.rowVal : undefined;
+export async function updateSheetsRow(input: {
+	spreadsheetId: string;
+	filterColumn?: (typeof COLUMNS)[keyof typeof COLUMNS];
+	filterValue: string | number;
+	column: string;
+	cellValue: string | number | boolean;
+}) {
+	const { spreadsheetId, filterColumn, filterValue, column, cellValue } = input;
 
 	// determine range & payload
 	const { sheetsApi, sheetName, targetRowIndex } = await findSheetRowIndex({
@@ -282,22 +325,13 @@ export async function updateSheetsRow(
 	});
 
 	const rowNum = targetRowIndex + 1; // index -> number (1 based)
-	const { range, value } = rowVal
-		? {
-				range: (() => {
-					const endCol = String.fromCharCode("A".charCodeAt(0) + rowVal.length - 1);
-					return `${sheetName}!A${rowNum}:${endCol}${rowNum}`;
-				})(),
-				value: rowVal,
-		  }
-		: { range: `${sheetName}!${column}${rowNum}:${column}${rowNum}`, value: [cellValue] };
 
 	// write back
 	await sheetsApi.spreadsheets.values.update({
 		spreadsheetId,
-		range,
+		range: `${sheetName}!${column}${rowNum}:${column}${rowNum}`,
 		valueInputOption: "USER_ENTERED",
-		requestBody: { values: [value] },
+		requestBody: { values: [[cellValue]] },
 	});
 }
 
@@ -331,11 +365,175 @@ export async function deleteSheetsRow({
 							sheetId,
 							dimension: "ROWS",
 							startIndex: targetRowIndex, // zero‑based
-							endIndex: targetRowIndex - 1, // non‑inclusive
+							endIndex: targetRowIndex + 1, // non‑inclusive
 						},
 					},
 				},
 			],
 		},
 	});
+}
+
+export async function initializeTabs(spreadsheetId: string) {
+	const auth = new google.auth.GoogleAuth({
+		credentials,
+		scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+	});
+	const sheetsApi = google.sheets({ version: "v4", auth });
+
+	// Fetch current sheets metadata
+	const { data: meta } = await sheetsApi.spreadsheets.get({
+		spreadsheetId,
+		fields: "sheets(properties(sheetId,title))",
+	});
+	const sheets = meta.sheets ?? [];
+
+	// Rename the first tab if its title is "Sheet1"
+	const firstSheet = sheets[0]?.properties;
+	if (firstSheet && firstSheet.title === "Sheet1") {
+		await sheetsApi.spreadsheets.batchUpdate({
+			spreadsheetId,
+			requestBody: {
+				requests: [
+					{
+						updateSheetProperties: {
+							properties: {
+								sheetId: firstSheet.sheetId,
+								title: TRANSACTIONS_SHEET_NAME,
+							},
+							fields: "title",
+						},
+					},
+				],
+			},
+		});
+
+		// initialize the headers
+		await sheetsApi.spreadsheets.values.update({
+			spreadsheetId,
+			range: `${TRANSACTIONS_SHEET_NAME}!A1`,
+			valueInputOption: "USER_ENTERED",
+			requestBody: { values: [["Transaction", "Amount", "Date", "Recurrence", "Enabled", "UUID"]] },
+		});
+	}
+
+	// Add “Starting Values” tab only if it does not exist yet
+	const alreadyHasStarting = sheets.some((s) => s.properties?.title === STARTING_VALUES_SHEET_NAME);
+	if (!alreadyHasStarting) {
+		await sheetsApi.spreadsheets.batchUpdate({
+			spreadsheetId,
+			requestBody: {
+				requests: [
+					{
+						addSheet: {
+							properties: {
+								title: STARTING_VALUES_SHEET_NAME,
+								gridProperties: {
+									rowCount: 1,
+									columnCount: 4,
+								},
+							},
+						},
+					},
+				],
+			},
+		});
+
+		// initialize that single row with headers & empty values:
+		await sheetsApi.spreadsheets.values.update({
+			spreadsheetId,
+			range: `${STARTING_VALUES_SHEET_NAME}!A1:D1`,
+			valueInputOption: "USER_ENTERED",
+			requestBody: {
+				values: [["Starting on", "", "with", ""]],
+			},
+		});
+
+		// center the "with" text
+		const meta = await sheetsApi.spreadsheets.get({
+			spreadsheetId,
+			fields: "sheets(properties(sheetId,title))",
+		});
+		const startingTab = meta.data.sheets?.find((s) => s.properties?.title === "Starting Values")?.properties;
+		if (startingTab && startingTab.sheetId != null) {
+			const sheetId = startingTab.sheetId;
+			await sheetsApi.spreadsheets.batchUpdate({
+				spreadsheetId,
+				requestBody: {
+					requests: [
+						{
+							repeatCell: {
+								range: {
+									sheetId,
+									startRowIndex: 0,
+									endRowIndex: 1,
+									startColumnIndex: 2,
+									endColumnIndex: 3,
+								},
+								cell: {
+									userEnteredFormat: {
+										horizontalAlignment: "CENTER",
+									},
+								},
+								fields: "userEnteredFormat.horizontalAlignment",
+							},
+						},
+					],
+				},
+			});
+		}
+	}
+
+	return { sheetsApi };
+}
+
+export async function updateStartingDate(spreadsheetId: string, date: Date) {
+	const auth = new google.auth.GoogleAuth({
+		credentials,
+		scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+	});
+	const sheetsApi = google.sheets({ version: "v4", auth });
+
+	// Write into B1 of “Starting Values”
+	await sheetsApi.spreadsheets.values.update({
+		spreadsheetId,
+		range: `${STARTING_VALUES_SHEET_NAME}!B1`,
+		valueInputOption: "USER_ENTERED",
+		requestBody: { values: [[date.toLocaleDateString()]] },
+	});
+}
+
+export async function updateStartingNumber(spreadsheetId: string, amount: number) {
+	const auth = new google.auth.GoogleAuth({
+		credentials,
+		scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+	});
+	const sheetsApi = google.sheets({ version: "v4", auth });
+
+	// Write into D1 of “Starting Values”
+	await sheetsApi.spreadsheets.values.update({
+		spreadsheetId,
+		range: `${STARTING_VALUES_SHEET_NAME}!D1`,
+		valueInputOption: "USER_ENTERED",
+		requestBody: { values: [[amount]] },
+	});
+}
+
+export async function getStartingValues(
+	spreadsheetId: string,
+): Promise<{ date: string | null; amount: number | null }> {
+	const auth = new google.auth.GoogleAuth({
+		credentials,
+		scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
+	});
+	const sheetsApi = google.sheets({ version: "v4", auth });
+
+	const resp = await sheetsApi.spreadsheets.values.get({
+		spreadsheetId,
+		range: `${STARTING_VALUES_SHEET_NAME}!A1:D1`,
+	});
+	const row = resp.data.values?.[0] ?? [];
+	const date = typeof row[1] === "string" ? row[1] : null;
+	const amt = row[3] != null ? Number(row[3]) : null;
+	return { date, amount: amt };
 }

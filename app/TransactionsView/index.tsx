@@ -51,6 +51,8 @@ interface TransactionsTableProps<TData, TValue> {
 	setIsDemoWarningClosed: React.Dispatch<React.SetStateAction<boolean>>;
 	isDemoMode: boolean;
 	columns: ColumnDef<TData, TValue>[];
+	setStartDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+	setStartValue: React.Dispatch<React.SetStateAction<number>>;
 	transactions: TData[];
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 	pagination: PaginationState;
@@ -63,6 +65,8 @@ export function TransactionsTable<TData, TValue>({
 	setIsDemoWarningClosed,
 	isDemoMode,
 	columns,
+	setStartDate,
+	setStartValue,
 	transactions,
 	setTransactions,
 	pagination,
@@ -190,10 +194,26 @@ export function TransactionsTable<TData, TValue>({
 
 								try {
 									await getSpreadSheet({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then(
-										({ transactions: spreadsheetTransactions }) => setTransactions(spreadsheetTransactions),
-									);
+										({
+											transactions: spreadsheetTransactions,
+											startDate: spreadsheetStartDate,
+											startValue: spreadsheetStartValue,
+											malformedTransactions,
+										}) => {
+											if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
+											if (spreadsheetStartValue) setStartValue(spreadsheetStartValue);
+											setTransactions(spreadsheetTransactions);
 
-									toast("Successfully imported Sheets transactions");
+											toast("✅ Successfully imported Sheets transactions", {
+												// This runs once the success-toast’s duration elapses
+												onAutoClose() {
+													if (malformedTransactions?.length) {
+														toast("⚠️ Sheet contains malformed transactions");
+													}
+												},
+											});
+										},
+									);
 								} finally {
 									// how long since we kicked off the spin?
 									const elapsed = (Date.now() - spinStart) % 1000;

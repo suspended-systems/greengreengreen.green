@@ -17,14 +17,15 @@ import { columns as columnsData } from "./TransactionsView/columns";
 import { SetUpWithGoogleSheetsButton, TransactionsTable } from "./TransactionsView";
 import { ModeSwitcher } from "./ModeSwitcher";
 
-import { defaultTransactions, Transaction, txRRule } from "./transactions";
+import { defaultTransactions, Transaction } from "./transactions";
 import { APP_NAME, GreenColor } from "./utils";
 
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
 import { signOut, useSession } from "next-auth/react";
-import getSpreadSheet, { initSheet, isSpreadsheetEmpty, SheetsRow } from "./sheets";
+import getSpreadSheet from "./sheets";
+import { toast } from "sonner";
 
 export default function Home() {
 	const { data: session } = useSession();
@@ -59,39 +60,31 @@ export default function Home() {
 		[spreadsheetId, setTransactions],
 	);
 
-	const loadSheetTxs = async () => {
+	const loadSheetData = async () => {
 		if (spreadsheetId == null && session?.accessToken) {
 			setSheetLoading(true);
 
 			await getSpreadSheet({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then(
-				async ({ sheet, transactions: spreadsheetTransactions }) => {
+				async ({
+					sheet,
+					transactions: spreadsheetTransactions,
+					startDate: spreadsheetStartDate,
+					startValue: spreadsheetStartValue,
+					malformedTransactions,
+				}) => {
 					if (sheet?.id) {
 						setSpreadsheetId(sheet.id);
 						setIsDemoMode(false);
 
-						if ((await isSpreadsheetEmpty(sheet.id)) || spreadsheetTransactions.length === 0) {
-							/**
-							 * Initialize the sheet data to match the currently loaded data (should be the default data)
-							 */
-							await initSheet(sheet.id, [
-								["Transaction", "Amount", "Date", "Recurrence", "Enabled", "UUID"],
-								...transactions.map(
-									(tx) =>
-										[
-											tx.name,
-											tx.amount,
-											new Date(tx.date).toLocaleDateString(),
-											tx.freq ? txRRule(tx).toText() : "",
-											!tx.disabled,
-											tx.id,
-										] as SheetsRow,
-								),
-							]);
-						} else {
-							/**
-							 * Load the sheet data into app state's transactions
-							 */
-							setTransactions(spreadsheetTransactions);
+						/**
+						 * Load the sheet data into app state's transactions
+						 */
+						if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
+						if (spreadsheetStartValue) setStartValue(spreadsheetStartValue);
+						setTransactions(spreadsheetTransactions);
+
+						if (malformedTransactions.length) {
+							toast(`⚠️ Sheet contains malformed transactions`);
 						}
 					}
 				},
@@ -101,7 +94,7 @@ export default function Home() {
 	};
 
 	useIsomorphicLayoutEffect(() => {
-		loadSheetTxs();
+		loadSheetData();
 	}, [session]);
 
 	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
@@ -233,6 +226,8 @@ export default function Home() {
 									isDemoMode,
 									setIsDemoMode,
 									columns,
+									setStartDate,
+									setStartValue,
 									transactions,
 									setTransactions,
 									pagination,
@@ -243,7 +238,7 @@ export default function Home() {
 					</>
 				)}
 			</Tabs>
-			<Toaster />
+			<Toaster visibleToasts={1} position="bottom-right" />
 		</>
 	);
 }

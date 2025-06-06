@@ -15,7 +15,7 @@ import NumericInput from "@/components/NumericInput";
 
 import { calcProjectedValue, getTransactionsOnDay, Transaction, txRRule } from "./transactions";
 import { COLUMNS, DAY_MS, formatMoney, GreenColor } from "./utils";
-import { appendSheetsRow, updateSheetsRow } from "./sheets";
+import { appendSheetsRow, updateSheetsRow, updateStartingDate, updateStartingNumber } from "./sheets";
 
 /**
  * Additional styling exists in `@/components/ui/calendar-customized`
@@ -75,7 +75,13 @@ export default function CalendarView({
 							<Calendar
 								mode="single"
 								selected={startDate}
-								onSelect={setStartDate}
+								onSelect={async (day) => {
+									setStartDate(day);
+
+									if (day && spreadsheetId) {
+										await updateStartingDate(spreadsheetId, new Date(day.setHours(0, 0, 0, 0)));
+									}
+								}}
 								initialFocus
 								className="rounded-md border shadow"
 							/>
@@ -84,12 +90,17 @@ export default function CalendarView({
 					with
 					<span className="input-symbol">
 						<NumericInput
+							key={startValue.toFixed(2)}
 							style={{
 								color: startValue > 0 ? GreenColor : startValue < 0 ? "red" : "inherit",
 							}}
-							onValidatedChange={(amount) => {
+							onValidatedChange={async (amount) => {
 								if (amount !== 0) {
 									setStartValue(amount);
+
+									if (spreadsheetId) {
+										await updateStartingNumber(spreadsheetId, amount);
+									}
 								}
 							}}
 							initialValue={startValue.toFixed(2)}
