@@ -113,9 +113,6 @@ importers:
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
-      vitest:
-        specifier: ^3.2.2
-        version: 3.2.2(@types/node@20.17.28)(jiti@2.4.2)(lightningcss@1.29.2)
       zod:
         specifier: ^3.24.2
         version: 3.24.2
@@ -150,6 +147,9 @@ importers:
       typescript:
         specifier: ^5
         version: 5.8.2
+      vitest:
+        specifier: ^3.2.2
+        version: 3.2.2(@types/node@20.17.28)(jiti@2.4.2)(lightningcss@1.29.2)
 
 packages:
 

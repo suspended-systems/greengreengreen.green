@@ -35,7 +35,7 @@ export default function Home() {
 
 	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
 
-	const [isTourComplete, setTourComplete] = useLocalStorage(`is${APP_NAME}TourComplete`, false);
+	const [isTourComplete, setTourComplete] = useLocalStorage(`is_${APP_NAME}_tour_complete`, false);
 
 	const [activeTab, setActiveTab] = useState("calendar");
 
