@@ -111,6 +111,8 @@ export function calcProjectedValue({
 		}, startValue);
 }
 
+export const defaultStartingDate = new Date(new Date().setHours(0, 0, 0, 0));
+export const defaultStartingValue = 5000;
 export const defaultTransactions: Transaction[] = [
 	{
 		id: uuid(),

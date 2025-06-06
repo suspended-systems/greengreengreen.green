@@ -17,7 +17,7 @@ import { columns as columnsData } from "./TransactionsView/columns";
 import { SetUpWithGoogleSheetsButton, TransactionsTable } from "./TransactionsView";
 import { ModeSwitcher } from "./ModeSwitcher";
 
-import { defaultTransactions, Transaction } from "./transactions";
+import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
 import { APP_NAME, GreenColor } from "./utils";
 
 import { CallBackProps } from "react-joyride";
@@ -40,8 +40,8 @@ export default function Home() {
 
 	const [activeTab, setActiveTab] = useState("calendar");
 
-	const [startValue, setStartValue] = useState(5000);
-	const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setHours(0, 0, 0, 0)));
+	const [startValue, setStartValue] = useState(defaultStartingValue);
+	const [startDate, setStartDate] = useState<Date | undefined>(defaultStartingDate);
 	const [endDate, setEndDate] = useState<Date | undefined>();
 
 	const [transactions, setTransactions] = useState(defaultTransactions);

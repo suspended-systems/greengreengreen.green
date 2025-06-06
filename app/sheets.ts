@@ -2,7 +2,7 @@
 import { google } from "googleapis";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
-import { defaultTransactions, Transaction, txRRule } from "./transactions";
+import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction, txRRule } from "./transactions";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
@@ -34,7 +34,14 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 	const session: Session | null = await getServerSession(authOptions);
 	const accessToken = session?.accessToken;
 
-	if (!accessToken) return { sheet: undefined, transactions: [] };
+	if (!accessToken)
+		return {
+			sheet: undefined,
+			transactions: [],
+			malformedTransactions: [],
+			startDate: undefined,
+			startValue: undefined,
+		};
 
 	const { email } = await getEmailFromToken(accessToken);
 	// Token is directly from Google server, no spoofing possible
@@ -255,8 +262,8 @@ export async function initSheet(spreadsheetId: string) {
 	});
 
 	// add default starting values
-	await updateStartingDate(spreadsheetId, new Date());
-	await updateStartingNumber(spreadsheetId, 5000);
+	await updateStartingDate(spreadsheetId, defaultStartingDate);
+	await updateStartingNumber(spreadsheetId, defaultStartingValue);
 }
 
 // Append a single row at the bottom of the first sheet
@@ -271,7 +278,7 @@ export async function appendSheetsRow(spreadsheetId: string, row: SheetsRow) {
 	});
 }
 
-const findSheetRowIndex = async ({
+export const findSheetRowIndex = async ({
 	spreadsheetId,
 	filterValue,
 	filterColumn,
