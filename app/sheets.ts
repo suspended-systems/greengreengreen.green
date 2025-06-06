@@ -21,6 +21,8 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 	if (!accessToken) return { sheet: undefined, transactions: [] };
 
 	const { email } = await getEmailFromToken(accessToken);
+	// Token is directly from Google server, no spoofing possible
+	const sheetIsOwnedByAuthTokenUser = `'${email}' in owners`;
 
 	const auth = new google.auth.GoogleAuth({
 		credentials,
@@ -29,12 +31,9 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 
 	const sheet = (
 		await google.drive({ version: "v3", auth }).files.list({
-			q: [
-				"mimeType='application/vnd.google-apps.spreadsheet'",
-				"trashed = false",
-				`'${email}' in owners`,
-				// `name = '${APP_NAME}'`,
-			].join(" AND "),
+			q: ["mimeType='application/vnd.google-apps.spreadsheet'", "trashed = false", sheetIsOwnedByAuthTokenUser].join(
+				" AND ",
+			),
 			orderBy: "createdTime asc",
 			pageSize: 1,
 			fields: "files(id, name, owners, createdTime)",
@@ -80,10 +79,9 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 							})()),
 						name,
 						amount: Number(amount),
-						date:
-							fromZonedTime(new Date(date) || new Date(), tz).getTime(),
+						date: fromZonedTime(new Date(date) || new Date(), tz).getTime(),
 						...(recurrence &&
-							// todo: verify malformed recurrence is handled gracefully
+							// todo: malformed recurrence graceful handling
 							RRule.fromText(recurrence) && {
 								freq: RRule.fromText(recurrence).options.freq,
 								interval: RRule.fromText(recurrence).options.interval,
@@ -96,7 +94,7 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 										filterColumn: id ? "F" : "E",
 										filterValue: id ? id : "",
 										columnOrRow: "E",
-										// flipped because in the sheet we store "enabled"
+										// boolean value flipped because in the sheet we store the opposite: "enabled"
 										newValue: true,
 									});
 
@@ -129,47 +127,48 @@ async function getEmailFromToken(accessToken: string) {
 	};
 }
 
-export async function isSheetContentUnedited(fileId: string): Promise<boolean> {
-	// If you don't pass an authClient, this will pick up your default credentials
+export async function isSpreadsheetEmpty(spreadsheetId: string): Promise<boolean> {
 	const auth = new google.auth.GoogleAuth({
 		credentials,
-		scopes: [
-			"https://www.googleapis.com/auth/drive.readonly",
-			"https://www.googleapis.com/auth/drive.activity.readonly",
-		],
+		scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
 	});
 
-	// 1) Fetch content revisions
-	const revisions =
-		(
-			await google.drive({ version: "v3", auth }).revisions.list({
-				fileId,
-				fields: "revisions(id)",
-			})
-		).data.revisions ?? [];
+	const sheetsApi = google.sheets({ version: "v4", auth });
 
-	// If there's more than one revision, content has been edited
-	if (revisions.length > 1) {
-		return false;
+	// Fetch metadata so we know each sheet’s title
+	const metaResp = await sheetsApi.spreadsheets.get({
+		spreadsheetId,
+		fields: "sheets(properties(title))",
+	});
+
+	const sheetProps = metaResp.data.sheets ?? [];
+	if (sheetProps.length === 0) {
+		// If there are no sheets at all, treat it as “empty.”
+		return true;
 	}
 
-	// 2) (Optional) Double‑check via Drive Activity API for EDIT actions
-	const activities =
-		(
-			await google.driveactivity({ version: "v2", auth }).activity.query({
-				requestBody: {
-					itemName: `items/${fileId}`,
-					filter: "detail.action_detail_case:EDIT",
-					pageSize: 1, // we only need to know if at least one exists
-				},
-			})
-		).data.activities ?? [];
+	// For each sheet‐tab, check if there are any values
+	for (const s of sheetProps) {
+		const title = s.properties?.title;
+		if (!title) continue;
 
-	// If any EDIT event exists, content was edited
-	// except we allow for the first edit being the sharing with green
-	// todo: this could be a lot better, for example it would fail right now if user edited anything by accident
-	// really probably would be better just to check created time
-	return activities.length > 1;
+		// Request the entire sheet by using the sheet name as the “range”.
+		// If there’s absolutely no data on that sheet, `values` will be undefined.
+		const valuesResp = await sheetsApi.spreadsheets.values.get({
+			spreadsheetId,
+			range: `${title}`, // just the sheet name
+			// (the Sheets API will return only the non‐empty rows/columns)
+		});
+
+		const rows = valuesResp.data.values;
+		if (rows && rows.length > 0) {
+			// Found at least one non-empty row/cell in this sheet → not empty
+			return false;
+		}
+	}
+
+	// If we fell through all tabs without finding any non-empty values, it’s empty
+	return true;
 }
 
 /** Helper: load sheets client & first‐tab metadata */
