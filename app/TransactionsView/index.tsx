@@ -244,7 +244,7 @@ export function TransactionsTable<TData, TValue>({
 					</DropdownMenu>
 				</div>
 				<div className="rounded-md border">
-					<Table>
+					<Table className="overflow-x-visible overscroll-x-contain">
 						<TableHeader>
 							{table.getHeaderGroups().map((headerGroup) => (
 								<TableRow key={headerGroup.id}>
