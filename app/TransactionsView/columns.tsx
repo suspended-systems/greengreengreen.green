@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { ArrowDown, ArrowUp, CalendarIcon, TrashIcon, PlusIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Column, ColumnDef, RowData } from "@tanstack/react-table";
+import { Frequency, RRule } from "rrule";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,9 +20,8 @@ import { Switch } from "@/components/ui/switch";
 import NumericInput from "@/components/NumericInput";
 
 import { Transaction, txRRule } from "../transactions";
-import { formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
+import { COLUMNS, formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
 import { deleteSheetsRow, updateSheetsRow } from "../sheets";
-import { Frequency, RRule } from "rrule";
 
 declare module "@tanstack/react-table" {
 	interface CellContext<TData extends RowData, TValue> {
@@ -75,8 +75,8 @@ export const columns = ({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: row.original.id,
-							columnOrRow: "E",
-							newValue: isToggled,
+							column: COLUMNS.Enabled,
+							cellValue: isToggled,
 						});
 					}
 				}}
@@ -119,8 +119,8 @@ export const columns = ({
 									await updateSheetsRow({
 										spreadsheetId,
 										filterValue: row.original.id,
-										columnOrRow: "A",
-										newValue: name,
+										column: COLUMNS.Transaction,
+										cellValue: name,
 									});
 								}
 							}}
@@ -178,9 +178,9 @@ export const columns = ({
 										await updateSheetsRow({
 											spreadsheetId,
 											filterValue: row.original.id,
-											columnOrRow: "C",
+											column: COLUMNS.Date,
 											// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
-											newValue: new Date(day.setHours(0, 0, 0, 0)).toISOString().split("T")[0],
+											cellValue: new Date(day.setHours(0, 0, 0, 0)).toISOString().split("T")[0],
 										});
 									}
 								}}
@@ -267,8 +267,8 @@ export const columns = ({
 											await updateSheetsRow({
 												spreadsheetId,
 												filterValue: row.original.id,
-												columnOrRow: "B",
-												newValue: amount,
+												column: COLUMNS.Amount,
+												cellValue: amount,
 											});
 										}
 									}
@@ -363,8 +363,8 @@ function InlineFrequencyEditor({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: tx.id,
-							columnOrRow: "D",
-							newValue: new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: Number(e.target.value) }).toText(),
+							column: COLUMNS.Recurrence,
+							cellValue: new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: Number(e.target.value) }).toText(),
 						});
 					}
 				}}
@@ -405,8 +405,8 @@ function InlineFrequencyEditor({
 									await updateSheetsRow({
 										spreadsheetId,
 										filterValue: tx.id,
-										columnOrRow: "D",
-										newValue: new RRule({ freq: frequencies[i], interval: tx.interval ?? 1 }).toText(),
+										column: COLUMNS.Recurrence,
+										cellValue: new RRule({ freq: frequencies[i], interval: tx.interval ?? 1 }).toText(),
 									});
 								}
 							}}
@@ -436,8 +436,8 @@ function InlineFrequencyEditor({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: tx.id,
-							columnOrRow: "D",
-							newValue: "",
+							column: COLUMNS.Recurrence,
+							cellValue: "",
 						});
 					}
 				}}

@@ -24,7 +24,7 @@ import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
 import { signOut, useSession } from "next-auth/react";
-import getSpreadSheet, { initSheet, isSpreadsheetEmpty } from "./sheets";
+import getSpreadSheet, { initSheet, isSpreadsheetEmpty, SheetsRow } from "./sheets";
 
 export default function Home() {
 	const { data: session } = useSession();
@@ -63,47 +63,39 @@ export default function Home() {
 		if (spreadsheetId == null && session?.accessToken) {
 			setSheetLoading(true);
 
-			const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-			await getSpreadSheet({ tz }).then(async ({ sheet, transactions: spreadsheetTransactions }) => {
-				if (sheet?.id) {
-					setSpreadsheetId(sheet.id);
-					setIsDemoMode(false);
+			await getSpreadSheet({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then(
+				async ({ sheet, transactions: spreadsheetTransactions }) => {
+					if (sheet?.id) {
+						setSpreadsheetId(sheet.id);
+						setIsDemoMode(false);
 
-					if ((await isSpreadsheetEmpty(sheet.id)) || spreadsheetTransactions.length === 0) {
-						/**
-						 * Initialize the sheet data to match the currently loaded data (should be the default data)
-						 */
-						const headers: [string, string, string, string, string, string] = [
-							"Transaction",
-							"Amount",
-							"Date",
-							"Recurrence",
-							"Enabled",
-							"UUID",
-						];
-
-						await initSheet(sheet.id, [
-							headers,
-							...transactions.map(
-								(tx) =>
-									[
-										tx.name,
-										tx.amount,
-										new Date(tx.date).toLocaleDateString(),
-										tx.freq ? txRRule(tx).toText() : "",
-										!tx.disabled,
-										tx.id,
-									] as [string, number, string, string, boolean, string],
-							),
-						]);
-					} else {
-						/**
-						 * Load the sheet data into app state's transactions
-						 */
-						setTransactions(spreadsheetTransactions);
+						if ((await isSpreadsheetEmpty(sheet.id)) || spreadsheetTransactions.length === 0) {
+							/**
+							 * Initialize the sheet data to match the currently loaded data (should be the default data)
+							 */
+							await initSheet(sheet.id, [
+								["Transaction", "Amount", "Date", "Recurrence", "Enabled", "UUID"],
+								...transactions.map(
+									(tx) =>
+										[
+											tx.name,
+											tx.amount,
+											new Date(tx.date).toLocaleDateString(),
+											tx.freq ? txRRule(tx).toText() : "",
+											!tx.disabled,
+											tx.id,
+										] as SheetsRow,
+								),
+							]);
+						} else {
+							/**
+							 * Load the sheet data into app state's transactions
+							 */
+							setTransactions(spreadsheetTransactions);
+						}
 					}
-				}
-			});
+				},
+			);
 			setSheetLoading(false);
 		}
 	};

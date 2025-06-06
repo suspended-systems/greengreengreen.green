@@ -7,12 +7,16 @@ import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { fromZonedTime } from "date-fns-tz";
+import { COLUMNS, letterToIndex } from "./utils";
 
 const credentials = {
 	project_id: "green-456901",
 	client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!,
 	private_key: process.env.GOOGLE_PRIVATE_KEY!,
 };
+
+export type SheetsHeaderRow = [string, string, string, string, string, string];
+export type SheetsRow = [string, number, string, string, boolean, string];
 
 export default async function getSpreadSheet({ tz }: { tz: string }) {
 	const session: Session | null = await getServerSession(authOptions);
@@ -73,7 +77,12 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 							(await (async () => {
 								const id = uuid();
 
-								await updateSheetsRow({ spreadsheetId: sheet.id!, columnOrRow: "F", filterValue: "", newValue: id });
+								await updateSheetsRow({
+									spreadsheetId: sheet.id!,
+									filterValue: "",
+									column: COLUMNS.UUID,
+									cellValue: id,
+								});
 
 								return id;
 							})()),
@@ -91,11 +100,11 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 							: await (async () => {
 									await updateSheetsRow({
 										spreadsheetId: sheet.id!,
-										filterColumn: id ? "F" : "E",
+										filterColumn: id ? COLUMNS.UUID : COLUMNS.Enabled,
 										filterValue: id ? id : "",
-										columnOrRow: "E",
+										column: COLUMNS.Enabled,
 										// boolean value flipped because in the sheet we store the opposite: "enabled"
-										newValue: true,
+										cellValue: true,
 									});
 
 									// in the app we store "disabled"
@@ -187,10 +196,7 @@ async function getFirstSheet(spreadsheetId: string) {
 }
 
 /** 1) Overwrite the first sheet with a 2D array of values */
-export async function initSheet(
-	spreadsheetId: string,
-	data: [[string, string, string, string, string, string], ...[string, number, string, string, boolean, string][]],
-) {
+export async function initSheet(spreadsheetId: string, data: [SheetsHeaderRow, ...SheetsRow[]]) {
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 	await sheetsApi.spreadsheets.values.update({
 		spreadsheetId,
@@ -201,7 +207,7 @@ export async function initSheet(
 }
 
 /** 2) Append a single row at the bottom of the first sheet */
-export async function appendSheetsRow(spreadsheetId: string, row: [string, number, string, string, boolean, string]) {
+export async function appendSheetsRow(spreadsheetId: string, row: SheetsRow) {
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 	await sheetsApi.spreadsheets.values.append({
 		spreadsheetId,
@@ -212,6 +218,41 @@ export async function appendSheetsRow(spreadsheetId: string, row: [string, numbe
 	});
 }
 
+const findSheetRowIndex = async ({
+	spreadsheetId,
+	filterValue,
+	filterColumn,
+}: {
+	spreadsheetId: string;
+	filterValue: string | number;
+	filterColumn?: string;
+}) => {
+	filterColumn = filterColumn ?? COLUMNS.UUID;
+
+	// find the target row
+	const { sheetsApi, sheetId, sheetName } = await getFirstSheet(spreadsheetId);
+	const colRange = `${sheetName}!A:${filterColumn}`;
+	const sheetsRows =
+		(
+			await sheetsApi.spreadsheets.values.get({
+				spreadsheetId,
+				range: colRange,
+			})
+		).data.values ?? [];
+
+	const targetRowIndex = sheetsRows.findIndex((tx, i) => {
+		// skip header
+		if (i === 0) return;
+
+		const colIndex = letterToIndex(filterColumn);
+		const cell = tx[colIndex];
+		return String(cell ?? "") === String(filterValue);
+	});
+	if (targetRowIndex < 0) throw new Error("No matching row found");
+
+	return { sheetsApi, sheetId, sheetName, targetRowIndex };
+};
+
 /**
  *  Update the first row matching filterColumn=filterValue.
  *
@@ -221,71 +262,48 @@ export async function appendSheetsRow(spreadsheetId: string, row: [string, numbe
  *    • Full‐row replace:
  *        updateSheetsRow(id, "A", "foo", [1,2,3,4])
  */
-export async function updateSheetsRow({
-	spreadsheetId,
-	columnOrRow,
-	filterValue,
-	filterColumn,
-	newValue,
-}: {
-	spreadsheetId: string;
-	filterColumn?: string;
-	filterValue: string | number;
-	columnOrRow: string | [string, number, string, string, boolean, string];
-	newValue?: string | number | boolean;
-}) {
-	filterColumn = filterColumn ?? "F"; // "F" is UUID
+export async function updateSheetsRow(
+	input: {
+		spreadsheetId: string;
+		filterColumn?: (typeof COLUMNS)[keyof typeof COLUMNS];
+		filterValue: string | number;
+	} & ({ column: string; cellValue: string | number | boolean } | { rowVal: SheetsRow }),
+) {
+	const { spreadsheetId, filterColumn, filterValue } = input;
 
-	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
+	// args allow for updating a row or a cell
+	const [column, cellValue] = "cellValue" in input ? [input.column, input.cellValue] : [undefined, undefined];
+	const rowVal = "rowVal" in input ? input.rowVal : undefined;
 
-	// 1) pull only the filter column (including header)
-	const colRange = `${sheetName}!A:${filterColumn}`;
-	const { data } = await sheetsApi.spreadsheets.values.get({
+	// determine range & payload
+	const { sheetsApi, sheetName, targetRowIndex } = await findSheetRowIndex({
+		filterValue,
 		spreadsheetId,
-		range: colRange,
+		filterColumn,
 	});
-	const vals = (data.values || []).slice(1); // drop header
-	const idx = vals.findIndex(([txName, txAmt, txDate, txRecur, txEnabled, txUUID]) => {
-		// todo: cleanup
-		if (filterColumn === "F") {
-			return String(txUUID ?? "") === String(filterValue);
-		} else if (filterColumn === "E") {
-			return String(txEnabled ?? "") === String(filterValue);
-		}
-	});
-	if (idx < 0) throw new Error("No matching row found");
-	const rowNum = idx + 2; // account for header + 1‑based
 
-	// 2) decide which range & payload
-	let range: string;
-	let values: any[][];
+	const rowNum = targetRowIndex + 1; // index -> number (1 based)
+	const { range, value } = rowVal
+		? {
+				range: (() => {
+					const endCol = String.fromCharCode("A".charCodeAt(0) + rowVal.length - 1);
+					return `${sheetName}!A${rowNum}:${endCol}${rowNum}`;
+				})(),
+				value: rowVal,
+		  }
+		: { range: `${sheetName}!${column}${rowNum}:${column}${rowNum}`, value: [cellValue] };
 
-	if (typeof columnOrRow === "string" && newValue !== undefined) {
-		// single‐cell
-		range = `${sheetName}!${columnOrRow}${rowNum}:${columnOrRow}${rowNum}`;
-		values = [[newValue]];
-	} else if (Array.isArray(columnOrRow) && newValue === undefined) {
-		// full‐row
-		const newRow = columnOrRow;
-		const endCol = String.fromCharCode("A".charCodeAt(0) + newRow.length - 1);
-		range = `${sheetName}!A${rowNum}:${endCol}${rowNum}`;
-		values = [newRow];
-	} else {
-		throw new Error("Invalid args: call as (…, colLetter, value) or (…, newRowArray)");
-	}
-
-	// 3) write back
+	// write back
 	await sheetsApi.spreadsheets.values.update({
 		spreadsheetId,
 		range,
 		valueInputOption: "USER_ENTERED",
-		requestBody: { values },
+		requestBody: { values: [value] },
 	});
 }
 
 /**
- * 4) Delete the *first* row where `filterColumn === filterValue`
- *    in the first sheet
+ * Delete the *first* row where `filterColumn === filterValue` in the first sheet
  */
 export async function deleteSheetsRow({
 	spreadsheetId,
@@ -296,22 +314,16 @@ export async function deleteSheetsRow({
 	filterValue: string | number;
 	filterColumn?: string;
 }) {
-	filterColumn = filterColumn ?? "F";
-
-	const { sheetsApi, sheetName, sheetId } = await getFirstSheet(spreadsheetId);
-
-	// 1) locate the row number
-	const colRange = `${sheetName}!${filterColumn}:${filterColumn}`;
-	const { data } = await sheetsApi.spreadsheets.values.get({
+	// find the target row
+	const { sheetsApi, sheetId, targetRowIndex } = await findSheetRowIndex({
+		filterValue,
 		spreadsheetId,
-		range: colRange,
+		filterColumn,
 	});
-	const vals = (data.values || []).slice(1);
-	const idx = vals.findIndex(([cell]) => String(cell) === String(filterValue));
-	if (idx < 0) throw new Error("No matching row found");
-	const rowNum = idx + 2; // header + 1‑based
 
-	// 2) delete via batchUpdate
+	const rowNum = targetRowIndex + 1; // index -> number (1 based)
+
+	// delete via batchUpdate
 	await sheetsApi.spreadsheets.batchUpdate({
 		spreadsheetId,
 		requestBody: {

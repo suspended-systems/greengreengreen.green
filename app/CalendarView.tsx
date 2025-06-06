@@ -262,7 +262,7 @@ function ChatWindowPopover({
 								spreadsheetId,
 								filterValue: tx.id,
 								columnOrRow: "E",
-								newValue: false,
+								updatedCellValue: false,
 							});
 						}
 

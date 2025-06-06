@@ -187,9 +187,8 @@ export function TransactionsTable<TData, TValue>({
 								setPullSheetsLoading(true);
 
 								try {
-									const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-									await getSpreadSheet({ tz }).then(({ transactions: spreadsheetTransactions }) =>
-										setTransactions(spreadsheetTransactions),
+									await getSpreadSheet({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then(
+										({ transactions: spreadsheetTransactions }) => setTransactions(spreadsheetTransactions),
 									);
 
 									toast("Successfully imported Sheets transactions");
@@ -265,9 +264,7 @@ export function TransactionsTable<TData, TValue>({
 								<TableRow>
 									<TableCell
 										colSpan={columns.length}
-										className="h-24 text-center"
-										// cheaphax: prevent table width from changing when no results
-										style={{ width: 970 }}
+										className="h-24 text-center w-[970px]" // cheaphax: prevent table width from changing when no results
 									>
 										No results.
 									</TableCell>
