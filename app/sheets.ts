@@ -90,7 +90,6 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 						amount: Number(amount),
 						date: fromZonedTime(new Date(date) || new Date(), tz).getTime(),
 						...(recurrence &&
-							// todo: malformed recurrence graceful handling
 							RRule.fromText(recurrence) && {
 								freq: RRule.fromText(recurrence).options.freq,
 								interval: RRule.fromText(recurrence).options.interval,

@@ -112,9 +112,6 @@ export const columns = ({
 
 								setTransactions((value) => value.map((tx) => (tx.id === row.original.id ? { ...tx, name } : tx)));
 
-								/**
-								 * todo: debounce
-								 */
 								if (spreadsheetId) {
 									await updateSheetsRow({
 										spreadsheetId,
@@ -171,9 +168,6 @@ export const columns = ({
 										value.map((tx) => (tx.id === row.original.id ? { ...tx, date: day.setHours(0, 0, 0, 0) } : tx)),
 									);
 
-									/**
-									 * todo: debounce
-									 */
 									if (spreadsheetId) {
 										await updateSheetsRow({
 											spreadsheetId,
@@ -206,7 +200,7 @@ export const columns = ({
 				<div className="flex items-center" style={{ width: 207, height: 36, justifySelf: "center" }}>
 					{(row.original.disabled || !isRowHovered) && !isDropdownOpen && !isInputSelected ? (
 						row.original.freq != null ? (
-							// capitalize the E
+							// capitalize the first letter in "every"
 							"E" + txRRule(row.original).toText().slice(1)
 						) : (
 							""
@@ -260,9 +254,6 @@ export const columns = ({
 									if (amount !== 0) {
 										setTransactions((value) => value.map((tx) => (tx.id === row.original.id ? { ...tx, amount } : tx)));
 
-										/**
-										 * todo: debounce
-										 */
 										if (spreadsheetId) {
 											await updateSheetsRow({
 												spreadsheetId,
@@ -356,9 +347,6 @@ function InlineFrequencyEditor({
 						),
 					);
 
-					/**
-					 * todo: debounce
-					 */
 					if (spreadsheetId) {
 						await updateSheetsRow({
 							spreadsheetId,
@@ -398,9 +386,6 @@ function InlineFrequencyEditor({
 									),
 								);
 
-								/**
-								 * todo: debounce
-								 */
 								if (spreadsheetId) {
 									await updateSheetsRow({
 										spreadsheetId,
