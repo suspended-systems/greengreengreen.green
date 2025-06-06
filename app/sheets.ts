@@ -67,6 +67,7 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 	const malformedTransactions: any[] = [];
 	const transactions: Transaction[] = sheetFileFromGreenDrive?.id
 		? await Promise.all(
+				// pull sheet data
 				(
 					((
 						await google.sheets({ version: "v4", auth }).spreadsheets.values.get({
@@ -77,6 +78,7 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 				)
 					// skip headers
 					.slice(1)
+					// validate
 					.filter((row) => {
 						try {
 							TransactionRowValidator.parse(row);
@@ -86,8 +88,9 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 							return false;
 						}
 					})
-					.map(async ([name, amount, date, recurrence, enabled, id]) => ({
-						id:
+					// parse and handle empty fields
+					.map(async ([name, amount, date, recurrence, enabled, id]) => {
+						const assignedId =
 							id ||
 							/**
 							 * Generate a UUID if one doesn't exist and then push it to the first sheets row which has an empty uuid field (an assumption we're forced to make)
@@ -103,18 +106,14 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 								});
 
 								return id;
-							})()),
-						name,
-						amount: Number(amount),
-						date: fromZonedTime(new Date(date) || new Date(), tz).getTime(),
-						...(recurrence &&
-							RRule.fromText(recurrence) && {
-								freq: RRule.fromText(recurrence).options.freq,
-								interval: RRule.fromText(recurrence).options.interval,
-							}),
-						disabled: enabled
+							})());
+
+						const isDisabled = enabled
 							? enabled.toLowerCase() !== "true"
-							: await (async () => {
+							: /**
+							   * Generate a disabled/enabled toggle state if one doesn't exist
+							   */
+							  await (async () => {
 									await updateSheetsRow({
 										spreadsheetId: sheetFileFromGreenDrive.id!,
 										filterColumn: id ? COLUMNS.UUID : COLUMNS.Enabled,
@@ -126,21 +125,29 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 
 									// in the app we store "disabled"
 									return false;
-							  })(),
-					})),
+							  })();
+
+						return {
+							name,
+							id: assignedId,
+							disabled: isDisabled,
+							amount: Number(amount),
+							date: fromZonedTime(new Date(date) || new Date(), tz).getTime(),
+							...(recurrence &&
+								RRule.fromText(recurrence) && {
+									freq: RRule.fromText(recurrence).options.freq,
+									interval: RRule.fromText(recurrence).options.interval,
+								}),
+						};
+					}),
 		  )
 		: [];
-
-	const { date, amount } = sheetFileFromGreenDrive?.id
-		? await getStartingValues(sheetFileFromGreenDrive?.id)
-		: { date: undefined, amount: undefined };
 
 	return {
 		sheet: sheetFileFromGreenDrive,
 		transactions,
-		startDate: date ? new Date(fromZonedTime(new Date(date) || new Date(), tz).getTime()) : undefined,
-		startValue: Number(amount),
 		malformedTransactions,
+		...(sheetFileFromGreenDrive?.id && (await getStartingValues(sheetFileFromGreenDrive?.id, tz))),
 	};
 }
 
@@ -521,7 +528,8 @@ export async function updateStartingNumber(spreadsheetId: string, amount: number
 
 export async function getStartingValues(
 	spreadsheetId: string,
-): Promise<{ date: string | null; amount: number | null }> {
+	tz: string,
+): Promise<{ startDate: Date | null; startValue: number | null }> {
 	const auth = new google.auth.GoogleAuth({
 		credentials,
 		scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
@@ -535,5 +543,8 @@ export async function getStartingValues(
 	const row = resp.data.values?.[0] ?? [];
 	const date = typeof row[1] === "string" ? row[1] : null;
 	const amt = row[3] != null ? Number(row[3]) : null;
-	return { date, amount: amt };
+	return {
+		startDate: date ? new Date(fromZonedTime(new Date(date) || new Date(), tz).getTime()) : null,
+		startValue: Number(amt),
+	};
 }
