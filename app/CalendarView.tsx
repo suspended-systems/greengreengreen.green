@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import NumericInput from "@/components/NumericInput";
 
 import { calcProjectedValue, getTransactionsOnDay, Transaction, txRRule } from "./transactions";
-import { DAY_MS, formatMoney, GreenColor } from "./utils";
+import { COLUMNS, DAY_MS, formatMoney, GreenColor } from "./utils";
 import { appendSheetsRow, updateSheetsRow } from "./sheets";
 
 /**
@@ -255,8 +255,8 @@ function ChatWindowPopover({
 							await updateSheetsRow({
 								spreadsheetId,
 								filterValue: tx.id,
-								columnOrRow: "E",
-								updatedCellValue: false,
+								column: COLUMNS.Enabled,
+								cellValue: false,
 							});
 						}
 
