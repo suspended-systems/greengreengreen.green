@@ -308,12 +308,6 @@ const findSheetRowIndex = async ({
 
 /**
  *  Update the first row matching filterColumn=filterValue.
- *
- *  Overloads:
- *    • Single‐cell update:
- *        updateSheetsRow(id, "A", "foo", "C", 123)
- *    • Full‐row replace:
- *        updateSheetsRow(id, "A", "foo", [1,2,3,4])
  */
 export async function updateSheetsRow(input: {
 	spreadsheetId: string;
@@ -461,9 +455,9 @@ export async function initializeTabs(spreadsheetId: string) {
 			spreadsheetId,
 			fields: "sheets(properties(sheetId,title))",
 		});
-		const startingTab = meta.data.sheets?.find((s) => s.properties?.title === "Starting Values")?.properties;
-		if (startingTab && startingTab.sheetId != null) {
-			const sheetId = startingTab.sheetId;
+		const startingValuesTab = meta.data.sheets?.find((s) => s.properties?.title === "Starting Values")?.properties;
+		if (startingValuesTab && startingValuesTab.sheetId != null) {
+			const sheetId = startingValuesTab.sheetId;
 			await sheetsApi.spreadsheets.batchUpdate({
 				spreadsheetId,
 				requestBody: {
