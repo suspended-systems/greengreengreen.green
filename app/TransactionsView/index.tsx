@@ -264,7 +264,7 @@ export function TransactionsTable<TData, TValue>({
 								<TableRow>
 									<TableCell
 										colSpan={columns.length}
-										className="h-24 text-center w-[970px]" // cheaphax: prevent table width from changing when no results
+										className="h-24 text-center min-w-[970px]" // cheaphax: prevent table width from changing when no results by matching width (970 is computed via column hardcodes, which are hardcoded so row hover inline editing is stable)
 									>
 										No results.
 									</TableCell>

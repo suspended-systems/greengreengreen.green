@@ -86,7 +86,6 @@ export default function CalendarView({
 						<NumericInput
 							style={{
 								color: startValue > 0 ? GreenColor : startValue < 0 ? "red" : "inherit",
-								width: 120,
 							}}
 							onValidatedChange={(amount) => {
 								if (amount !== 0) {
@@ -94,7 +93,7 @@ export default function CalendarView({
 								}
 							}}
 							initialValue={startValue.toFixed(2)}
-							className="text-sm"
+							className="text-sm w-[120px]"
 						/>
 					</span>
 				</div>
@@ -122,10 +121,7 @@ export default function CalendarView({
 										)}
 									</div>
 								)}
-								<table
-									className="border border-transparent border-spacing-4"
-									style={{ borderCollapse: "separate", borderSpacing: 8 }}
-								>
+								<table className="border border-transparent" style={{ borderCollapse: "separate", borderSpacing: 8 }}>
 									<tbody>
 										{dayTransactions
 											.sort((a, b) => b.amount - a.amount)
@@ -138,7 +134,7 @@ export default function CalendarView({
 														{tx.amount > -1 ? "+" : ""}
 														{formatMoney(tx.amount)}
 													</td>
-													<td style={{ display: "flex", fontWeight: 500 }}>
+													<td className="flex font-medium">
 														{tx.name}
 														{tx.amount < 0 && tx.freq && (
 															<ChatWindowPopover {...{ tx, setTransactions, spreadsheetId }} />
@@ -151,7 +147,7 @@ export default function CalendarView({
 							</>
 						) : (
 							<>
-								<p className="text-sm" style={{ opacity: 0.5 }}>
+								<p className="text-sm opacity-50">
 									No transactions on{" "}
 									{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
 										month: "long",
@@ -160,7 +156,7 @@ export default function CalendarView({
 									})}
 								</p>
 								{startValue && startDate && transactions && (
-									<div className="block md:hidden text-sm" style={{ opacity: 0.5 }}>
+									<div className="block md:hidden text-sm opacity-50">
 										{formatMoney(
 											calcProjectedValue({
 												startValue,
@@ -174,9 +170,7 @@ export default function CalendarView({
 							</>
 						)
 					) : (
-						<p className="italic text-sm" style={{ opacity: 0.5 }}>
-							Select a date to view its transactions
-						</p>
+						<p className="italic text-sm opacity-50">Select a date to view its transactions</p>
 					)}
 				</div>
 			</div>
@@ -208,8 +202,8 @@ function ChatWindowPopover({
 			<PopoverTrigger asChild>
 				<Button
 					variant="ghost"
-					className="justify-start text-xs text-left font-normal h-6"
-					style={{ paddingInline: 4, marginLeft: 3, position: "relative", bottom: 3 }}
+					className="relative justify-start text-xs text-left font-normal h-6"
+					style={{ paddingInline: 4, marginLeft: 3, bottom: 3 }}
 				>
 					<BotMessageSquareIcon />
 				</Button>

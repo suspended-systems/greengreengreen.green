@@ -123,7 +123,7 @@ export default function Home() {
 		<>
 			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
 			{/* night mode toggle */}
-			<div style={{ position: "absolute", right: 3, top: 3 }}>
+			<div className="absolute" style={{ right: 3, top: 3 }}>
 				<Popover>
 					<PopoverTrigger>
 						<CogIcon className="text-muted-foreground" />
@@ -155,26 +155,25 @@ export default function Home() {
 
 			{/* banner */}
 			<div
-				className="text-center"
+				className="text-center font-medium"
 				style={{
-					margin: "0 auto",
 					pointerEvents: "none",
 					fontSize: 20,
 					letterSpacing: 1,
 					color: GreenColor,
-					fontWeight: 500,
 					fontFamily: "sans-serif",
 				}}
 			>
 				💸 {APP_NAME}
 			</div>
+			{/* green fading divider */}
 			<div
 				style={{
 					border: `1px solid ${GreenColor}`,
 					borderLeft: "150px solid transparent",
 					borderRight: "150px solid transparent",
 					position: "relative",
-					top: 1, //3,
+					top: 1,
 				}}
 				className="mx-auto mb-4 md:mb-0"
 			/>
@@ -252,7 +251,7 @@ export default function Home() {
 function TabContentItem({ children, name }: PropsWithChildren & { name: string }) {
 	return (
 		<TabsContent className="tab-content mx-auto w-full" value={name}>
-			{/* -15 instead of -16 to account for the green bar */}
+			{/* -15 instead of -16 because the fade divider creeps into scrolled down viewport on mobile */}
 			<div
 				className={`flex overflow-x-auto overscroll-x-contain px-2 lg:mx-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]`}
 			>
