@@ -90,7 +90,6 @@ export default function CalendarView({
 					with
 					<span className="input-symbol">
 						<NumericInput
-							key={startValue.toFixed(2)}
 							style={{
 								color: startValue > 0 ? GreenColor : startValue < 0 ? "red" : "inherit",
 							}}
