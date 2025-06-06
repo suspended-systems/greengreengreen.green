@@ -70,7 +70,7 @@
 
 ### - unify the InfoBannerBoxes so that it's just one box that displays warning with sign in option
 
--PREVENT OVERSCROLL(X) IN TRANSACTIONS VIEW
+### - PREVENT OVERSCROLL(X) IN TRANSACTIONS VIEW
 
 -save starting date and value into txs sheet as a separate sheet tab/Sheet2 OR JUST SHIFT EVERYTHING ELSE DOWN 3 ROWS AND RESERVE FIRST 2 ROWS FOR THIS 
 
