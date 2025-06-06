@@ -11,7 +11,6 @@ export type Transaction = {
 	freq?: Frequency;
 	interval?: number;
 	disabled?: boolean;
-	assignedHappinessPoints?: number;
 };
 
 export const txRRule = (tx: Transaction) =>
