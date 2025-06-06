@@ -33,7 +33,7 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 		scopes: ["https://www.googleapis.com/auth/drive.metadata.readonly", "https://www.googleapis.com/auth/spreadsheets"],
 	});
 
-	const sheet = (
+	const sheetFileFromGreenDrive = (
 		await google.drive({ version: "v3", auth }).files.list({
 			q: ["mimeType='application/vnd.google-apps.spreadsheet'", "trashed = false", sheetIsOwnedByAuthTokenUser].join(
 				" AND ",
@@ -48,13 +48,13 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 		owners: file.owners?.map((o) => o.emailAddress).join(", "),
 	}))?.[0];
 
-	const transactions: Transaction[] = sheet?.id
+	const transactions: Transaction[] = sheetFileFromGreenDrive?.id
 		? await Promise.all(
 				(
 					((
 						await google
 							.sheets({ version: "v4", auth })
-							.spreadsheets.values.get({ spreadsheetId: sheet.id, range: "Sheet1!A:Z" })
+							.spreadsheets.values.get({ spreadsheetId: sheetFileFromGreenDrive.id, range: "Sheet1!A:Z" })
 					).data.values ?? []) as [string, number, string, string, string, string][]
 				)
 					// skip headers
@@ -78,7 +78,7 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 								const id = uuid();
 
 								await updateSheetsRow({
-									spreadsheetId: sheet.id!,
+									spreadsheetId: sheetFileFromGreenDrive.id!,
 									filterValue: "",
 									column: COLUMNS.UUID,
 									cellValue: id,
@@ -98,7 +98,7 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 							? enabled.toLowerCase() !== "true"
 							: await (async () => {
 									await updateSheetsRow({
-										spreadsheetId: sheet.id!,
+										spreadsheetId: sheetFileFromGreenDrive.id!,
 										filterColumn: id ? COLUMNS.UUID : COLUMNS.Enabled,
 										filterValue: id ? id : "",
 										column: COLUMNS.Enabled,
@@ -113,7 +113,7 @@ export default async function getSpreadSheet({ tz }: { tz: string }) {
 		  )
 		: [];
 
-	return { sheet, transactions };
+	return { sheetFileFromGreenDrive, transactions };
 }
 
 /**
@@ -179,7 +179,7 @@ export async function isSpreadsheetEmpty(spreadsheetId: string): Promise<boolean
 	return true;
 }
 
-/** Helper: load sheets client & first‐tab metadata */
+// Load sheets client & first‐tab metadata
 async function getFirstSheet(spreadsheetId: string) {
 	const auth = new google.auth.GoogleAuth({ credentials, scopes: ["https://www.googleapis.com/auth/spreadsheets"] });
 	const sheetsApi = google.sheets({ version: "v4", auth });
@@ -194,7 +194,7 @@ async function getFirstSheet(spreadsheetId: string) {
 	return { sheetsApi, sheetName: props.title, sheetId: props.sheetId };
 }
 
-/** 1) Overwrite the first sheet with a 2D array of values */
+// Overwrite the first sheet with a 2D array of values
 export async function initSheet(spreadsheetId: string, data: [SheetsHeaderRow, ...SheetsRow[]]) {
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 	await sheetsApi.spreadsheets.values.update({
@@ -205,7 +205,7 @@ export async function initSheet(spreadsheetId: string, data: [SheetsHeaderRow, .
 	});
 }
 
-/** 2) Append a single row at the bottom of the first sheet */
+// Append a single row at the bottom of the first sheet
 export async function appendSheetsRow(spreadsheetId: string, row: SheetsRow) {
 	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
 	await sheetsApi.spreadsheets.values.append({
@@ -320,8 +320,6 @@ export async function deleteSheetsRow({
 		filterColumn,
 	});
 
-	const rowNum = targetRowIndex + 1; // index -> number (1 based)
-
 	// delete via batchUpdate
 	await sheetsApi.spreadsheets.batchUpdate({
 		spreadsheetId,
@@ -332,8 +330,8 @@ export async function deleteSheetsRow({
 						range: {
 							sheetId,
 							dimension: "ROWS",
-							startIndex: rowNum - 1, // zero‑based
-							endIndex: rowNum, // non‑inclusive
+							startIndex: targetRowIndex, // zero‑based
+							endIndex: targetRowIndex - 1, // non‑inclusive
 						},
 					},
 				},
