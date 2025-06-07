@@ -264,12 +264,10 @@ export function TransactionForm({
 														: Number(field.value.replaceAll(",", "")) < 0
 														? "red"
 														: "inherit",
-												// to line up with others and not expand the modal width
-												width: 210,
 											}}
 											initialValue={field.value}
 											placeholder="-80"
-											className="justify-start text-left font-normal"
+											className="justify-start text-left font-normal !w-[210px] md:!w-[260px]" // width to line up with others and not expand the modal width
 											onValidatedChange={(amount) => field.onChange({ target: { value: String(amount) } })}
 											{...field}
 										/>

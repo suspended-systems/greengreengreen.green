@@ -246,7 +246,10 @@ export const columns = ({
 							{formattedString}
 						</span>
 					) : (
-						<span className="input-symbol" style={{ position: "relative", left: 59, ...safariOnlyTextBottom() }}>
+						<span
+							className="input-symbol left-[59px] md:left-[13px]"
+							style={{ position: "relative", ...safariOnlyTextBottom() }}
+						>
 							<NumericInput
 								onFocus={handleFocus}
 								onBlur={handleBlur}
@@ -265,9 +268,8 @@ export const columns = ({
 									}
 								}}
 								initialValue={numberAmount.toFixed(2)}
-								className="text-sm"
+								className="text-sm !min-w-[144px] md:!w-[144px]"
 								style={{
-									minWidth: 144,
 									color: numberAmount > 0 ? GreenColor : numberAmount < 0 ? "red" : "inherit",
 									textAlign: "right",
 								}}
