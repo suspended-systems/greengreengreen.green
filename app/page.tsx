@@ -18,13 +18,13 @@ import { SetUpWithGoogleSheetsButton, TransactionsTable } from "./TransactionsVi
 import { ModeSwitcher } from "./ModeSwitcher";
 
 import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
-import { APP_NAME, GreenColor } from "./utils";
+import { GreenColor } from "./utils";
 
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("./Tour"), { ssr: false });
 
 import { signOut, useSession } from "next-auth/react";
-import getSpreadSheet from "./sheets";
+import getSheetData from "./sheets";
 import { toast } from "sonner";
 
 export default function Home() {
@@ -36,7 +36,7 @@ export default function Home() {
 
 	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
 
-	const [isTourComplete, setTourComplete] = useLocalStorage(`is_${APP_NAME}_tour_complete`, false);
+	const [isTourComplete, setTourComplete] = useLocalStorage(`isGreenTourComplete`, false);
 
 	const [activeTab, setActiveTab] = useState("calendar");
 
@@ -64,31 +64,31 @@ export default function Home() {
 		if (spreadsheetId == null && session?.accessToken) {
 			setSheetLoading(true);
 
-			await getSpreadSheet({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then(
-				async ({
-					sheet,
-					transactions: spreadsheetTransactions,
-					startDate: spreadsheetStartDate,
-					startValue: spreadsheetStartValue,
-					malformedTransactions,
-				}) => {
-					if (sheet?.id) {
-						setSpreadsheetId(sheet.id);
-						setIsDemoMode(false);
+			await getSheetData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then(async (data) => {
+				if (data) {
+					const {
+						sheet,
+						transactions: spreadsheetTransactions,
+						startDate: spreadsheetStartDate,
+						startValue: spreadsheetStartValue,
+						malformedTransactions,
+					} = data;
 
-						/**
-						 * Load the sheet data into app state's transactions
-						 */
-						if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
-						if (spreadsheetStartValue) setStartValue(spreadsheetStartValue);
-						setTransactions(spreadsheetTransactions);
+					setSpreadsheetId(sheet.id);
+					setIsDemoMode(false);
 
-						if (malformedTransactions.length) {
-							toast(`⚠️ Sheet contains malformed transactions`);
-						}
+					/**
+					 * Load the sheet data into app state's transactions
+					 */
+					if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
+					if (spreadsheetStartValue) setStartValue(spreadsheetStartValue);
+					setTransactions(spreadsheetTransactions);
+
+					if (malformedTransactions.length) {
+						toast(`⚠️ Sheet contains ${malformedTransactions.length} malformed transaction(s)`);
 					}
-				},
-			);
+				}
+			});
 			setSheetLoading(false);
 		}
 	};
@@ -157,7 +157,7 @@ export default function Home() {
 					fontFamily: "sans-serif",
 				}}
 			>
-				💸 {APP_NAME}
+				💸 greengreengreen.green
 			</div>
 			{/* green fading divider */}
 			<div

@@ -1,5 +1,3 @@
-export const APP_NAME = "green";
-
 export const GreenColor = "#519c6b";
 
 export const COLUMNS = {

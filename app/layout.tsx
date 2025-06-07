@@ -4,7 +4,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { ThemeProvider } from "./ThemeProvider";
-import { APP_NAME } from "./utils";
 import SessionProvider from "./SessionProvider";
 
 const geistSans = Geist({
@@ -18,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: APP_NAME,
+	title: "greengreengreen.green",
 };
 
 // tailwind recommended responsive design

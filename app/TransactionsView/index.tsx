@@ -43,7 +43,7 @@ import { CopyableInput } from "@/components/CopyableInput";
 
 import { TransactionForm } from "../TransactionForm";
 import { Transaction } from "../transactions";
-import getSpreadSheet from "../sheets";
+import getSheetData from "../sheets";
 
 interface TransactionsTableProps<TData, TValue> {
 	spreadsheetId: string | null;
@@ -193,13 +193,15 @@ export function TransactionsTable<TData, TValue>({
 								setPullSheetsLoading(true);
 
 								try {
-									await getSpreadSheet({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then(
-										({
-											transactions: spreadsheetTransactions,
-											startDate: spreadsheetStartDate,
-											startValue: spreadsheetStartValue,
-											malformedTransactions,
-										}) => {
+									await getSheetData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then((data) => {
+										if (data) {
+											const {
+												transactions: spreadsheetTransactions,
+												startDate: spreadsheetStartDate,
+												startValue: spreadsheetStartValue,
+												malformedTransactions,
+											} = data;
+
 											if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
 											if (spreadsheetStartValue) setStartValue(spreadsheetStartValue);
 											setTransactions(spreadsheetTransactions);
@@ -208,12 +210,12 @@ export function TransactionsTable<TData, TValue>({
 												// This runs once the success-toast’s duration elapses
 												onAutoClose() {
 													if (malformedTransactions?.length) {
-														toast("⚠️ Sheet contains malformed transactions");
+														toast(`⚠️ Sheet contains ${malformedTransactions.length} malformed transaction(s)`);
 													}
 												},
 											});
-										},
-									);
+										}
+									});
 								} finally {
 									// how long since we kicked off the spin?
 									const elapsed = (Date.now() - spinStart) % 1000;
@@ -374,8 +376,7 @@ function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number })
 
 export function SetUpWithGoogleSheetsButton() {
 	// source: https://github.com/arye321/nextauth-google-popup-login
-	// @ts-ignore
-	const popupCenter = (url, title) => {
+	const popupCenter = (url: string, title: string) => {
 		const dualScreenLeft = window.screenLeft ?? window.screenX;
 		const dualScreenTop = window.screenTop ?? window.screenY;
 

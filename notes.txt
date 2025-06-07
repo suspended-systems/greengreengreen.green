@@ -72,7 +72,9 @@
 
 ### - PREVENT OVERSCROLL(X) IN TRANSACTIONS VIEW
 
--save starting date and value into txs sheet as a separate sheet tab/Sheet2 OR JUST SHIFT EVERYTHING ELSE DOWN 3 ROWS AND RESERVE FIRST 2 ROWS FOR THIS 
+### - save starting date and value into txs sheet as a separate sheet tab/Sheet2 OR JUST SHIFT EVERYTHING ELSE DOWN 3 ROWS AND RESERVE FIRST 2 ROWS FOR THIS 
+
+### - only show +- symbol on mobile (intended for mobile cus numeric keypad doesn't have a negative symbol)
 
 future roadmap:
 - tour "skip" button setting tutorial complete (bug with library callback, needs hacky injection instead)
