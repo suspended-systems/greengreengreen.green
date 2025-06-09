@@ -86,6 +86,8 @@
     - on calendar view, selected month and day need totals
     - on transactions view, new banner with weighted average
 
+- cleanup: component for amount that does color and `formatMoney`
+
 
 future roadmap:
 - "build a profile for me" AI button for rent, utilities as individual water trash gas etc, internet, gas, car insurance, or as onboarding

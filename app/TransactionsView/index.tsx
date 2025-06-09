@@ -93,6 +93,11 @@ export function TransactionsView<TData, TValue>({
 		autoResetPageIndex: false,
 	});
 
+	const { pageIndex, pageSize } = table.getState().pagination;
+	const totalRows = table.getFilteredRowModel().rows.length;
+	const startRow = pageIndex * pageSize + 1;
+	const endRow = pageIndex * pageSize + table.getRowModel().rows.length;
+
 	return (
 		<div className="flex flex-col gap-4 max-w-5xl mx-auto px-2 md:px-4">
 			{/* Sheets setup / demo warning info banner */}
@@ -380,18 +385,23 @@ export function TransactionsView<TData, TValue>({
 						</TableBody>
 					</Table>
 				</div>
-				<div className="pb-4 flex items-center justify-end space-x-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
-					>
-						<ChevronLeftIcon />
-					</Button>
-					<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-						<ChevronRightIcon />
-					</Button>
+				<div className="pb-4 w-full flex items-center justify-between">
+					<span className="flex-1 text-sm text-gray-600">
+						Showing {startRow}–{endRow} of {totalRows}
+					</span>
+					<div className="flex items-center space-x-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => table.previousPage()}
+							disabled={!table.getCanPreviousPage()}
+						>
+							<ChevronLeftIcon />
+						</Button>
+						<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+							<ChevronRightIcon />
+						</Button>
+					</div>
 				</div>
 			</div>
 		</div>
