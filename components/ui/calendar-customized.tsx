@@ -1,14 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, HomeIcon, Table } from "lucide-react";
-import { CaptionLabel, CaptionNavigation, DayPicker, useDayPicker } from "react-day-picker";
+import { ChevronLeft, ChevronRight, HomeIcon } from "lucide-react";
+import { DayPicker, useDayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { calcProjectedValue, getTransactionsOnDay, Transaction } from "../../app/transactions";
 import { DAY_MS, formatMoney, GreenColor } from "../../app/utils";
-import { isSameMonth, isSameYear } from "date-fns";
+import { endOfDay, endOfMonth, getDaysInMonth, isSameMonth, isSameYear, startOfDay, startOfMonth } from "date-fns";
+import { partition } from "lodash";
 
 function CalendarCustomized({
 	className,
@@ -79,13 +80,35 @@ function CalendarCustomized({
 						formatters: { formatCaption },
 					} = useDayPicker();
 
-					const resetMonth = () => onMonthChange(new Date());
+					const backToToday = () => onMonthChange(new Date());
 
-					const rawCaption = formatCaption(props.displayMonth, { locale }) as string;
+					const defaultCaption = formatCaption(props.displayMonth, { locale }) as string;
 					// if it's the current year, don't show the year
 					const caption = isSameYear(props.displayMonth, new Date())
-						? rawCaption.slice(0, -" 2025".length)
-						: rawCaption;
+						? defaultCaption.slice(0, -" 2025".length)
+						: defaultCaption;
+
+					const [incomingTxs, outgoingTxs] = partition(transactions ?? [], (tx) => tx.amount >= 0);
+					const monthStart = startOfDay(startOfMonth(props.displayMonth));
+					const monthEnd = endOfDay(endOfMonth(props.displayMonth));
+
+					const totalIncoming = calcProjectedValue({
+						startValue: 0,
+						startDate: monthStart,
+						endDate: monthEnd,
+						transactions: incomingTxs ?? [],
+					});
+					const totalOutgoing = calcProjectedValue({
+						startValue: 0,
+						startDate: monthStart,
+						endDate: monthEnd,
+						transactions: outgoingTxs ?? [],
+					});
+					const net = totalIncoming + totalOutgoing;
+
+					const dailyIncomingAverage = totalIncoming / getDaysInMonth(new Date());
+					const dailyOutgoingAverage = totalOutgoing / getDaysInMonth(new Date());
+					const dailyNetAverage = net / getDaysInMonth(new Date());
 
 					return (
 						<div className="flex flex-col items-center">
@@ -100,7 +123,7 @@ function CalendarCustomized({
 							</div>
 							<div className="absolute" style={{ top: 30 }}>
 								{(!isSameMonth(props.displayMonth, new Date()) || !isSameYear(props.displayMonth, new Date())) && (
-									<Button variant="outline" onClick={resetMonth} className="text-xs" style={{ height: 20 }}>
+									<Button variant="outline" onClick={backToToday} className="text-xs" style={{ height: 20 }}>
 										<HomeIcon />
 										Back to today
 									</Button>
@@ -112,10 +135,10 @@ function CalendarCustomized({
 									<p className="text-xs md:text-sm font-medium">
 										<span className="hidden md:inline">Incoming</span>
 										<span className="md:hidden inline">In</span>:{" "}
-										<span style={{ color: GreenColor }}>+{formatMoney(100)}</span>
+										<span style={{ color: GreenColor }}>+{formatMoney(totalIncoming)}</span>
 									</p>
 									<p className="text-xs">
-										<span style={{ color: GreenColor }}>+{formatMoney(3)}</span>
+										<span style={{ color: GreenColor }}>+{formatMoney(dailyIncomingAverage)}</span>
 										<span className="hidden md:inline"> per day</span>
 										<span className="md:hidden inline">/day</span>
 									</p>
@@ -124,10 +147,10 @@ function CalendarCustomized({
 									<p className="text-xs md:text-sm font-medium">
 										<span className="hidden md:inline">Outgoing</span>
 										<span className="md:hidden inline">Out</span>:{" "}
-										<span style={{ color: "red" }}>{formatMoney(-500)}</span>
+										<span style={{ color: "red" }}>{formatMoney(totalOutgoing)}</span>
 									</p>
 									<p className="text-xs">
-										<span style={{ color: "red" }}>{formatMoney(-16.66)}</span>
+										<span style={{ color: "red" }}>{formatMoney(dailyOutgoingAverage)}</span>
 										<span className="hidden md:inline"> per day</span>
 										<span className="md:hidden inline">/day</span>
 									</p>
@@ -137,13 +160,13 @@ function CalendarCustomized({
 										Net:{" "}
 										<span style={{ color: -400 < 0 ? "red" : GreenColor }}>
 											{-400 < 0 ? "" : "+"}
-											{formatMoney(-400)}
+											{formatMoney(net)}
 										</span>
 									</p>
 									<p className="text-xs">
 										<span style={{ color: -400 < 0 ? "red" : GreenColor }}>
 											{-400 < 0 ? "" : "+"}
-											{formatMoney(-13.33)}
+											{formatMoney(dailyNetAverage)}
 										</span>
 										<span className="hidden md:inline"> per day</span>
 										<span className="md:hidden inline">/day</span>
@@ -155,11 +178,8 @@ function CalendarCustomized({
 				},
 
 				DayContent: (props) => {
-					const dayTransactions = getTransactionsOnDay(props.date, transactions ?? []);
-
 					const endOfDay = new Date(props.date.getTime() + DAY_MS - 1);
 
-					// Only project values for days starting at our start date. Transactions and a start value must exist as well.
 					const projectedValue =
 						(startAmount &&
 							startDate &&
@@ -171,6 +191,7 @@ function CalendarCustomized({
 								transactions,
 							})) ||
 						undefined;
+					const dayTransactions = getTransactionsOnDay(props.date, transactions ?? []);
 
 					const incomeTransactions = dayTransactions.filter((tx) => tx.amount > 0);
 					const incomesTotal = incomeTransactions.reduce((sum, tx) => sum + tx.amount, 0);

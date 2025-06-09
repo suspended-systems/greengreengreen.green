@@ -86,6 +86,8 @@
     - on calendar view, selected month and day need totals
     - on transactions view, new banner with weighted average
 
+- controlled / uncontrolled starting amount component so it loads properly, currently doesn't update until changing tabs
+
 - cleanup: component for amount that does color and `formatMoney`
 
 
