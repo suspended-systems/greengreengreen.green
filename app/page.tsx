@@ -34,7 +34,7 @@ export default function Home() {
 		try {
 			return getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone });
 		} catch (error) {
-			// Log any intermittent errors so we can track them down and fix them
+			// In case of any sheets loading errors, log them
 			console.warn("Error getting sheets data", { error: JSON.stringify(error, undefined, 2) });
 		}
 	});
