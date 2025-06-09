@@ -134,7 +134,14 @@ export default function CalendarView({
 								<table className="border border-transparent" style={{ borderCollapse: "separate", borderSpacing: 8 }}>
 									<tbody>
 										{dayTransactions
-											.sort((a, b) => b.amount - a.amount)
+											.sort((a, b) =>
+												// both negative, reverse order so bigger expense first
+												a.amount < 0 && b.amount < 0
+													? // ascending
+													  a.amount - b.amount
+													: // descending
+													  b.amount - a.amount,
+											)
 											.map((tx, i) => (
 												<tr key={`tx:${i}`}>
 													<td
