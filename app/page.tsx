@@ -30,9 +30,14 @@ import getSheetsData from "./sheets";
 export default function Home() {
 	const { data: session, status } = useSession();
 
-	const { data, isLoading } = useSWRImmutable(session?.accessToken ? "sheetsData" : null, () =>
-		getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }),
-	);
+	const { data, isLoading } = useSWRImmutable(session?.accessToken ? "sheetsData" : null, () => {
+		try {
+			return getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone });
+		} catch (error) {
+			// Log any intermittent errors so we can track them down and fix them
+			console.warn("Error getting sheets data", { error: JSON.stringify(error, undefined, 2) });
+		}
+	});
 	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
 	const [isTourComplete, setTourComplete] = useLocalStorage(`isGreenTourComplete`, false);
 	const [activeTab, setActiveTab] = useState("calendar");
