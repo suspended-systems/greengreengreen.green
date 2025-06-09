@@ -52,7 +52,7 @@ export default function CalendarView({
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
-		<div className="flex flex-col md:flex-row gap-4 md:gap-8 w-fit mx-auto overscroll-x-auto px-2 md:px-4">
+		<div className="flex flex-col md:flex-row gap-1 md:gap-8 w-fit mx-auto overscroll-x-auto px-2 md:px-4">
 			{/* left panel */}
 			<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
 				<div className="tour-starting mx-auto flex gap-2 items-center text-sm">
