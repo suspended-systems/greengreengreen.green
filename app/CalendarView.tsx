@@ -102,7 +102,7 @@ export default function CalendarView({
 									}
 								}
 							}}
-							initialValue={startAmount.toFixed(2)}
+							value={startAmount.toFixed(2)}
 							className="text-sm w-[120px]"
 						/>
 					</span>

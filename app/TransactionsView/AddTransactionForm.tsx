@@ -265,7 +265,6 @@ export function AddTransactionForm({
 														? "red"
 														: "inherit",
 											}}
-											initialValue={field.value}
 											placeholder="-80"
 											className="justify-start text-left font-normal !w-[210px] md:!w-[260px]" // width to line up with others and not expand the modal width
 											onValidatedChange={(amount) => field.onChange({ target: { value: String(amount) } })}

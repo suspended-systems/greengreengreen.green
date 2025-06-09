@@ -266,7 +266,7 @@ export const columns = ({
 										}
 									}
 								}}
-								initialValue={numberAmount.toFixed(2)}
+								value={numberAmount.toFixed(2)}
 								className="text-sm !min-w-[144px] md:!w-[144px]"
 								style={{
 									color: numberAmount > 0 ? GreenColor : numberAmount < 0 ? "red" : "inherit",
