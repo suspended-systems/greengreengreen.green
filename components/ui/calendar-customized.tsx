@@ -107,7 +107,7 @@ function CalendarCustomized({
 								)}
 							</div>
 							{/* Stats */}
-							<div className="flex gap-4" style={{ marginTop: "20px", marginBottom: "20px" }}>
+							<div className="flex gap-4" style={{ marginTop: "20px", marginBottom: "10px" }}>
 								<div>
 									<p className="text-xs md:text-sm font-medium">
 										<span className="hidden md:inline">Incoming</span>
