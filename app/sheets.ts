@@ -8,7 +8,7 @@ import { v4 as uuid } from "uuid";
 import { z } from "zod";
 import { parse } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
-import { COLUMNS, formatDateToSheets, letterToIndex } from "./utils";
+import { COLUMNS, formatDateToSheets, letterToIndex, pMapConfig } from "./utils";
 import { partition } from "lodash";
 import pMap from "p-map";
 
@@ -176,6 +176,7 @@ export default async function getSheetsData({ tz }: { tz: string }) {
 					}),
 			};
 		},
+		pMapConfig,
 	);
 
 	return {
