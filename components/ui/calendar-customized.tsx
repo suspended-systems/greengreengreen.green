@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { calcProjectedValue, getTransactionsOnDay, Transaction } from "../../app/transactions";
 import { DAY_MS, formatMoney, GreenColor } from "../../app/utils";
+import { isSameMonth, isSameYear } from "date-fns";
 
 function CalendarCustomized({
 	className,
@@ -37,16 +38,16 @@ function CalendarCustomized({
 			className={cn("p-3", className)}
 			classNames={{
 				months: "flex flex-col sm:flex-row gap-2",
-				month: "flex flex-col gap-4",
+				month: "flex flex-col",
 				caption: "flex justify-center pt-1 relative items-center w-full",
-				caption_label: "text-sm font-medium",
+				caption_label: "text-lg font-medium",
 				nav: "flex items-center gap-1",
 				nav_button: cn(
 					buttonVariants({ variant: "outline" }),
 					"size-7 bg-transparent p-0 opacity-50 hover:opacity-100",
 				),
-				nav_button_previous: "absolute left-1 size-14 md:size-7",
-				nav_button_next: "absolute right-1 size-14 md:size-7",
+				nav_button_previous: "absolute top-0 left-1 size-14 h-9 md:size-7 md:h-full",
+				nav_button_next: "absolute top-0 right-1 size-14 h-9 md:size-7 md:h-full",
 				table: "w-full border-collapse space-x-1",
 				head_row: "flex py-4",
 				head_cell: `text-muted-foreground rounded-md w-12 md:w-24 font-normal text-[0.8rem]`,
@@ -80,6 +81,12 @@ function CalendarCustomized({
 
 					const resetMonth = () => onMonthChange(new Date());
 
+					const rawCaption = formatCaption(props.displayMonth, { locale }) as string;
+					// if it's the current year, don't show the year
+					const caption = isSameYear(props.displayMonth, new Date())
+						? rawCaption.slice(0, -" 2025".length)
+						: rawCaption;
+
 					return (
 						<div className="flex flex-col items-center">
 							<div
@@ -89,15 +96,59 @@ function CalendarCustomized({
 								role="presentation"
 								id={props.id}
 							>
-								{formatCaption(props.displayMonth, { locale })}
+								{caption}
 							</div>
-							<div className="absolute" style={{ top: 28 }}>
-								{props.displayMonth.getMonth() !== new Date().getMonth() && (
+							<div className="absolute" style={{ top: 30 }}>
+								{(!isSameMonth(props.displayMonth, new Date()) || !isSameYear(props.displayMonth, new Date())) && (
 									<Button variant="outline" onClick={resetMonth} className="text-xs" style={{ height: 20 }}>
 										<HomeIcon />
 										Back to today
 									</Button>
 								)}
+							</div>
+							{/* Stats */}
+							<div className="flex gap-4" style={{ marginTop: "20px", marginBottom: "20px" }}>
+								<div>
+									<p className="text-xs md:text-sm font-medium">
+										<span className="hidden md:inline">Incoming</span>
+										<span className="md:hidden inline">In</span>:{" "}
+										<span style={{ color: GreenColor }}>+{formatMoney(100)}</span>
+									</p>
+									<p className="text-xs">
+										<span style={{ color: GreenColor }}>+{formatMoney(3)}</span>
+										<span className="hidden md:inline"> per day</span>
+										<span className="md:hidden inline">/day</span>
+									</p>
+								</div>
+								<div>
+									<p className="text-xs md:text-sm font-medium">
+										<span className="hidden md:inline">Outgoing</span>
+										<span className="md:hidden inline">Out</span>:{" "}
+										<span style={{ color: "red" }}>{formatMoney(-500)}</span>
+									</p>
+									<p className="text-xs">
+										<span style={{ color: "red" }}>{formatMoney(-16.66)}</span>
+										<span className="hidden md:inline"> per day</span>
+										<span className="md:hidden inline">/day</span>
+									</p>
+								</div>
+								<div>
+									<p className="text-xs md:text-sm font-medium">
+										Net:{" "}
+										<span style={{ color: -400 < 0 ? "red" : GreenColor }}>
+											{-400 < 0 ? "" : "+"}
+											{formatMoney(-400)}
+										</span>
+									</p>
+									<p className="text-xs">
+										<span style={{ color: -400 < 0 ? "red" : GreenColor }}>
+											{-400 < 0 ? "" : "+"}
+											{formatMoney(-13.33)}
+										</span>
+										<span className="hidden md:inline"> per day</span>
+										<span className="md:hidden inline">/day</span>
+									</p>
+								</div>
 							</div>
 						</div>
 					);
