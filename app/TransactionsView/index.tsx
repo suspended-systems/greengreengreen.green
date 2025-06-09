@@ -102,6 +102,7 @@ export function TransactionsView<TData, TValue>({
 			{/* Demo mode / sheets setup info banner */}
 			{isDemoMode && !isDemoWarningClosed && (
 				<InfoBannerBox
+					onClose={() => setIsDemoWarningClosed(true)}
 					title={session ? "Google Sheets Setup" : "⚠️ Warning"}
 					content={
 						<div className="prose mt-8 flex flex-col items-center gap-4">
@@ -533,7 +534,7 @@ function InfoBannerBox({
 	onClose?: () => void; // omit an `onClose` to hide the close button
 }) {
 	return (
-		<div className="relative w-screen md:w-full rounded-md border p-6 flex flex-col gap-4 items-center">
+		<div className="relative w-full md:w-full rounded-md border p-6 flex flex-col gap-4 items-center">
 			{onClose && (
 				<button
 					onClick={() => onClose()}

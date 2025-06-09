@@ -55,7 +55,7 @@ export default function CalendarView({
 		<div className="flex flex-col md:flex-row gap-4 md:gap-8 w-fit mx-auto overscroll-x-auto px-2 md:px-4">
 			{/* left panel */}
 			<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
-				<div className="tour-starting flex gap-2 items-center text-sm">
+				<div className="tour-starting mx-auto flex gap-2 items-center text-sm">
 					{/* starting values */}
 					<span className="hidden md:inline" style={{ whiteSpace: "nowrap" }}>
 						Starting on
