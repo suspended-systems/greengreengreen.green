@@ -102,7 +102,7 @@ export function TransactionsView<TData, TValue>({
 			{/* Demo mode / sheets setup info banner */}
 			{isDemoMode && !isDemoWarningClosed && (
 				<InfoBannerBox
-					onClose={() => setIsDemoWarningClosed(true)}
+					onClose={session ? undefined : () => setIsDemoWarningClosed(true)}
 					title={session ? "Google Sheets Setup" : "⚠️ Warning"}
 					content={
 						<div className="prose mt-8 flex flex-col items-center gap-4">
