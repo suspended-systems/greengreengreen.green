@@ -22,10 +22,10 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import NumericInput from "@/components/NumericInput";
 
-import { frequenciesStrings, GreenColor } from "../app/utils";
-import { Transaction, txRRule } from "../app/transactions";
+import { formatDateToSheets, frequenciesStrings, GreenColor } from "../utils";
+import { Transaction, txRRule } from "../transactions";
 import { Frequency } from "rrule";
-import { appendSheetsRow } from "./sheets";
+import { appendSheetsRow } from "../sheets";
 
 const FormSchema = z.object({
 	txname: z.string().nonempty("Name can't be empty."),
@@ -50,7 +50,7 @@ const FormSchema = z.object({
 		}),
 });
 
-export function TransactionForm({
+export function AddTransactionForm({
 	spreadsheetId,
 	setTransactions,
 }: {
@@ -58,6 +58,7 @@ export function TransactionForm({
 	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
 }) {
 	// This flag toggles whenever you reset the form.
+	// Used to key an input for resetting the form fully.
 	const [resetCounter, setResetCounter] = useState(0);
 	const [isRecurring, setIsRecurring] = useState(false);
 
@@ -94,8 +95,7 @@ export function TransactionForm({
 			await appendSheetsRow(spreadsheetId, [
 				transaction.name,
 				transaction.amount,
-				// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
-				new Date(transaction.date).toISOString().split("T")[0],
+				formatDateToSheets(new Date(transaction.date)),
 				transaction.freq ? txRRule(transaction).toText() : "",
 				!transaction.disabled,
 				transaction.id,

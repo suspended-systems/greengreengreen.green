@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import NumericInput from "@/components/NumericInput";
 
 import { calcProjectedValue, getTransactionsOnDay, Transaction, txRRule } from "./transactions";
-import { COLUMNS, DAY_MS, formatMoney, GreenColor } from "./utils";
+import { COLUMNS, DAY_MS, formatDateToSheets, formatMoney, GreenColor } from "./utils";
 import { appendSheetsRow, updateSheetsRow, updateStartingDate, updateStartingNumber } from "./sheets";
 
 /**
@@ -25,8 +25,8 @@ export default function CalendarView({
 	onMonthChange,
 	transactions,
 	setTransactions,
-	startValue,
-	setStartValue,
+	startAmount,
+	setStartAmount,
 	startDate,
 	setStartDate,
 	endDate,
@@ -37,8 +37,8 @@ export default function CalendarView({
 	onMonthChange: Dispatch<SetStateAction<Date>>;
 	transactions: Transaction[];
 	setTransactions: Dispatch<SetStateAction<Transaction[]>>;
-	startValue: number;
-	setStartValue: Dispatch<SetStateAction<number>>;
+	startAmount: number;
+	setStartAmount: Dispatch<SetStateAction<number>>;
 	startDate: Date | undefined;
 	setStartDate: Dispatch<SetStateAction<Date | undefined>>;
 	endDate: Date | undefined;
@@ -52,7 +52,7 @@ export default function CalendarView({
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
-		<div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center md:items-start">
+		<div className="flex flex-col md:flex-row gap-4 md:gap-8 w-fit mx-auto overscroll-x-auto px-2 md:px-4">
 			{/* left panel */}
 			<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
 				<div className="tour-starting flex gap-2 items-center text-sm">
@@ -91,18 +91,18 @@ export default function CalendarView({
 					<span className="input-symbol">
 						<NumericInput
 							style={{
-								color: startValue > 0 ? GreenColor : startValue < 0 ? "red" : "inherit",
+								color: startAmount > 0 ? GreenColor : startAmount < 0 ? "red" : "inherit",
 							}}
 							onValidatedChange={async (amount) => {
 								if (amount !== 0) {
-									setStartValue(amount);
+									setStartAmount(amount);
 
 									if (spreadsheetId) {
 										await updateStartingNumber(spreadsheetId, amount);
 									}
 								}
 							}}
-							initialValue={startValue.toFixed(2)}
+							initialValue={startAmount.toFixed(2)}
 							className="text-sm w-[120px]"
 						/>
 					</span>
@@ -119,11 +119,11 @@ export default function CalendarView({
 										day: "numeric",
 									})}
 								</div>
-								{startValue && startDate && transactions && (
+								{startAmount && startDate && transactions && (
 									<div className="block md:hidden text-sm">
 										{formatMoney(
 											calcProjectedValue({
-												startValue,
+												startValue: startAmount,
 												startDate,
 												endDate: new Date(endDate.getTime() + DAY_MS - 1),
 												transactions,
@@ -139,14 +139,14 @@ export default function CalendarView({
 												<tr key={`tx:${i}`}>
 													<td
 														className="text-right"
-														style={{ color: tx.amount > -1 ? GreenColor : "red", fontWeight: "bold" }}
+														style={{ color: tx.amount > 0 ? GreenColor : "red", fontWeight: "bold" }}
 													>
-														{tx.amount > -1 ? "+" : ""}
+														{tx.amount > 0 ? "+" : ""}
 														{formatMoney(tx.amount)}
 													</td>
 													<td className="flex font-medium">
 														{tx.name}
-														{tx.amount < 0 && tx.freq && (
+														{tx.amount < 0 && tx.freq != null && (
 															<ChatWindowPopover {...{ tx, setTransactions, spreadsheetId }} />
 														)}
 													</td>
@@ -165,11 +165,11 @@ export default function CalendarView({
 										day: "numeric",
 									})}
 								</p>
-								{startValue && startDate && transactions && (
+								{startAmount && startDate && transactions && (
 									<div className="block md:hidden text-sm opacity-50">
 										{formatMoney(
 											calcProjectedValue({
-												startValue,
+												startValue: startAmount,
 												startDate,
 												endDate: new Date(endDate.getTime() + DAY_MS - 1),
 												transactions,
@@ -186,11 +186,11 @@ export default function CalendarView({
 			</div>
 			{/* right panel */}
 			<CalendarCustomized
-				{...{ month, onMonthChange, startValue, startDate, endDate, transactions: enabledTransactions }}
+				{...{ month, onMonthChange, startAmount, startDate, endDate, transactions: enabledTransactions }}
 				mode="single"
 				selected={endDate}
 				onSelect={setEndDate}
-				className="tour-calendar mx-auto rounded-md md:border"
+				className="tour-calendar rounded-md md:border"
 			/>
 		</div>
 	);
@@ -246,8 +246,7 @@ function ChatWindowPopover({
 							await appendSheetsRow(spreadsheetId, [
 								transaction.name,
 								transaction.amount,
-								// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
-								new Date(transaction.date).toISOString().split("T")[0],
+								formatDateToSheets(new Date(transaction.date)),
 								transaction.freq ? txRRule(transaction).toText() : "",
 								!transaction.disabled,
 								transaction.id,

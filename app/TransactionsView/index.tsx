@@ -41,37 +41,35 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CopyableInput } from "@/components/CopyableInput";
 
-import { TransactionForm } from "../TransactionForm";
+import { AddTransactionForm } from "./AddTransactionForm";
 import { Transaction } from "../transactions";
-import getSheetData from "../sheets";
+import getSheetsData from "../sheets";
 
-interface TransactionsTableProps<TData, TValue> {
-	spreadsheetId: string | null;
-	isDemoWarningClosed: boolean;
-	setIsDemoWarningClosed: React.Dispatch<React.SetStateAction<boolean>>;
-	isDemoMode: boolean;
-	columns: ColumnDef<TData, TValue>[];
-	setStartDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
-	setStartValue: React.Dispatch<React.SetStateAction<number>>;
-	transactions: TData[];
-	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-	pagination: PaginationState;
-	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
-}
-
-export function TransactionsTable<TData, TValue>({
+export function TransactionsView<TData, TValue>({
 	spreadsheetId,
 	isDemoWarningClosed,
 	setIsDemoWarningClosed,
 	isDemoMode,
 	columns,
 	setStartDate,
-	setStartValue,
+	setStartAmount,
 	transactions,
 	setTransactions,
 	pagination,
 	setPagination,
-}: TransactionsTableProps<TData, TValue>) {
+}: {
+	spreadsheetId: string | null;
+	isDemoWarningClosed: boolean;
+	setIsDemoWarningClosed: React.Dispatch<React.SetStateAction<boolean>>;
+	isDemoMode: boolean;
+	columns: ColumnDef<TData, TValue>[];
+	setStartDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+	setStartAmount: React.Dispatch<React.SetStateAction<number>>;
+	transactions: TData[];
+	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+	pagination: PaginationState;
+	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
+}) {
 	const [pullSheetsLoading, setPullSheetsLoading] = React.useState(false);
 
 	const { data: session } = useSession();
@@ -100,13 +98,13 @@ export function TransactionsTable<TData, TValue>({
 	});
 
 	return (
-		<div className="flex flex-col gap-4">
+		<div className="flex flex-col gap-4 max-w-5xl mx-auto px-2 md:px-4">
+			{/* Demo mode / sheets setup info banner */}
 			{isDemoMode && !isDemoWarningClosed && (
 				<InfoBannerBox
-					onClose={() => setIsDemoWarningClosed(true)}
 					title={session ? "Google Sheets Setup" : "⚠️ Warning"}
 					content={
-						<>
+						<div className="prose mt-8 flex flex-col items-center gap-4">
 							{!session ? (
 								<>
 									<p className="text-center">
@@ -163,18 +161,106 @@ export function TransactionsTable<TData, TValue>({
 									</div>
 								</>
 							)}
-						</>
+						</div>
 					}
 				/>
 			)}
-			<div className="flex flex-col gap-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]">
+			{/* Analytics info banner */}
+			{/* <InfoBannerBox
+				content={
+					<div className="w-full flex">
+						<p>Incoming/Outgoing Per Annual/Month/Day average weighted</p>
+
+						<div className="flex flex-col justify-center items-center py-4 order-3 md:order-2">
+							{endDate ? (
+								dayTransactions && dayTransactions.length > 0 ? (
+									<>
+										<div className="font-medium text-sm">
+											{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
+												month: "long",
+												weekday: "long",
+												day: "numeric",
+											})}
+										</div>
+										{startValue && startDate && transactions && (
+											<div className="block md:hidden text-sm">
+												{formatMoney(
+													calcProjectedValue({
+														startValue,
+														startDate,
+														endDate: new Date(endDate.getTime() + DAY_MS - 1),
+														transactions,
+													}),
+												)}
+											</div>
+										)}
+										<table
+											className="border border-transparent"
+											style={{ borderCollapse: "separate", borderSpacing: 8 }}
+										>
+											<tbody>
+												{dayTransactions
+													.sort((a, b) => b.amount - a.amount)
+													.map((tx, i) => (
+														<tr key={`tx:${i}`}>
+															<td
+																className="text-right"
+																style={{ color: tx.amount > 0 ? GreenColor : "red", fontWeight: "bold" }}
+															>
+																{tx.amount > 0 ? "+" : ""}
+																{formatMoney(tx.amount)}
+															</td>
+															<td className="flex font-medium">
+																{tx.name}
+																{tx.amount < 0 && tx.freq != null && (
+																	<ChatWindowPopover {...{ tx, setTransactions, spreadsheetId }} />
+																)}
+															</td>
+														</tr>
+													))}
+											</tbody>
+										</table>
+									</>
+								) : (
+									<>
+										<p className="text-sm opacity-50">
+											No transactions on{" "}
+											{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
+												month: "long",
+												weekday: "long",
+												day: "numeric",
+											})}
+										</p>
+										{startValue && startDate && transactions && (
+											<div className="block md:hidden text-sm opacity-50">
+												{formatMoney(
+													calcProjectedValue({
+														startValue,
+														startDate,
+														endDate: new Date(endDate.getTime() + DAY_MS - 1),
+														transactions,
+													}),
+												)}
+											</div>
+										)}
+									</>
+								)
+							) : (
+								<p className="italic text-sm opacity-50">Select a date to view its transactions</p>
+							)}
+						</div>
+					</div>
+				}
+			/>
+			 */}
+			<div className="flex flex-col gap-4">
 				<div className="flex gap-4">
 					<AddTransaction {...{ spreadsheetId, setTransactions }} />
 					<Input
 						placeholder="Search..."
 						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
 						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-						className="max-w-sm text-sm hide-box-shadow"
+						className="text-sm"
 					/>
 					{spreadsheetId && (
 						<Button
@@ -182,7 +268,8 @@ export function TransactionsTable<TData, TValue>({
 							onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
 						>
 							<SquareArrowOutUpRightIcon />
-							Open in Sheets
+							<span className="md:hidden block">Sheets</span>
+							<span className="hidden md:block">Open in Sheets</span>
 						</Button>
 					)}
 					{spreadsheetId && (
@@ -193,17 +280,17 @@ export function TransactionsTable<TData, TValue>({
 								setPullSheetsLoading(true);
 
 								try {
-									await getSheetData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then((data) => {
+									await getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then((data) => {
 										if (data) {
 											const {
 												transactions: spreadsheetTransactions,
 												startDate: spreadsheetStartDate,
-												startValue: spreadsheetStartValue,
+												startAmount: spreadsheetStartValue,
 												malformedTransactions,
 											} = data;
 
 											if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
-											if (spreadsheetStartValue) setStartValue(spreadsheetStartValue);
+											if (spreadsheetStartValue) setStartAmount(spreadsheetStartValue);
 											setTransactions(spreadsheetTransactions);
 
 											toast("✅ Successfully imported Sheets transactions", {
@@ -227,7 +314,8 @@ export function TransactionsTable<TData, TValue>({
 							<RefreshCcwIcon
 								className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
 							/>
-							Pull Sheets Changes
+							<span className="md:hidden block">Pull</span>
+							<span className="hidden md:block">Pull Sheets Changes</span>
 							<span className="sr-only">Sync from Google Sheets</span>
 						</Button>
 					)}
@@ -327,7 +415,8 @@ function AddTransaction({
 			<DialogTrigger asChild>
 				<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
 					<PlusIcon />
-					Add transaction
+					<span className="md:hidden block">Add</span>
+					<span className="hidden md:block">Add transaction</span>
 					<span className="sr-only">Add transaction</span>
 				</Button>
 			</DialogTrigger>
@@ -335,7 +424,7 @@ function AddTransaction({
 				<DialogHeader>
 					<DialogTitle>Add transaction</DialogTitle>
 				</DialogHeader>
-				<TransactionForm {...{ spreadsheetId, setTransactions }} />
+				<AddTransactionForm {...{ spreadsheetId, setTransactions }} />
 			</DialogContent>
 		</Dialog>
 	);
@@ -439,23 +528,25 @@ function InfoBannerBox({
 	content,
 	onClose,
 }: {
-	title: string;
+	title?: string;
 	content: React.JSX.Element;
-	onClose: () => void;
+	onClose?: () => void; // omit an `onClose` to hide the close button
 }) {
 	return (
 		<div className="relative w-screen md:w-full rounded-md border p-6 flex flex-col gap-4 items-center">
-			<button
-				onClick={() => onClose()}
-				// copied from Dialog.Close
-				className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-			>
-				<XIcon />
-				<span className="sr-only">Hide</span>
-			</button>
-			<p className="text-lg font-semibold absolute top-4">{title}</p>
+			{onClose && (
+				<button
+					onClick={() => onClose()}
+					// copied from Dialog.Close
+					className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+				>
+					<XIcon />
+					<span className="sr-only">Hide</span>
+				</button>
+			)}
+			{title && <p className="text-lg font-semibold absolute top-4">{title}</p>}
 
-			<div className="prose mt-8 flex flex-col items-center gap-4">{content}</div>
+			{content}
 		</div>
 	);
 }

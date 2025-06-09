@@ -17,12 +17,12 @@ function CalendarCustomized({
 }: {
 	month: Date;
 	onMonthChange: React.Dispatch<React.SetStateAction<Date>>;
-	startValue?: number;
+	startAmount?: number;
 	startDate?: Date;
 	endDate?: Date;
 	transactions?: Transaction[];
 } & React.ComponentProps<typeof DayPicker>) {
-	const { startValue, startDate, endDate, transactions, month, onMonthChange } = props;
+	const { startAmount, startDate, endDate, transactions, month, onMonthChange } = props;
 
 	return (
 		<DayPicker
@@ -110,18 +110,18 @@ function CalendarCustomized({
 
 					// Only project values for days starting at our start date. Transactions and a start value must exist as well.
 					const projectedValue =
-						(startValue &&
+						(startAmount &&
 							startDate &&
 							transactions &&
 							calcProjectedValue({
-								startValue,
+								startValue: startAmount,
 								startDate,
 								endDate: endOfDay,
 								transactions,
 							})) ||
 						undefined;
 
-					const incomeTransactions = dayTransactions.filter((tx) => tx.amount > -1);
+					const incomeTransactions = dayTransactions.filter((tx) => tx.amount > 0);
 					const incomesTotal = incomeTransactions.reduce((sum, tx) => sum + tx.amount, 0);
 
 					const expenseTransactions = dayTransactions.filter((tx) => tx.amount < 0);
@@ -142,7 +142,7 @@ function CalendarCustomized({
 									background:
 										projectedValue === undefined || projectedValue === 0
 											? "none"
-											: projectedValue! > -1
+											: projectedValue! > 0
 											? props.activeModifiers.outside
 												? "#7fbf7f"
 												: GreenColor
@@ -186,7 +186,7 @@ function CalendarCustomized({
 									<div className="hidden md:block text-xs">{formatMoney(projectedValue)}</div>
 								)}
 
-								<div style={{ fontWeight: "bold" }}>
+								<div className="font-bold">
 									{incomesTotal > 0 && (
 										<>
 											{/* On mobile, drop the decimals */}

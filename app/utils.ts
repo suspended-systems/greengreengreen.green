@@ -1,4 +1,11 @@
+import { Options as PMapOptions } from "p-map";
+import { Frequency } from "rrule";
+
 export const GreenColor = "#519c6b";
+
+export const pMapConfig: PMapOptions = {
+	concurrency: 1,
+};
 
 export const COLUMNS = {
 	Transaction: "A",
@@ -17,9 +24,14 @@ export const formatMoney = (amount: number) =>
 		currency: "USD",
 	}).format(amount);
 
-import { Frequency } from "rrule";
 export const frequencies = [Frequency.DAILY, Frequency.WEEKLY, Frequency.MONTHLY, Frequency.YEARLY];
 export const frequenciesStrings = ["days", "weeks", "months", "years"];
+
+export const formatDateToSheets = (date: Date) =>
+// date is sent in a locale format
+date.toLocaleDateString()
+// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
+	// new Date(date.setHours(0, 0, 0, 0)).toISOString().split("T")[0];
 
 export function letterToIndex(ch: string): number {
 	if (ch.length !== 1) {

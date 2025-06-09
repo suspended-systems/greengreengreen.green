@@ -132,12 +132,6 @@
 	}
 }
 
-.hide-scrollbar {
-	overflow-y: scroll; /* Ensure vertical scrolling is possible */
-	scrollbar-width: none; /* Firefox */
-	-ms-overflow-style: none; /* Internet Explorer 10+ */
-}
-
 .hide-box-shadow {
 	box-shadow: none;
 }

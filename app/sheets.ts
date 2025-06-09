@@ -6,9 +6,11 @@ import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transac
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
+import { parse } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
-import { COLUMNS, letterToIndex } from "./utils";
+import { COLUMNS, formatDateToSheets, letterToIndex } from "./utils";
 import { partition } from "lodash";
+import pMap from "p-map";
 
 type SheetsRow = [string, number, string, string, boolean, string];
 
@@ -28,7 +30,7 @@ const STARTING_VALUES_SHEET_NAME = "Starting Values";
  */
 const NameAmountDate: [z.ZodString, z.ZodNumber, z.ZodString] = [z.string().nonempty(), z.coerce.number(), z.string()];
 const Recurrence = z.string();
-const Enabled = z.union([z.literal("TRUE"), z.literal("FALSE")]);
+const Enabled = z.union([z.literal("TRUE"), z.literal("FALSE"), z.literal("")]);
 const TransactionRowSchema = z.union([
 	z.tuple(NameAmountDate),
 	z.tuple([...NameAmountDate, Recurrence] as const),
@@ -36,7 +38,7 @@ const TransactionRowSchema = z.union([
 	z.tuple([...NameAmountDate, Recurrence, Enabled, z.string().uuid()] as const),
 ]);
 
-const parseDate = (dateString: string, tz: string) => fromZonedTime(new Date(dateString) || new Date(), tz);
+const parseDate = (dateString: string, tz: string) => fromZonedTime(parse(dateString, "M/d/yyyy", new Date()), tz);
 
 // Generate a UUID if one doesn't exist and then push it to the first sheets row which has an empty uuid field (an assumption we're forced to make)
 const assignUUID = async ({ spreadsheetId }: { spreadsheetId: string }) => {
@@ -67,17 +69,20 @@ const assignEnabled = async ({ rowUUID, spreadsheetId }: { rowUUID: string; spre
 	return false;
 };
 
+// todo ratelimiting backoff retry
+// Error: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:274980100053'.
 const spreadsheets = (readonly?: "readonly") => {
 	const auth = new google.auth.GoogleAuth({
 		credentials,
 		scopes: [`https://www.googleapis.com/auth/spreadsheets${readonly ? ".readonly" : ""}`],
 	});
+
 	const { spreadsheets } = google.sheets({ version: "v4", auth });
 
 	return spreadsheets;
 };
 
-export default async function getSheetData({ tz }: { tz: string }) {
+export default async function getSheetsData({ tz }: { tz: string }) {
 	const session: Session | null = await getServerSession(authOptions);
 	const accessToken = session?.accessToken;
 
@@ -93,23 +98,26 @@ export default async function getSheetData({ tz }: { tz: string }) {
 	const { email } = await getEmailFromToken(accessToken);
 	const sheetIsOwnedByAuthTokenUser = `'${email}' in owners`;
 
-	const auth = new google.auth.GoogleAuth({
-		credentials,
-		scopes: [
-			"https://www.googleapis.com/auth/drive.metadata.readonly",
-			"https://www.googleapis.com/auth/spreadsheets.readonly",
-		],
-	});
-
 	const sheetFile = (
-		await google.drive({ version: "v3", auth }).files.list({
-			q: ["mimeType='application/vnd.google-apps.spreadsheet'", "trashed = false", sheetIsOwnedByAuthTokenUser].join(
-				" AND ",
-			),
-			orderBy: "createdTime asc",
-			pageSize: 1,
-			fields: "files(id, name, owners, createdTime)",
-		})
+		await google
+			.drive({
+				version: "v3",
+				auth: new google.auth.GoogleAuth({
+					credentials,
+					scopes: [
+						"https://www.googleapis.com/auth/drive.metadata.readonly",
+						"https://www.googleapis.com/auth/spreadsheets.readonly",
+					],
+				}),
+			})
+			.files.list({
+				q: ["mimeType='application/vnd.google-apps.spreadsheet'", "trashed = false", sheetIsOwnedByAuthTokenUser].join(
+					" AND ",
+				),
+				orderBy: "createdTime asc",
+				pageSize: 1,
+				fields: "files(id, name, owners, createdTime)",
+			})
 	).data.files?.[0];
 
 	if (!sheetFile?.id) {
@@ -139,15 +147,16 @@ export default async function getSheetData({ tz }: { tz: string }) {
 		try {
 			TransactionRowSchema.parse(row);
 			return true;
-		} catch (e) {
-			console.warn(e);
+		} catch (error) {
+			console.warn({ error, row });
 			return false;
 		}
 	});
 
 	// Map the rows to our app's data structure and reconcile missing UUID/toggle state
-	const transactions: Transaction[] = await Promise.all(
-		validatedRows.map(async ([name, amount, date, recurrence, enabled, id]) => {
+	const transactions: Transaction[] = await pMap(
+		validatedRows,
+		async ([name, amount, date, recurrence, enabled, id]) => {
 			const assignedId = id || (await assignUUID({ spreadsheetId: sheetFile.id! }));
 
 			const isDisabled = enabled
@@ -166,7 +175,7 @@ export default async function getSheetData({ tz }: { tz: string }) {
 						interval: RRule.fromText(recurrence).options.interval,
 					}),
 			};
-		}),
+		},
 	);
 
 	return {
@@ -186,10 +195,13 @@ async function getEmailFromToken(accessToken: string) {
 	const res = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
 		headers: { Authorization: `Bearer ${accessToken}` },
 	});
+
 	if (!res.ok) {
 		throw new Error(`Failed to fetch userinfo: ${res.status} ${await res.text()}`);
 	}
+
 	const profile = await res.json();
+
 	return {
 		email: profile.email,
 		verified: profile.email_verified,
@@ -197,33 +209,39 @@ async function getEmailFromToken(accessToken: string) {
 }
 
 async function isSpreadsheetEmpty(spreadsheetId: string): Promise<boolean> {
-	// Fetch metadata so we know each sheet’s title
-	const metaResp = await spreadsheets("readonly").get({
-		spreadsheetId,
-		fields: "sheets(properties(title))",
-	});
+	// Fetch the metadata of the sheet
+	const sheetTabs =
+		(
+			await spreadsheets("readonly").get({
+				spreadsheetId,
+				fields: "sheets(properties(title))",
+			})
+		).data.sheets ?? [];
 
-	const sheetProps = metaResp.data.sheets ?? [];
-	if (sheetProps.length === 0) {
-		// If there are no sheets at all, treat it as “empty.”
+	if (!sheetTabs.length) {
+		// No tabs, empty!
 		return true;
 	}
 
 	// For each sheet‐tab, check if there are any values
-	for (const s of sheetProps) {
-		const title = s.properties?.title;
-		if (!title) continue;
+	for (const tab of sheetTabs) {
+		const title = tab.properties?.title;
+
+		if (!title) {
+			continue;
+		}
 
 		// Request the entire sheet by using the sheet name as the “range”.
 		// If there’s absolutely no data on that sheet, `values` will be undefined.
-		const valuesResp = await spreadsheets("readonly").values.get({
-			spreadsheetId,
-			range: `${title}`, // just the sheet name
-			// (the Sheets API will return only the non‐empty rows/columns)
-		});
+		const tabRows = (
+			await spreadsheets("readonly").values.get({
+				spreadsheetId,
+				range: `${title}`, // just the sheet name
+				// (the Sheets API will return only the non‐empty rows/columns)
+			})
+		).data.values;
 
-		const rows = valuesResp.data.values;
-		if (rows && rows.length > 0) {
+		if (tabRows?.length) {
 			// Found at least one non-empty row/cell in this sheet → not empty
 			return false;
 		}
@@ -235,15 +253,17 @@ async function isSpreadsheetEmpty(spreadsheetId: string): Promise<boolean> {
 
 async function initSheet(spreadsheetId: string) {
 	// Fetch current sheets metadata
-	const { data: meta } = await spreadsheets().get({
-		spreadsheetId,
-		fields: "sheets(properties(sheetId,title))",
-	});
-	const sheets = meta.sheets ?? [];
+	const sheets =
+		(
+			await spreadsheets().get({
+				spreadsheetId,
+				fields: "sheets(properties(sheetId,title))",
+			})
+		).data.sheets ?? [];
 
-	// Rename the first tab if its title is "Sheet1"
-	const firstSheet = sheets[0]?.properties;
-	if (firstSheet && firstSheet.title === "Sheet1") {
+	// Rename the first tab
+	const alreadyHasTransactionsTab = sheets.some((s) => s.properties?.title === TRANSACTIONS_SHEET_NAME);
+	if (sheets[0]?.properties && !alreadyHasTransactionsTab) {
 		await spreadsheets().batchUpdate({
 			spreadsheetId,
 			requestBody: {
@@ -251,7 +271,7 @@ async function initSheet(spreadsheetId: string) {
 					{
 						updateSheetProperties: {
 							properties: {
-								sheetId: firstSheet.sheetId,
+								sheetId: sheets[0].properties.sheetId,
 								title: TRANSACTIONS_SHEET_NAME,
 							},
 							fields: "title",
@@ -261,7 +281,7 @@ async function initSheet(spreadsheetId: string) {
 			},
 		});
 
-		// Initialize the headers
+		// Initialize the headers and default transactions
 		await spreadsheets().values.update({
 			spreadsheetId,
 			range: `${TRANSACTIONS_SHEET_NAME}!A1`,
@@ -274,7 +294,7 @@ async function initSheet(spreadsheetId: string) {
 							[
 								tx.name,
 								tx.amount,
-								new Date(tx.date).toLocaleDateString(),
+								formatDateToSheets(new Date(tx.date)),
 								tx.freq ? txRRule(tx).toText() : "",
 								!tx.disabled,
 								tx.id,
@@ -286,8 +306,8 @@ async function initSheet(spreadsheetId: string) {
 	}
 
 	// Add “Starting Values” tab only if it does not exist yet
-	const alreadyHasStarting = sheets.some((s) => s.properties?.title === STARTING_VALUES_SHEET_NAME);
-	if (!alreadyHasStarting) {
+	const alreadyHasStartingValues = sheets.some((s) => s.properties?.title === STARTING_VALUES_SHEET_NAME);
+	if (!alreadyHasStartingValues) {
 		await spreadsheets().batchUpdate({
 			spreadsheetId,
 			requestBody: {
@@ -307,27 +327,25 @@ async function initSheet(spreadsheetId: string) {
 			},
 		});
 
-		// Initialize the single row with headers & empty values:
+		// Initialize the single row with text and default starting date and starting amount
 		await spreadsheets().values.update({
 			spreadsheetId,
 			range: `${STARTING_VALUES_SHEET_NAME}!A1:D1`,
 			valueInputOption: "USER_ENTERED",
 			requestBody: {
-				values: [["Starting on", defaultStartingDate.toLocaleDateString(), "with", defaultStartingValue]],
+				values: [["Starting on", formatDateToSheets(defaultStartingDate), "with", defaultStartingValue]],
 			},
 		});
 
-		/**
-		 * Center the "with" text
-		 */
-		const startingValuesTab = (
+		// Center the "with" text
+		const startingValuesTabSheetId = (
 			await spreadsheets().get({
 				spreadsheetId,
 				fields: "sheets(properties(sheetId,title))",
 			})
-		).data.sheets?.find(({ properties }) => properties?.title === "Starting Values")?.properties;
+		).data.sheets?.find(({ properties }) => properties?.title === STARTING_VALUES_SHEET_NAME)?.properties?.sheetId;
 
-		if (startingValuesTab && startingValuesTab.sheetId != null) {
+		if (startingValuesTabSheetId) {
 			await spreadsheets().batchUpdate({
 				spreadsheetId,
 				requestBody: {
@@ -335,7 +353,7 @@ async function initSheet(spreadsheetId: string) {
 						{
 							repeatCell: {
 								range: {
-									sheetId: startingValuesTab.sheetId,
+									sheetId: startingValuesTabSheetId,
 									startRowIndex: 0,
 									endRowIndex: 1,
 									startColumnIndex: 2,
@@ -359,7 +377,7 @@ async function initSheet(spreadsheetId: string) {
 async function getStartingValues(
 	spreadsheetId: string,
 	tz: string,
-): Promise<{ startDate: Date | null; startValue: number | null }> {
+): Promise<{ startDate: Date | null; startAmount: number | null }> {
 	const [_Starting_on, startingDate, _with, startingAmount] =
 		(
 			await spreadsheets("readonly").values.get({
@@ -370,11 +388,11 @@ async function getStartingValues(
 
 	const startDate = startingDate === "string" ? parseDate(startingDate, tz) : null;
 
-	const startValue = startingAmount != null ? Number(startingAmount) : null;
+	const startAmount = startingAmount != null ? Number(startingAmount) : null;
 
 	return {
 		startDate,
-		startValue,
+		startAmount,
 	};
 }
 
@@ -383,7 +401,7 @@ export async function updateStartingDate(spreadsheetId: string, date: Date) {
 		spreadsheetId,
 		range: `${STARTING_VALUES_SHEET_NAME}!B1`,
 		valueInputOption: "USER_ENTERED",
-		requestBody: { values: [[date.toLocaleDateString()]] },
+		requestBody: { values: [[formatDateToSheets(date)]] },
 	});
 }
 

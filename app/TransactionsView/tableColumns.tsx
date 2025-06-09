@@ -20,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import NumericInput from "@/components/NumericInput";
 
 import { Transaction, txRRule } from "../transactions";
-import { COLUMNS, formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
+import { COLUMNS, formatDateToSheets, formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
 import { deleteSheetsRow, updateSheetsRow } from "../sheets";
 
 declare module "@tanstack/react-table" {
@@ -173,8 +173,7 @@ export const columns = ({
 											spreadsheetId,
 											filterValue: row.original.id,
 											column: COLUMNS.Date,
-											// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
-											cellValue: new Date(day.setHours(0, 0, 0, 0)).toISOString().split("T")[0],
+											cellValue: formatDateToSheets(day),
 										});
 									}
 								}}
@@ -241,8 +240,8 @@ export const columns = ({
 			return (
 				<div className="flex justify-end" style={{ width: 180, marginLeft: "auto" }}>
 					{(row.original.disabled || !isRowHovered) && !isInputSelected ? (
-						<span style={{ color: numberAmount > -1 ? GreenColor : "red" }}>
-							{numberAmount > -1 && "+"}
+						<span style={{ color: numberAmount > 0 ? GreenColor : "red" }}>
+							{numberAmount > 0 && "+"}
 							{formattedString}
 						</span>
 					) : (
