@@ -1,6 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ChatMessage, Alternative } from "../types/chat";
 import { ArrowUpIcon, TriangleAlertIcon } from "lucide-react";
+
+interface Alternative {
+	id: string;
+	name: string;
+	price: number;
+	frequency: string;
+	percentageSavings: number;
+	annualSavings: number;
+	pros: string[];
+	cons: string[];
+}
+
+interface ChatMessage {
+	id: string;
+	role: "assistant" | "user" | "system";
+	content: string;
+	summary?: string;
+	alternatives?: Alternative[];
+}
 
 interface ChatWindowProps {
 	initialPayload: Record<string, any>;
