@@ -78,13 +78,14 @@
 
 ### - redo loading logic so calendar doesn't load default always
 
+### - investigate overscroll inconsistency, especially on chrome
+
 - add transaction submit disables and does animation for submit button
 
 - info panel banner with monthly incoming, outgoing. Need to change the scroll to just be the table instead of the whole tab for this one, on calendar we'll keep it though
     - on calendar view, selected month and day need totals
     - on transactions view, new banner with weighted average
 
-- investigate overscroll inconsistency, especially on chrome
 
 future roadmap:
 - "build a profile for me" AI button for rent, utilities as individual water trash gas etc, internet, gas, car insurance, or as onboarding
