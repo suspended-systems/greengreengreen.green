@@ -269,7 +269,6 @@ export function TransactionsView<TData, TValue>({
 							onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
 						>
 							<SquareArrowOutUpRightIcon />
-							<span className="md:hidden block">Sheets</span>
 							<span className="hidden md:block">Open in Sheets</span>
 						</Button>
 					)}
@@ -315,7 +314,6 @@ export function TransactionsView<TData, TValue>({
 							<RefreshCcwIcon
 								className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
 							/>
-							<span className="md:hidden block">Pull</span>
 							<span className="hidden md:block">Pull Sheets Changes</span>
 							<span className="sr-only">Sync from Google Sheets</span>
 						</Button>
@@ -416,7 +414,6 @@ function AddTransaction({
 			<DialogTrigger asChild>
 				<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
 					<PlusIcon />
-					<span className="md:hidden block">Add</span>
 					<span className="hidden md:block">Add transaction</span>
 					<span className="sr-only">Add transaction</span>
 				</Button>

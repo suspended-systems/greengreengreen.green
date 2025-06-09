@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
-import { CalendarIcon, PlusIcon, XIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon, XIcon, Loader2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -279,8 +279,19 @@ export function AddTransactionForm({
 						</FormItem>
 					)}
 				/>
-				<Button type="submit" style={{ width: "fit-content", alignSelf: "center" }}>
-					Submit
+				<Button
+					type="submit"
+					disabled={form.formState.isSubmitting}
+					style={{ width: "fit-content", alignSelf: "center" }}
+				>
+					{form.formState.isSubmitting ? (
+						<>
+							<Loader2 className="mr-2 h-4 w-4 animate-spin" /> {/* spinner */}
+							Submitting…
+						</>
+					) : (
+						"Submit"
+					)}
 				</Button>
 			</form>
 		</Form>
