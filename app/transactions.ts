@@ -37,7 +37,7 @@ export function getTransactionsOnDay(date: Date, transactions: Transaction[]) {
 	const targetDay = date.setHours(0, 0, 0, 0);
 
 	// Split into recurring vs. one-time
-	const [recurring, nonrecurring] = partition(transactions, (tx) => Boolean(tx.freq));
+	const [recurring, nonrecurring] = partition(transactions, (tx) => tx.freq);
 
 	// For nonrecurring: include only if its date (normalized to midnight) equals our targetDay
 	const nonrecurringOnDay = nonrecurring.filter((tx) => new Date(tx.date).setHours(0, 0, 0, 0) === targetDay);

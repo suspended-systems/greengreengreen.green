@@ -5,7 +5,7 @@ import { Frequency } from "rrule";
 
 function makeDate(year: number, month: number, day: number, hour = 0, min = 0, sec = 0) {
 	// month is 1-based here to keep tests readable; Date expects 0-based month
-	return new Date(Date.UTC(year, month - 1, day, hour, min, sec));
+	return new Date(year, month - 1, day, hour, min, sec);
 }
 
 describe("getTransactionsOnDay", () => {
