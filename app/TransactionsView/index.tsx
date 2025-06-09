@@ -386,7 +386,7 @@ export function TransactionsView<TData, TValue>({
 					</Table>
 				</div>
 				<div className="pb-4 w-full flex items-center justify-between">
-					<span className="flex-1 text-sm text-gray-600">
+					<span className="flex-1 text-sm text-muted-foreground">
 						Showing {startRow}–{endRow} of {totalRows}
 					</span>
 					<div className="flex items-center space-x-2">
