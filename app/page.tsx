@@ -76,7 +76,6 @@ export default function Home() {
 		}
 
 		if (action === "reset") {
-			// setActiveTab("calendar");
 			setIsDemoMode(false);
 			setIsDemoWarningClosed(false);
 			setTourComplete(true);

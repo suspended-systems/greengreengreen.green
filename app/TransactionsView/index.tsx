@@ -158,6 +158,7 @@ export function TransactionsView<TData, TValue>({
 													/>
 												</div>
 											</li>
+											<li>Refresh this page 🎉</li>
 										</ol>
 									</div>
 								</>
@@ -281,7 +282,7 @@ export function TransactionsView<TData, TValue>({
 
 								try {
 									await getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then((data) => {
-										if (data) {
+										if (typeof data !== "string" && data) {
 											const {
 												transactions: spreadsheetTransactions,
 												startDate: spreadsheetStartDate,

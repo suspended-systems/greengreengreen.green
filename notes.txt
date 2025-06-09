@@ -82,6 +82,9 @@
 
 ### - add transaction submit disables and does animation for submit button
 
+- fix state updating on initial sign in, on sharing sheet (session?)
+... test sign in without a sheet existing, expect data to update
+
 - info panel banner with monthly incoming, outgoing. Need to change the scroll to just be the table instead of the whole tab for this one, on calendar we'll keep it though
     - on calendar view, selected month and day need totals
     - on transactions view, new banner with weighted average
