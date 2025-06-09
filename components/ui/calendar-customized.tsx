@@ -44,10 +44,10 @@ function CalendarCustomized({
 				nav: "flex items-center gap-1",
 				nav_button: cn(
 					buttonVariants({ variant: "outline" }),
-					"size-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+					"absolute top-0 size-14 h-9 md:size-7 md:h-full bg-transparent p-0 opacity-50 hover:opacity-100",
 				),
-				nav_button_previous: "absolute top-0 left-1 size-14 h-9 md:size-7 md:h-full",
-				nav_button_next: "absolute top-0 right-1 size-14 h-9 md:size-7 md:h-full",
+				nav_button_previous: "left-1",
+				nav_button_next: "right-1",
 				table: "w-full border-collapse space-x-1",
 				head_row: "flex py-4",
 				head_cell: `text-muted-foreground rounded-md w-12 md:w-24 font-normal text-[0.8rem]`,
