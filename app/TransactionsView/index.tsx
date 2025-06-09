@@ -48,8 +48,6 @@ import getSheetsData from "../sheets";
 export function TransactionsView<TData, TValue>({
 	spreadsheetId,
 	isDemoWarningClosed,
-	setIsDemoWarningClosed,
-	isDemoMode,
 	columns,
 	setStartDate,
 	setStartAmount,
@@ -60,8 +58,6 @@ export function TransactionsView<TData, TValue>({
 }: {
 	spreadsheetId: string | null;
 	isDemoWarningClosed: boolean;
-	setIsDemoWarningClosed: React.Dispatch<React.SetStateAction<boolean>>;
-	isDemoMode: boolean;
 	columns: ColumnDef<TData, TValue>[];
 	setStartDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
 	setStartAmount: React.Dispatch<React.SetStateAction<number>>;
@@ -99,10 +95,9 @@ export function TransactionsView<TData, TValue>({
 
 	return (
 		<div className="flex flex-col gap-4 max-w-5xl mx-auto px-2 md:px-4">
-			{/* Demo mode / sheets setup info banner */}
-			{isDemoMode && !isDemoWarningClosed && (
+			{/* Sheets setup / demo warning info banner */}
+			{!spreadsheetId && !isDemoWarningClosed && (
 				<InfoBannerBox
-					onClose={session ? undefined : () => setIsDemoWarningClosed(true)}
 					title={session ? "Google Sheets Setup" : "⚠️ Warning"}
 					content={
 						<div className="prose mt-8 flex flex-col items-center gap-4">

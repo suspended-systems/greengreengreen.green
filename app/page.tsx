@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { signOut, useSession } from "next-auth/react";
-import { useMemo, useState, PropsWithChildren, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLocalStorage } from "react-use";
 import useSWRImmutable from "swr/immutable";
 import { toast } from "sonner";
@@ -33,7 +33,6 @@ export default function Home() {
 	const { data, isLoading } = useSWRImmutable(session?.accessToken ? "sheetsData" : null, () =>
 		getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }),
 	);
-	const [isDemoMode, setIsDemoMode] = useState(true);
 	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
 	const [isTourComplete, setTourComplete] = useLocalStorage(`isGreenTourComplete`, false);
 	const [activeTab, setActiveTab] = useState("calendar");
@@ -57,7 +56,6 @@ export default function Home() {
 		if (!data) return;
 
 		setSpreadsheetId(data.sheet.id);
-		setIsDemoMode(false);
 
 		if (data.startDate) setStartDate(data.startDate);
 		if (data.startAmount) setStartAmount(data.startAmount);
@@ -76,7 +74,6 @@ export default function Home() {
 		}
 
 		if (action === "reset") {
-			setIsDemoMode(false);
 			setIsDemoWarningClosed(false);
 			setTourComplete(true);
 		}
@@ -143,7 +140,6 @@ export default function Home() {
 			{/* tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
 				<TabsList
-					// className="grid grid-cols-2 w-full order-1 md:order-0 h-18 md:h-9"
 					className="
        sticky bottom-0 z-10           /* stick to viewport bottom */
        grid grid-cols-2 w-full        /* two columns, full width */
@@ -172,17 +168,7 @@ export default function Home() {
           md:min-h-screen
         "
 				>
-					{!spreadsheetId && !isDemoMode ? (
-						<div className="flex flex-col items-center gap-3">
-							<>
-								<SetUpWithGoogleSheetsButton />
-								or
-								<Button variant="outline" onClick={() => setIsDemoMode(true)}>
-									Continue in demo mode
-								</Button>
-							</>
-						</div>
-					) : (status === "authenticated" && isLoading) || status === "loading" ? (
+					{(status === "authenticated" && isLoading) || status === "loading" ? (
 						<div className="flex flex-col items-center h-full text-current">
 							<Loader2 className="animate-spin" size={64} aria-label="Loading…" />
 							<p>{status === "loading" ? "Loading..." : "Retrieving Sheets transactions..."}</p>
@@ -211,9 +197,6 @@ export default function Home() {
 									{...{
 										spreadsheetId,
 										isDemoWarningClosed,
-										setIsDemoWarningClosed,
-										isDemoMode,
-										setIsDemoMode,
 										columns,
 										setStartDate,
 										setStartAmount,
