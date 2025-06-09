@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { ArrowDown, ArrowUp, CalendarIcon, TrashIcon, PlusIcon, XIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Column, ColumnDef, RowData } from "@tanstack/react-table";
+import { Frequency, RRule } from "rrule";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,9 +20,8 @@ import { Switch } from "@/components/ui/switch";
 import NumericInput from "@/components/NumericInput";
 
 import { Transaction, txRRule } from "../transactions";
-import { formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
+import { COLUMNS, formatDateToSheets, formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
 import { deleteSheetsRow, updateSheetsRow } from "../sheets";
-import { Frequency, RRule } from "rrule";
 
 declare module "@tanstack/react-table" {
 	interface CellContext<TData extends RowData, TValue> {
@@ -75,8 +75,8 @@ export const columns = ({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: row.original.id,
-							columnOrRow: "E",
-							newValue: isToggled,
+							column: COLUMNS.Enabled,
+							cellValue: isToggled,
 						});
 					}
 				}}
@@ -112,15 +112,12 @@ export const columns = ({
 
 								setTransactions((value) => value.map((tx) => (tx.id === row.original.id ? { ...tx, name } : tx)));
 
-								/**
-								 * todo: debounce
-								 */
 								if (spreadsheetId) {
 									await updateSheetsRow({
 										spreadsheetId,
 										filterValue: row.original.id,
-										columnOrRow: "A",
-										newValue: name,
+										column: COLUMNS.Transaction,
+										cellValue: name,
 									});
 								}
 							}}
@@ -171,16 +168,12 @@ export const columns = ({
 										value.map((tx) => (tx.id === row.original.id ? { ...tx, date: day.setHours(0, 0, 0, 0) } : tx)),
 									);
 
-									/**
-									 * todo: debounce
-									 */
 									if (spreadsheetId) {
 										await updateSheetsRow({
 											spreadsheetId,
 											filterValue: row.original.id,
-											columnOrRow: "C",
-											// date is sent in a reliable YYYY-MM-DD format so it get's picked up as a date in Sheets
-											newValue: new Date(day.setHours(0, 0, 0, 0)).toISOString().split("T")[0],
+											column: COLUMNS.Date,
+											cellValue: formatDateToSheets(day),
 										});
 									}
 								}}
@@ -206,7 +199,7 @@ export const columns = ({
 				<div className="flex items-center" style={{ width: 207, height: 36, justifySelf: "center" }}>
 					{(row.original.disabled || !isRowHovered) && !isDropdownOpen && !isInputSelected ? (
 						row.original.freq != null ? (
-							// capitalize the E
+							// capitalize the first letter in "every"
 							"E" + txRRule(row.original).toText().slice(1)
 						) : (
 							""
@@ -247,12 +240,15 @@ export const columns = ({
 			return (
 				<div className="flex justify-end" style={{ width: 180, marginLeft: "auto" }}>
 					{(row.original.disabled || !isRowHovered) && !isInputSelected ? (
-						<span style={{ color: numberAmount > -1 ? GreenColor : "red" }}>
-							{numberAmount > -1 && "+"}
+						<span style={{ color: numberAmount > 0 ? GreenColor : "red" }}>
+							{numberAmount > 0 && "+"}
 							{formattedString}
 						</span>
 					) : (
-						<span className="input-symbol" style={{ position: "relative", left: 59, ...safariOnlyTextBottom() }}>
+						<span
+							className="input-symbol left-[59px] md:left-[13px]"
+							style={{ position: "relative", ...safariOnlyTextBottom() }}
+						>
 							<NumericInput
 								onFocus={handleFocus}
 								onBlur={handleBlur}
@@ -260,23 +256,19 @@ export const columns = ({
 									if (amount !== 0) {
 										setTransactions((value) => value.map((tx) => (tx.id === row.original.id ? { ...tx, amount } : tx)));
 
-										/**
-										 * todo: debounce
-										 */
 										if (spreadsheetId) {
 											await updateSheetsRow({
 												spreadsheetId,
 												filterValue: row.original.id,
-												columnOrRow: "B",
-												newValue: amount,
+												column: COLUMNS.Amount,
+												cellValue: amount,
 											});
 										}
 									}
 								}}
 								initialValue={numberAmount.toFixed(2)}
-								className="text-sm"
+								className="text-sm !min-w-[144px] md:!w-[144px]"
 								style={{
-									minWidth: 144,
 									color: numberAmount > 0 ? GreenColor : numberAmount < 0 ? "red" : "inherit",
 									textAlign: "right",
 								}}
@@ -356,15 +348,12 @@ function InlineFrequencyEditor({
 						),
 					);
 
-					/**
-					 * todo: debounce
-					 */
 					if (spreadsheetId) {
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: tx.id,
-							columnOrRow: "D",
-							newValue: new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: Number(e.target.value) }).toText(),
+							column: COLUMNS.Recurrence,
+							cellValue: new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: Number(e.target.value) }).toText(),
 						});
 					}
 				}}
@@ -398,15 +387,12 @@ function InlineFrequencyEditor({
 									),
 								);
 
-								/**
-								 * todo: debounce
-								 */
 								if (spreadsheetId) {
 									await updateSheetsRow({
 										spreadsheetId,
 										filterValue: tx.id,
-										columnOrRow: "D",
-										newValue: new RRule({ freq: frequencies[i], interval: tx.interval ?? 1 }).toText(),
+										column: COLUMNS.Recurrence,
+										cellValue: new RRule({ freq: frequencies[i], interval: tx.interval ?? 1 }).toText(),
 									});
 								}
 							}}
@@ -436,8 +422,8 @@ function InlineFrequencyEditor({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: tx.id,
-							columnOrRow: "D",
-							newValue: "",
+							column: COLUMNS.Recurrence,
+							cellValue: "",
 						});
 					}
 				}}

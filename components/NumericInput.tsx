@@ -57,7 +57,7 @@ export default function NumericInput({
 					className,
 				)}
 			/>
-			<Button variant="outline" onClick={() => updateValue(value.indexOf("-") !== -1 ? value.slice(1) : "-" + value)}>
+			<Button variant="outline" onClick={() => updateValue(value.indexOf("-") !== -1 ? value.slice(1) : "-" + value)} className="md:hidden">
 				<DiffIcon />
 			</Button>
 		</div>

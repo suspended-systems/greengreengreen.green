@@ -2,53 +2,23 @@
 
 ###- change begin day selection to be simple different box date component
 
-
-..
-
-
-
-...
-
-
-###-- replace emoji dots with just actual transactions listed in small font below the total when multiple from ea column. then show the expanded detail IN the cell that grows when clicking in
-
-
-
-...
-
+###- replace emoji dots with just actual transactions listed in small font below the total when multiple from ea column. then show the expanded detail IN the cell that grows when clicking in
 
 ###- tx checkbox enable/disable
 
-
-...
-
-
 ###- tx rename/set date/recurring/amount inline 
 
-...
-
-
 ###- add transaction form
-
-...
-
 
 ###- fix calendar popover not opening in form
 
 ###- add form inputs for date/freq/amount
 
-...
-
-
 ###-tx recurring frequency inline editing
-...
-
 
 ###- column sorting headers. 
 
-
 ###- transaction form onSubmit
-
 
 ###- night mode move to bottom right and have dropdown side open top
 
@@ -63,9 +33,6 @@
 ###- mobile move tabs to bottom and gsap reverse, hide logo in banner, make tabs taller and big icon
 
 ###- transactions saving / google sheets integration
-
-...
-
 
 ###- disabled column in sheets
 
@@ -85,7 +52,6 @@
 
 ###- sign out button styling/pos
 
-
 ###- replace name unique check with ids
 
 ###- disabling one added custom is being weird sending FALSE to UUID column
@@ -94,39 +60,45 @@
     ###- can use session {status} to help with this
     ###- show a Loading spinner while status is loading, use lucide-react to do it
 
+###- sheets pulled in dates are off by one
+
 ###- enter keyboard press in amount input in form to submit
 
 ###- style={{}} cleanup replace with tailwind
 
 ###- mobile drop decimals on call
 
-- tour "skip" button setting tutorial complete (bug with library callback, needs hacky injection instead)
+### - unify the InfoBannerBoxes so that it's just one box that displays warning with sign in option
 
-- redo loading logic so calendar doesn't load default always
+### - PREVENT OVERSCROLL(X) IN TRANSACTIONS VIEW
 
-- green color as css
+### - save starting date and value into txs sheet as a separate sheet tab/Sheet2 OR JUST SHIFT EVERYTHING ELSE DOWN 3 ROWS AND RESERVE FIRST 2 ROWS FOR THIS 
 
+### - only show +- symbol on mobile (intended for mobile cus numeric keypad doesn't have a negative symbol)
+
+### - redo loading logic so calendar doesn't load default always
+
+### - investigate overscroll inconsistency, especially on chrome
+
+### - add transaction submit disables and does animation for submit button
+
+- info panel banner with monthly incoming, outgoing. Need to change the scroll to just be the table instead of the whole tab for this one, on calendar we'll keep it though
+    - on calendar view, selected month and day need totals
+    - on transactions view, new banner with weighted average
 
 
 future roadmap:
--save starting date and value into txs sheet as a separate sheet tab/Sheet2 OR JUST SHIFT EVERYTHING ELSE DOWN 3 ROWS AND RESERVE FIRST 2 ROWS FOR THIS 
--toggles for calendar day card view
+- "build a profile for me" AI button for rent, utilities as individual water trash gas etc, internet, gas, car insurance, or as onboarding
+- capital one/discover integration / variable payment support
+- graceful handling for if sheet name doesn't match. Display message to user that can't find sheets named x and y.
+- tour "skip" button setting tutorial complete (bug with library callback, needs hacky injection instead)
+- green color as css instead of code
+- more friendly/professional green service account email
+- toggles for calendar day card view
     -show all names of transactions
     -show just totals
     -show individiual
-- robust g sheet form validation
-- mobile friendlines
-- token persistence server side, right now it will ask for perm every login apparently?
 - make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
-- reintroduce gsap?
-- onboarding
 - assign happiness points to transactions
 - categorize transactions
-
-
-
-
-bugs:
-
-could not repro:
-- sheets pulled in dates are off by one. IDFK HARD TO REPRODUCE. Happened at 10:37AM to a 4/13/2025 date being pulled in as 4/12/2025. Probably localization problem. There is a chance it is to do with the column render as well and the date is fine. idk.
+- represent recurring date as more complex things like "last friday of every month" so start date is just day of month for example not a specific day

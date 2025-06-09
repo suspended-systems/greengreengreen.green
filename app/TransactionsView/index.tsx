@@ -41,33 +41,31 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CopyableInput } from "@/components/CopyableInput";
 
-import { TransactionForm } from "../TransactionForm";
+import { AddTransactionForm } from "./AddTransactionForm";
 import { Transaction } from "../transactions";
-import getSpreadSheet from "../sheets";
+import getSheetsData from "../sheets";
 
-interface TransactionsTableProps<TData, TValue> {
-	spreadsheetId: string | null;
-	isDemoWarningClosed: boolean;
-	setIsDemoWarningClosed: React.Dispatch<React.SetStateAction<boolean>>;
-	isDemoMode: boolean;
-	columns: ColumnDef<TData, TValue>[];
-	transactions: TData[];
-	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-	pagination: PaginationState;
-	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
-}
-
-export function TransactionsTable<TData, TValue>({
+export function TransactionsView<TData, TValue>({
 	spreadsheetId,
 	isDemoWarningClosed,
-	setIsDemoWarningClosed,
-	isDemoMode,
 	columns,
+	setStartDate,
+	setStartAmount,
 	transactions,
 	setTransactions,
 	pagination,
 	setPagination,
-}: TransactionsTableProps<TData, TValue>) {
+}: {
+	spreadsheetId: string | null;
+	isDemoWarningClosed: boolean;
+	columns: ColumnDef<TData, TValue>[];
+	setStartDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+	setStartAmount: React.Dispatch<React.SetStateAction<number>>;
+	transactions: TData[];
+	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+	pagination: PaginationState;
+	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
+}) {
 	const [pullSheetsLoading, setPullSheetsLoading] = React.useState(false);
 
 	const { data: session } = useSession();
@@ -96,89 +94,170 @@ export function TransactionsTable<TData, TValue>({
 	});
 
 	return (
-		<div className="flex flex-col gap-4">
-			{isDemoMode && !isDemoWarningClosed && (
-				<>
-					<InfoBannerBox
-						onClose={() => setIsDemoWarningClosed(true)}
-						title="Google Sheets Setup"
-						content={
-							<>
-								{!session ? (
+		<div className="flex flex-col gap-4 max-w-5xl mx-auto px-2 md:px-4">
+			{/* Sheets setup / demo warning info banner */}
+			{!spreadsheetId && !isDemoWarningClosed && (
+				<InfoBannerBox
+					title={session ? "Google Sheets Setup" : "⚠️ Warning"}
+					content={
+						<div className="prose mt-8 flex flex-col items-center gap-4">
+							{!session ? (
+								<>
+									<p className="text-center">
+										You are in demo mode. <span className="font-medium">Data will not save.</span>
+									</p>
+									<p className="text-center">Set up with Google Sheets to store your transactions.</p>
+									<SetUpWithGoogleSheetsButton />
+								</>
+							) : (
+								<>
+									<p className="text-center text-muted-foreground max-w-[600px]">
+										⚠️ Data will not save until setup is complete.
+									</p>
+									<p className="text-center text-muted-foreground max-w-[600px]">
+										❗️ Make sure you are signed in to the same Google Account across green and Sheets.
+									</p>
+									<div className="prose">
+										<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
+											<li>
+												Copy the email to share with:
+												<code className="text-muted-foreground">
+													<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
+												</code>
+											</li>
+											<li>
+												<a
+													href="https://docs.google.com/spreadsheets/create"
+													target="_blank"
+													rel="noopener"
+													className="inline-flex items-baseline"
+												>
+													<SquareArrowOutUpRightIcon size={18} className="self-center" />
+													<span className="pl-1">Create a Sheet (and name it)</span>
+												</a>
+											</li>
+											<li>
+												Share it
+												<div className="flex flex-col items-center">
+													<Image
+														src="/assets/sheets-setup-step-1.png"
+														alt="Sheets Setup Step 1"
+														width={600}
+														height={600}
+													/>
+													<Image
+														src="/assets/sheets-setup-step-2.png"
+														alt="Sheets Setup Step 2"
+														width={300}
+														height={300}
+													/>
+												</div>
+											</li>
+											<li>Refresh this page 🎉</li>
+										</ol>
+									</div>
+								</>
+							)}
+						</div>
+					}
+				/>
+			)}
+			{/* Analytics info banner */}
+			{/* <InfoBannerBox
+				content={
+					<div className="w-full flex">
+						<p>Incoming/Outgoing Per Annual/Month/Day average weighted</p>
+
+						<div className="flex flex-col justify-center items-center py-4 order-3 md:order-2">
+							{endDate ? (
+								dayTransactions && dayTransactions.length > 0 ? (
 									<>
-										<p>Store your transactions in Google Sheets.</p>
-										<SetUpWithGoogleSheetsButton />
+										<div className="font-medium text-sm">
+											{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
+												month: "long",
+												weekday: "long",
+												day: "numeric",
+											})}
+										</div>
+										{startValue && startDate && transactions && (
+											<div className="block md:hidden text-sm">
+												{formatMoney(
+													calcProjectedValue({
+														startValue,
+														startDate,
+														endDate: new Date(endDate.getTime() + DAY_MS - 1),
+														transactions,
+													}),
+												)}
+											</div>
+										)}
+										<table
+											className="border border-transparent"
+											style={{ borderCollapse: "separate", borderSpacing: 8 }}
+										>
+											<tbody>
+												{dayTransactions
+													.sort((a, b) => b.amount - a.amount)
+													.map((tx, i) => (
+														<tr key={`tx:${i}`}>
+															<td
+																className="text-right"
+																style={{ color: tx.amount > 0 ? GreenColor : "red", fontWeight: "bold" }}
+															>
+																{tx.amount > 0 ? "+" : ""}
+																{formatMoney(tx.amount)}
+															</td>
+															<td className="flex font-medium">
+																{tx.name}
+																{tx.amount < 0 && tx.freq != null && (
+																	<ChatWindowPopover {...{ tx, setTransactions, spreadsheetId }} />
+																)}
+															</td>
+														</tr>
+													))}
+											</tbody>
+										</table>
 									</>
 								) : (
 									<>
-										<p className="text-muted-foreground" style={{ maxWidth: 600 }}>
-											Make sure you are signed in to the same Google Account across green and Sheets.
+										<p className="text-sm opacity-50">
+											No transactions on{" "}
+											{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
+												month: "long",
+												weekday: "long",
+												day: "numeric",
+											})}
 										</p>
-										<div className="prose">
-											<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
-												<li>
-													Copy the email to share with:
-													<code className="text-muted-foreground">
-														<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
-													</code>
-												</li>
-												<li>
-													<a
-														href="https://docs.google.com/spreadsheets/create"
-														target="_blank"
-														rel="noopener"
-														className="inline-flex items-baseline"
-													>
-														<SquareArrowOutUpRightIcon size={18} className="self-center" />
-														<span className="pl-1">Create a Sheet (and name it)</span>
-													</a>
-												</li>
-												<li>
-													Share it
-													<div className="flex flex-col items-center">
-														<Image
-															src="/assets/sheets-setup-step-1.png"
-															alt="Sheets Setup Step 1"
-															width={600}
-															height={600}
-														/>
-														<Image
-															src="/assets/sheets-setup-step-2.png"
-															alt="Sheets Setup Step 2"
-															width={300}
-															height={300}
-														/>
-													</div>
-												</li>
-											</ol>
-										</div>
+										{startValue && startDate && transactions && (
+											<div className="block md:hidden text-sm opacity-50">
+												{formatMoney(
+													calcProjectedValue({
+														startValue,
+														startDate,
+														endDate: new Date(endDate.getTime() + DAY_MS - 1),
+														transactions,
+													}),
+												)}
+											</div>
+										)}
 									</>
-								)}
-							</>
-						}
-					/>
-					<InfoBannerBox
-						onClose={() => setIsDemoWarningClosed(true)}
-						title="⚠️ Warning"
-						content={
-							<>
-								<p>
-									You are in demo mode. <span className="font-medium">Data will not save.</span>
-								</p>
-								<p>Set up Google Sheets to save.</p>
-							</>
-						}
-					/>
-				</>
-			)}
-			<div className="flex flex-col gap-4 min-h-[calc(100vh-15px)] md:min-h-[calc(100vh-16px)]">
+								)
+							) : (
+								<p className="italic text-sm opacity-50">Select a date to view its transactions</p>
+							)}
+						</div>
+					</div>
+				}
+			/>
+			 */}
+			<div className="flex flex-col gap-4">
 				<div className="flex gap-4">
 					<AddTransaction {...{ spreadsheetId, setTransactions }} />
 					<Input
 						placeholder="Search..."
 						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
 						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-						className="max-w-sm text-sm hide-box-shadow"
+						className="text-sm"
 					/>
 					{spreadsheetId && (
 						<Button
@@ -186,7 +265,7 @@ export function TransactionsTable<TData, TValue>({
 							onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
 						>
 							<SquareArrowOutUpRightIcon />
-							Open in Sheets
+							<span className="hidden md:block">Open in Sheets</span>
 						</Button>
 					)}
 					{spreadsheetId && (
@@ -197,12 +276,29 @@ export function TransactionsTable<TData, TValue>({
 								setPullSheetsLoading(true);
 
 								try {
-									const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-									await getSpreadSheet({ tz }).then(({ transactions: spreadsheetTransactions }) =>
-										setTransactions(spreadsheetTransactions),
-									);
+									await getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then((data) => {
+										if (typeof data !== "string" && data) {
+											const {
+												transactions: spreadsheetTransactions,
+												startDate: spreadsheetStartDate,
+												startAmount: spreadsheetStartValue,
+												malformedTransactions,
+											} = data;
 
-									toast("Successfully imported Sheets transactions");
+											if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
+											if (spreadsheetStartValue) setStartAmount(spreadsheetStartValue);
+											setTransactions(spreadsheetTransactions);
+
+											toast("✅ Successfully imported Sheets transactions", {
+												// This runs once the success-toast’s duration elapses
+												onAutoClose() {
+													if (malformedTransactions?.length) {
+														toast(`⚠️ Sheet contains ${malformedTransactions.length} malformed transaction(s)`);
+													}
+												},
+											});
+										}
+									});
 								} finally {
 									// how long since we kicked off the spin?
 									const elapsed = (Date.now() - spinStart) % 1000;
@@ -214,7 +310,7 @@ export function TransactionsTable<TData, TValue>({
 							<RefreshCcwIcon
 								className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
 							/>
-							Pull Sheets Changes
+							<span className="hidden md:block">Pull Sheets Changes</span>
 							<span className="sr-only">Sync from Google Sheets</span>
 						</Button>
 					)}
@@ -254,7 +350,7 @@ export function TransactionsTable<TData, TValue>({
 					</DropdownMenu>
 				</div>
 				<div className="rounded-md border">
-					<Table>
+					<Table className="overflow-x-visible overscroll-x-contain">
 						<TableHeader>
 							{table.getHeaderGroups().map((headerGroup) => (
 								<TableRow key={headerGroup.id}>
@@ -275,9 +371,7 @@ export function TransactionsTable<TData, TValue>({
 								<TableRow>
 									<TableCell
 										colSpan={columns.length}
-										className="h-24 text-center"
-										// cheaphax: prevent table width from changing when no results
-										style={{ width: 970 }}
+										className="h-24 text-center min-w-[970px]" // cheaphax: prevent table width from changing when no results by matching width (970 is computed via column hardcodes, which are hardcoded so row hover inline editing is stable)
 									>
 										No results.
 									</TableCell>
@@ -316,7 +410,7 @@ function AddTransaction({
 			<DialogTrigger asChild>
 				<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
 					<PlusIcon />
-					Add transaction
+					<span className="hidden md:block">Add transaction</span>
 					<span className="sr-only">Add transaction</span>
 				</Button>
 			</DialogTrigger>
@@ -324,7 +418,7 @@ function AddTransaction({
 				<DialogHeader>
 					<DialogTitle>Add transaction</DialogTitle>
 				</DialogHeader>
-				<TransactionForm {...{ spreadsheetId, setTransactions }} />
+				<AddTransactionForm {...{ spreadsheetId, setTransactions }} />
 			</DialogContent>
 		</Dialog>
 	);
@@ -365,8 +459,7 @@ function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number })
 
 export function SetUpWithGoogleSheetsButton() {
 	// source: https://github.com/arye321/nextauth-google-popup-login
-	// @ts-ignore
-	const popupCenter = (url, title) => {
+	const popupCenter = (url: string, title: string) => {
 		const dualScreenLeft = window.screenLeft ?? window.screenX;
 		const dualScreenTop = window.screenTop ?? window.screenY;
 
@@ -429,23 +522,25 @@ function InfoBannerBox({
 	content,
 	onClose,
 }: {
-	title: string;
+	title?: string;
 	content: React.JSX.Element;
-	onClose: () => void;
+	onClose?: () => void; // omit an `onClose` to hide the close button
 }) {
 	return (
-		<div className="relative w-fit md:w-full rounded-md border p-6 flex flex-col gap-4 items-center">
-			<button
-				onClick={() => onClose()}
-				// copied from Dialog.Close
-				className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-			>
-				<XIcon />
-				<span className="sr-only">Hide</span>
-			</button>
-			<p className="text-lg font-semibold absolute top-4">{title}</p>
+		<div className="relative w-full md:w-full rounded-md border p-6 flex flex-col gap-4 items-center">
+			{onClose && (
+				<button
+					onClick={() => onClose()}
+					// copied from Dialog.Close
+					className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+				>
+					<XIcon />
+					<span className="sr-only">Hide</span>
+				</button>
+			)}
+			{title && <p className="text-lg font-semibold absolute top-4">{title}</p>}
 
-			<div className="prose mt-8 flex flex-col items-center gap-4">{content}</div>
+			{content}
 		</div>
 	);
 }

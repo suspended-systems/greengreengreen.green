@@ -2,11 +2,17 @@
 import { google } from "googleapis";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
-import { Transaction } from "./transactions";
+import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction, txRRule } from "./transactions";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
+import { parse } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
+import { COLUMNS, formatDateToSheets, letterToIndex, pMapConfig } from "./utils";
+import { partition } from "lodash";
+import pMap from "p-map";
+
+type SheetsRow = [string, number, string, string, boolean, string];
 
 const credentials = {
 	project_id: "green-456901",
@@ -14,100 +20,171 @@ const credentials = {
 	private_key: process.env.GOOGLE_PRIVATE_KEY!,
 };
 
-export default async function getSpreadSheet({ tz }: { tz: string }) {
+const TRANSACTIONS_SHEET_NAME = "Transactions";
+const STARTING_VALUES_SHEET_NAME = "Starting Values";
+
+/**
+ * Special Zod Schema to handle case where any of Recurrence, Enabled, and/or UUID are missing in the row.
+ * This can cause the Row/Tuple from Sheets API to vary in length which `z.tuple` doesn't play well with.
+ * So we use this custom type to cover all valid possibilities.
+ */
+const NameAmountDate: [z.ZodString, z.ZodNumber, z.ZodString] = [z.string().nonempty(), z.coerce.number(), z.string()];
+const Recurrence = z.string();
+const Enabled = z.union([z.literal("TRUE"), z.literal("FALSE"), z.literal("")]);
+const TransactionRowSchema = z.union([
+	z.tuple(NameAmountDate),
+	z.tuple([...NameAmountDate, Recurrence] as const),
+	z.tuple([...NameAmountDate, Recurrence, Enabled] as const),
+	z.tuple([...NameAmountDate, Recurrence, Enabled, z.string().uuid()] as const),
+]);
+
+const parseDate = (dateString: string, tz: string) => fromZonedTime(parse(dateString, "M/d/yyyy", new Date()), tz);
+
+// Generate a UUID if one doesn't exist and then push it to the first sheets row which has an empty uuid field (an assumption we're forced to make)
+const assignUUID = async ({ spreadsheetId }: { spreadsheetId: string }) => {
+	const id = uuid();
+
+	await updateSheetsRow({
+		spreadsheetId,
+		filterValue: "",
+		column: COLUMNS.UUID,
+		cellValue: id,
+	});
+
+	return id;
+};
+
+// Generate a disabled/enabled toggle state if one doesn't exist
+const assignEnabled = async ({ rowUUID, spreadsheetId }: { rowUUID: string; spreadsheetId: string }) => {
+	await updateSheetsRow({
+		spreadsheetId,
+		filterColumn: COLUMNS.UUID,
+		filterValue: rowUUID,
+		column: COLUMNS.Enabled,
+		// boolean value flipped because in the sheet we store the opposite: "enabled"
+		cellValue: true,
+	});
+
+	// in the app we store "disabled"
+	return false;
+};
+
+// todo ratelimiting backoff retry
+// Error: Quota exceeded for quota metric 'Read requests' and limit 'Read requests per minute per user' of service 'sheets.googleapis.com' for consumer 'project_number:274980100053'.
+const spreadsheets = (readonly?: "readonly") => {
+	const auth = new google.auth.GoogleAuth({
+		credentials,
+		scopes: [`https://www.googleapis.com/auth/spreadsheets${readonly ? ".readonly" : ""}`],
+	});
+
+	const { spreadsheets } = google.sheets({ version: "v4", auth });
+
+	return spreadsheets;
+};
+
+export default async function getSheetsData({ tz }: { tz: string }) {
 	const session: Session | null = await getServerSession(authOptions);
 	const accessToken = session?.accessToken;
 
-	if (!accessToken) return { sheet: undefined, transactions: [] };
+	if (!accessToken) {
+		return;
+	}
 
+	/**
+	 * Grab the sheet
+	 */
+
+	// Using the accessToken, look up the respective email using Google's server, then filter using that email
 	const { email } = await getEmailFromToken(accessToken);
+	const sheetIsOwnedByAuthTokenUser = `'${email}' in owners`;
 
-	const auth = new google.auth.GoogleAuth({
-		credentials,
-		scopes: ["https://www.googleapis.com/auth/drive.metadata.readonly", "https://www.googleapis.com/auth/spreadsheets"],
+	const sheetFile = (
+		await google
+			.drive({
+				version: "v3",
+				auth: new google.auth.GoogleAuth({
+					credentials,
+					scopes: [
+						"https://www.googleapis.com/auth/drive.metadata.readonly",
+						"https://www.googleapis.com/auth/spreadsheets.readonly",
+					],
+				}),
+			})
+			.files.list({
+				q: ["mimeType='application/vnd.google-apps.spreadsheet'", "trashed = false", sheetIsOwnedByAuthTokenUser].join(
+					" AND ",
+				),
+				orderBy: "createdTime asc",
+				pageSize: 1,
+				fields: "files(id, name, owners, createdTime)",
+			})
+	).data.files?.[0];
+
+	if (!sheetFile?.id) {
+		return;
+	}
+
+	// Initialize the spreadsheet
+	if (await isSpreadsheetEmpty(sheetFile.id)) {
+		await initSheet(sheetFile.id);
+	}
+
+	/**
+	 * Parse the rows
+	 */
+
+	const rawRows =
+		((
+			await spreadsheets("readonly").values.get({
+				spreadsheetId: sheetFile.id,
+				range: `${TRANSACTIONS_SHEET_NAME}!A:Z`,
+			})
+		).data.values
+			// skip headers
+			?.slice(1) as Array<[string, string, string, string, string, string]>) ?? [];
+
+	const [validatedRows, malformedRows] = partition(rawRows, (row) => {
+		try {
+			TransactionRowSchema.parse(row);
+			return true;
+		} catch (error) {
+			console.warn({ error, row });
+			return false;
+		}
 	});
 
-	const sheet = (
-		await google.drive({ version: "v3", auth }).files.list({
-			q: [
-				"mimeType='application/vnd.google-apps.spreadsheet'",
-				"trashed = false",
-				`'${email}' in owners`,
-				// `name = '${APP_NAME}'`,
-			].join(" AND "),
-			orderBy: "createdTime asc",
-			pageSize: 1,
-			fields: "files(id, name, owners, createdTime)",
-		})
-	).data.files?.map((file) => ({
-		id: file.id,
-		name: file.name,
-		owners: file.owners?.map((o) => o.emailAddress).join(", "),
-	}))?.[0];
+	// Map the rows to our app's data structure and reconcile missing UUID/toggle state
+	const transactions: Transaction[] = await pMap(
+		validatedRows,
+		async ([name, amount, date, recurrence, enabled, id]) => {
+			const assignedId = id || (await assignUUID({ spreadsheetId: sheetFile.id! }));
 
-	const transactions: Transaction[] = sheet?.id
-		? await Promise.all(
-				(
-					((
-						await google
-							.sheets({ version: "v4", auth })
-							.spreadsheets.values.get({ spreadsheetId: sheet.id, range: "Sheet1!A:Z" })
-					).data.values ?? []) as [string, number, string, string, string, string][]
-				)
-					// skip headers
-					.slice(1)
-					.filter((_) =>
-						z.tuple([
-							z.string().nonempty(),
-							z.number(),
-							z.string(),
-							z.literal("TRUE").or(z.literal("FALSE")),
-							z.string().uuid(),
-						]),
-					)
-					.map(async ([name, amount, date, recurrence, enabled, id]) => ({
-						id:
-							id ||
-							/**
-							 * Generate a UUID if one doesn't exist and then push it to the first sheets row which has an empty uuid field (an assumption we're forced to make)
-							 */
-							(await (async () => {
-								const id = uuid();
+			const isDisabled = enabled
+				? enabled.toLowerCase() !== "true"
+				: await assignEnabled({ rowUUID: assignedId, spreadsheetId: sheetFile.id! });
 
-								await updateSheetsRow({ spreadsheetId: sheet.id!, columnOrRow: "F", filterValue: "", newValue: id });
+			return {
+				name,
+				id: assignedId,
+				disabled: isDisabled,
+				amount: Number(amount),
+				date: parseDate(date, tz).getTime(),
+				...(recurrence &&
+					RRule.fromText(recurrence) && {
+						freq: RRule.fromText(recurrence).options.freq,
+						interval: RRule.fromText(recurrence).options.interval,
+					}),
+			};
+		},
+		pMapConfig,
+	);
 
-								return id;
-							})()),
-						name,
-						amount: Number(amount),
-						date:
-							fromZonedTime(new Date(date) || new Date(), tz).getTime(),
-						...(recurrence &&
-							// todo: verify malformed recurrence is handled gracefully
-							RRule.fromText(recurrence) && {
-								freq: RRule.fromText(recurrence).options.freq,
-								interval: RRule.fromText(recurrence).options.interval,
-							}),
-						disabled: enabled
-							? enabled.toLowerCase() !== "true"
-							: await (async () => {
-									await updateSheetsRow({
-										spreadsheetId: sheet.id!,
-										filterColumn: id ? "F" : "E",
-										filterValue: id ? id : "",
-										columnOrRow: "E",
-										// flipped because in the sheet we store "enabled"
-										newValue: true,
-									});
-
-									// in the app we store "disabled"
-									return false;
-							  })(),
-					})),
-		  )
-		: [];
-
-	return { sheet, transactions };
+	return {
+		sheet: { id: sheetFile.id },
+		transactions,
+		malformedTransactions: malformedRows,
+		...(sheetFile?.id && (await getStartingValues(sheetFile?.id, tz))),
+	};
 }
 
 /**
@@ -119,92 +196,266 @@ async function getEmailFromToken(accessToken: string) {
 	const res = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
 		headers: { Authorization: `Bearer ${accessToken}` },
 	});
+
 	if (!res.ok) {
 		throw new Error(`Failed to fetch userinfo: ${res.status} ${await res.text()}`);
 	}
+
 	const profile = await res.json();
+
 	return {
 		email: profile.email,
 		verified: profile.email_verified,
 	};
 }
 
-export async function isSheetContentUnedited(fileId: string): Promise<boolean> {
-	// If you don't pass an authClient, this will pick up your default credentials
-	const auth = new google.auth.GoogleAuth({
-		credentials,
-		scopes: [
-			"https://www.googleapis.com/auth/drive.readonly",
-			"https://www.googleapis.com/auth/drive.activity.readonly",
-		],
-	});
-
-	// 1) Fetch content revisions
-	const revisions =
+async function isSpreadsheetEmpty(spreadsheetId: string): Promise<boolean> {
+	// Fetch the metadata of the sheet
+	const sheetTabs =
 		(
-			await google.drive({ version: "v3", auth }).revisions.list({
-				fileId,
-				fields: "revisions(id)",
+			await spreadsheets("readonly").get({
+				spreadsheetId,
+				fields: "sheets(properties(title))",
 			})
-		).data.revisions ?? [];
+		).data.sheets ?? [];
 
-	// If there's more than one revision, content has been edited
-	if (revisions.length > 1) {
-		return false;
+	if (!sheetTabs.length) {
+		// No tabs, empty!
+		return true;
 	}
 
-	// 2) (Optional) Double‑check via Drive Activity API for EDIT actions
-	const activities =
-		(
-			await google.driveactivity({ version: "v2", auth }).activity.query({
-				requestBody: {
-					itemName: `items/${fileId}`,
-					filter: "detail.action_detail_case:EDIT",
-					pageSize: 1, // we only need to know if at least one exists
-				},
-			})
-		).data.activities ?? [];
+	// For each sheet‐tab, check if there are any values
+	for (const tab of sheetTabs) {
+		const title = tab.properties?.title;
 
-	// If any EDIT event exists, content was edited
-	// except we allow for the first edit being the sharing with green
-	// todo: this could be a lot better, for example it would fail right now if user edited anything by accident
-	// really probably would be better just to check created time
-	return activities.length > 1;
+		if (!title) {
+			continue;
+		}
+
+		// Request the entire sheet by using the sheet name as the “range”.
+		// If there’s absolutely no data on that sheet, `values` will be undefined.
+		const tabRows = (
+			await spreadsheets("readonly").values.get({
+				spreadsheetId,
+				range: `${title}`, // just the sheet name
+				// (the Sheets API will return only the non‐empty rows/columns)
+			})
+		).data.values;
+
+		if (tabRows?.length) {
+			// Found at least one non-empty row/cell in this sheet → not empty
+			return false;
+		}
+	}
+
+	// If we fell through all tabs without finding any non-empty values, it’s empty
+	return true;
 }
 
-/** Helper: load sheets client & first‐tab metadata */
-async function getFirstSheet(spreadsheetId: string) {
-	const auth = new google.auth.GoogleAuth({ credentials, scopes: ["https://www.googleapis.com/auth/spreadsheets"] });
-	const sheetsApi = google.sheets({ version: "v4", auth });
-	const { data: meta } = await sheetsApi.spreadsheets.get({
+async function initSheet(spreadsheetId: string) {
+	// Fetch current sheets metadata
+	const sheets =
+		(
+			await spreadsheets().get({
+				spreadsheetId,
+				fields: "sheets(properties(sheetId,title))",
+			})
+		).data.sheets ?? [];
+
+	// Rename the first tab
+	const alreadyHasTransactionsTab = sheets.some((s) => s.properties?.title === TRANSACTIONS_SHEET_NAME);
+	if (sheets[0]?.properties && !alreadyHasTransactionsTab) {
+		await spreadsheets().batchUpdate({
+			spreadsheetId,
+			requestBody: {
+				requests: [
+					{
+						updateSheetProperties: {
+							properties: {
+								sheetId: sheets[0].properties.sheetId,
+								title: TRANSACTIONS_SHEET_NAME,
+							},
+							fields: "title",
+						},
+					},
+				],
+			},
+		});
+
+		// Initialize the headers and default transactions
+		await spreadsheets().values.update({
+			spreadsheetId,
+			range: `${TRANSACTIONS_SHEET_NAME}!A1`,
+			valueInputOption: "USER_ENTERED",
+			requestBody: {
+				values: [
+					["Transaction", "Amount", "Date", "Recurrence", "Enabled", "UUID"],
+					...defaultTransactions.map(
+						(tx) =>
+							[
+								tx.name,
+								tx.amount,
+								formatDateToSheets(new Date(tx.date)),
+								tx.freq ? txRRule(tx).toText() : "",
+								!tx.disabled,
+								tx.id,
+							] as SheetsRow,
+					),
+				],
+			},
+		});
+	}
+
+	// Add “Starting Values” tab only if it does not exist yet
+	const alreadyHasStartingValues = sheets.some((s) => s.properties?.title === STARTING_VALUES_SHEET_NAME);
+	if (!alreadyHasStartingValues) {
+		await spreadsheets().batchUpdate({
+			spreadsheetId,
+			requestBody: {
+				requests: [
+					{
+						addSheet: {
+							properties: {
+								title: STARTING_VALUES_SHEET_NAME,
+								gridProperties: {
+									rowCount: 1,
+									columnCount: 4,
+								},
+							},
+						},
+					},
+				],
+			},
+		});
+
+		// Initialize the single row with text and default starting date and starting amount
+		await spreadsheets().values.update({
+			spreadsheetId,
+			range: `${STARTING_VALUES_SHEET_NAME}!A1:D1`,
+			valueInputOption: "USER_ENTERED",
+			requestBody: {
+				values: [["Starting on", formatDateToSheets(defaultStartingDate), "with", defaultStartingValue]],
+			},
+		});
+
+		// Center the "with" text
+		const startingValuesTabSheetId = (
+			await spreadsheets().get({
+				spreadsheetId,
+				fields: "sheets(properties(sheetId,title))",
+			})
+		).data.sheets?.find(({ properties }) => properties?.title === STARTING_VALUES_SHEET_NAME)?.properties?.sheetId;
+
+		if (startingValuesTabSheetId) {
+			await spreadsheets().batchUpdate({
+				spreadsheetId,
+				requestBody: {
+					requests: [
+						{
+							repeatCell: {
+								range: {
+									sheetId: startingValuesTabSheetId,
+									startRowIndex: 0,
+									endRowIndex: 1,
+									startColumnIndex: 2,
+									endColumnIndex: 3,
+								},
+								cell: {
+									userEnteredFormat: {
+										horizontalAlignment: "CENTER",
+									},
+								},
+								fields: "userEnteredFormat.horizontalAlignment",
+							},
+						},
+					],
+				},
+			});
+		}
+	}
+}
+
+async function getStartingValues(
+	spreadsheetId: string,
+	tz: string,
+): Promise<{ startDate: Date | null; startAmount: number | null }> {
+	const [_Starting_on, startingDate, _with, startingAmount] =
+		(
+			await spreadsheets("readonly").values.get({
+				spreadsheetId,
+				range: `${STARTING_VALUES_SHEET_NAME}!A1:D1`,
+			})
+		).data.values?.[0] ?? [];
+
+	const startDate = startingDate === "string" ? parseDate(startingDate, tz) : null;
+
+	const startAmount = startingAmount != null ? Number(startingAmount) : null;
+
+	return {
+		startDate,
+		startAmount,
+	};
+}
+
+export async function updateStartingDate(spreadsheetId: string, date: Date) {
+	await spreadsheets().values.update({
 		spreadsheetId,
-		fields: "sheets(properties(sheetId,title))",
+		range: `${STARTING_VALUES_SHEET_NAME}!B1`,
+		valueInputOption: "USER_ENTERED",
+		requestBody: { values: [[formatDateToSheets(date)]] },
 	});
-	const props = meta.sheets?.[0]?.properties;
-	if (!props?.title || props.sheetId == null) {
+}
+
+export async function updateStartingNumber(spreadsheetId: string, amount: number) {
+	await spreadsheets().values.update({
+		spreadsheetId,
+		range: `${STARTING_VALUES_SHEET_NAME}!D1`,
+		valueInputOption: "USER_ENTERED",
+		requestBody: { values: [[amount]] },
+	});
+}
+
+async function getFirstSheet(spreadsheetId: string) {
+	const firstSheet = (
+		await spreadsheets("readonly").get({ spreadsheetId, fields: "sheets(properties(sheetId,title))" })
+	).data.sheets?.[0]?.properties;
+
+	if (!firstSheet?.title || firstSheet?.sheetId == null) {
 		throw new Error("No sheets found in this spreadsheet");
 	}
-	return { sheetsApi, sheetName: props.title, sheetId: props.sheetId };
+
+	return { sheetName: firstSheet.title, sheetId: firstSheet.sheetId };
 }
 
-/** 1) Overwrite the first sheet with a 2D array of values */
-export async function initSheet(
-	spreadsheetId: string,
-	data: [[string, string, string, string, string, string], ...[string, number, string, string, boolean, string][]],
-) {
-	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
-	await sheetsApi.spreadsheets.values.update({
+export async function updateSheetsRow(input: {
+	spreadsheetId: string;
+	filterColumn?: (typeof COLUMNS)[keyof typeof COLUMNS];
+	filterValue: string | number;
+	column: string;
+	cellValue: string | number | boolean;
+}) {
+	const { spreadsheetId, filterColumn, filterValue, column, cellValue } = input;
+
+	const { sheetName, targetRowIndex } = await findSheetRowIndex({
+		filterValue,
 		spreadsheetId,
-		range: `${sheetName}!A1`,
+		filterColumn,
+	});
+
+	const rowNum = targetRowIndex + 1; // index -> number (1 based)
+
+	await spreadsheets().values.update({
+		spreadsheetId,
+		range: `${sheetName}!${column}${rowNum}:${column}${rowNum}`,
 		valueInputOption: "USER_ENTERED",
-		requestBody: { values: data },
+		requestBody: { values: [[cellValue]] },
 	});
 }
 
-/** 2) Append a single row at the bottom of the first sheet */
-export async function appendSheetsRow(spreadsheetId: string, row: [string, number, string, string, boolean, string]) {
-	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
-	await sheetsApi.spreadsheets.values.append({
+export async function appendSheetsRow(spreadsheetId: string, row: SheetsRow) {
+	const { sheetName } = await getFirstSheet(spreadsheetId);
+
+	await spreadsheets().values.append({
 		spreadsheetId,
 		range: sheetName,
 		valueInputOption: "USER_ENTERED",
@@ -213,81 +464,6 @@ export async function appendSheetsRow(spreadsheetId: string, row: [string, numbe
 	});
 }
 
-/**
- *  Update the first row matching filterColumn=filterValue.
- *
- *  Overloads:
- *    • Single‐cell update:
- *        updateSheetsRow(id, "A", "foo", "C", 123)
- *    • Full‐row replace:
- *        updateSheetsRow(id, "A", "foo", [1,2,3,4])
- */
-export async function updateSheetsRow({
-	spreadsheetId,
-	columnOrRow,
-	filterValue,
-	filterColumn,
-	newValue,
-}: {
-	spreadsheetId: string;
-	filterColumn?: string;
-	filterValue: string | number;
-	columnOrRow: string | [string, number, string, string, boolean, string];
-	newValue?: string | number | boolean;
-}) {
-	filterColumn = filterColumn ?? "F"; // "F" is UUID
-
-	const { sheetsApi, sheetName } = await getFirstSheet(spreadsheetId);
-
-	// 1) pull only the filter column (including header)
-	const colRange = `${sheetName}!A:${filterColumn}`;
-	const { data } = await sheetsApi.spreadsheets.values.get({
-		spreadsheetId,
-		range: colRange,
-	});
-	const vals = (data.values || []).slice(1); // drop header
-	const idx = vals.findIndex(([txName, txAmt, txDate, txRecur, txEnabled, txUUID]) => {
-		// todo: cleanup
-		if (filterColumn === "F") {
-			return String(txUUID ?? "") === String(filterValue);
-		} else if (filterColumn === "E") {
-			return String(txEnabled ?? "") === String(filterValue);
-		}
-	});
-	if (idx < 0) throw new Error("No matching row found");
-	const rowNum = idx + 2; // account for header + 1‑based
-
-	// 2) decide which range & payload
-	let range: string;
-	let values: any[][];
-
-	if (typeof columnOrRow === "string" && newValue !== undefined) {
-		// single‐cell
-		range = `${sheetName}!${columnOrRow}${rowNum}:${columnOrRow}${rowNum}`;
-		values = [[newValue]];
-	} else if (Array.isArray(columnOrRow) && newValue === undefined) {
-		// full‐row
-		const newRow = columnOrRow;
-		const endCol = String.fromCharCode("A".charCodeAt(0) + newRow.length - 1);
-		range = `${sheetName}!A${rowNum}:${endCol}${rowNum}`;
-		values = [newRow];
-	} else {
-		throw new Error("Invalid args: call as (…, colLetter, value) or (…, newRowArray)");
-	}
-
-	// 3) write back
-	await sheetsApi.spreadsheets.values.update({
-		spreadsheetId,
-		range,
-		valueInputOption: "USER_ENTERED",
-		requestBody: { values },
-	});
-}
-
-/**
- * 4) Delete the *first* row where `filterColumn === filterValue`
- *    in the first sheet
- */
 export async function deleteSheetsRow({
 	spreadsheetId,
 	filterValue,
@@ -297,23 +473,13 @@ export async function deleteSheetsRow({
 	filterValue: string | number;
 	filterColumn?: string;
 }) {
-	filterColumn = filterColumn ?? "F";
-
-	const { sheetsApi, sheetName, sheetId } = await getFirstSheet(spreadsheetId);
-
-	// 1) locate the row number
-	const colRange = `${sheetName}!${filterColumn}:${filterColumn}`;
-	const { data } = await sheetsApi.spreadsheets.values.get({
+	const { sheetId, targetRowIndex } = await findSheetRowIndex({
+		filterValue,
 		spreadsheetId,
-		range: colRange,
+		filterColumn,
 	});
-	const vals = (data.values || []).slice(1);
-	const idx = vals.findIndex(([cell]) => String(cell) === String(filterValue));
-	if (idx < 0) throw new Error("No matching row found");
-	const rowNum = idx + 2; // header + 1‑based
 
-	// 2) delete via batchUpdate
-	await sheetsApi.spreadsheets.batchUpdate({
+	await spreadsheets().batchUpdate({
 		spreadsheetId,
 		requestBody: {
 			requests: [
@@ -322,12 +488,53 @@ export async function deleteSheetsRow({
 						range: {
 							sheetId,
 							dimension: "ROWS",
-							startIndex: rowNum - 1, // zero‑based
-							endIndex: rowNum, // non‑inclusive
+							startIndex: targetRowIndex, // zero‑based
+							endIndex: targetRowIndex + 1, // non‑inclusive
 						},
 					},
 				},
 			],
 		},
 	});
+}
+
+async function findSheetRowIndex({
+	spreadsheetId,
+	filterValue,
+	filterColumn,
+}: {
+	spreadsheetId: string;
+	filterValue: string | number;
+	filterColumn?: string;
+}) {
+	filterColumn = filterColumn ?? COLUMNS.UUID;
+
+	// find the target row
+	const { sheetId, sheetName } = await getFirstSheet(spreadsheetId);
+	const colRange = `${sheetName}!A:${filterColumn}`;
+	const sheetsRows =
+		(
+			await spreadsheets("readonly").values.get({
+				spreadsheetId,
+				range: colRange,
+			})
+		).data.values ?? [];
+
+	const targetRowIndex = sheetsRows.findIndex((tx, i) => {
+		// skip header
+		if (i === 0) {
+			return;
+		}
+
+		const colIndex = letterToIndex(filterColumn);
+		const cellValue = tx[colIndex];
+
+		return String(cellValue ?? "") === String(filterValue);
+	});
+
+	if (targetRowIndex < 0) {
+		throw new Error("No matching row found");
+	}
+
+	return { sheetId, sheetName, targetRowIndex };
 }
