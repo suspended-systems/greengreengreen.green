@@ -88,7 +88,7 @@
 
 ### - controlled / uncontrolled starting amount component so it loads properly, currently doesn't update until changing tabs
 
-- cleanup: component for amount that does color and `formatMoney`, as well as better helpers for hiding decimals on mobile and then use that for the new monthly statistics
+### - decimals on mobile for the new monthly statistics
 
 
 future roadmap:
