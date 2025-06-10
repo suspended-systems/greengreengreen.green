@@ -20,7 +20,6 @@ export default function NumericInput({
 	onFocus?: React.FocusEventHandler<HTMLInputElement>;
 	onBlur?: React.FocusEventHandler<HTMLInputElement>;
 }) {
-	// local draft so we can edit “12.” etc
 	const [draft, setDraft] = useState(value);
 	// are we in the middle of typing?
 	const [isFocused, setIsFocused] = useState(false);
@@ -79,7 +78,7 @@ export default function NumericInput({
 					onBlur?.(e);
 				}}
 			/>
-			<Button variant="outline" onClick={toggleSign} className="md:hidden">
+			<Button type="button" variant="outline" onClick={toggleSign} className="md:hidden">
 				<DiffIcon />
 			</Button>
 		</div>
