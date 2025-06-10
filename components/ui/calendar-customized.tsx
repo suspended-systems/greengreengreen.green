@@ -201,9 +201,7 @@ function CalendarCustomized({
 									overflow: "visible",
 									alignSelf: "start",
 									position: "relative",
-									// paddingRight: "16px",
 									width: "100%",
-									// textAlign: "right",
 								}}
 								className="text-center md:text-right md:pr-[16px]"
 							>
