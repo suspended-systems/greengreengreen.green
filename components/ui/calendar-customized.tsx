@@ -121,57 +121,29 @@ function CalendarCustomized({
 							>
 								{caption}
 							</div>
-							<div className="absolute" style={{ top: 30 }}>
+							<div className="absolute" style={{ top: -24 }}>
 								{(!isSameMonth(props.displayMonth, new Date()) || !isSameYear(props.displayMonth, new Date())) && (
-									<Button variant="outline" onClick={backToToday} className="text-xs" style={{ height: 20 }}>
+									<Button variant="secondary" onClick={backToToday} className="text-xs" style={{ height: 20 }}>
 										<HomeIcon />
-										Back to today
+										Today
 									</Button>
 								)}
 							</div>
 							{/* Stats */}
 							<div className="flex gap-4" style={{ marginTop: "20px", marginBottom: "10px" }}>
-								<div>
-									<p className="text-xs md:text-sm font-medium">
-										<span className="hidden md:inline">Incoming</span>
-										<span className="md:hidden inline">In</span>:{" "}
-										<span style={{ color: GreenColor }}>+{formatMoney(totalIncoming)}</span>
-									</p>
-									<p className="text-xs">
-										<span style={{ color: GreenColor }}>+{formatMoney(dailyIncomingAverage)}</span>
-										<span className="hidden md:inline"> per day</span>
-										<span className="md:hidden inline">/day</span>
-									</p>
-								</div>
-								<div>
-									<p className="text-xs md:text-sm font-medium">
-										<span className="hidden md:inline">Outgoing</span>
-										<span className="md:hidden inline">Out</span>:{" "}
-										<span style={{ color: "red" }}>{formatMoney(totalOutgoing)}</span>
-									</p>
-									<p className="text-xs">
-										<span style={{ color: "red" }}>{formatMoney(dailyOutgoingAverage)}</span>
-										<span className="hidden md:inline"> per day</span>
-										<span className="md:hidden inline">/day</span>
-									</p>
-								</div>
-								<div>
-									<p className="text-xs md:text-sm font-medium">
-										Net:{" "}
-										<span style={{ color: -400 < 0 ? "red" : GreenColor }}>
-											{-400 < 0 ? "" : "+"}
-											{formatMoney(net)}
-										</span>
-									</p>
-									<p className="text-xs">
-										<span style={{ color: -400 < 0 ? "red" : GreenColor }}>
-											{-400 < 0 ? "" : "+"}
-											{formatMoney(dailyNetAverage)}
-										</span>
-										<span className="hidden md:inline"> per day</span>
-										<span className="md:hidden inline">/day</span>
-									</p>
-								</div>
+								<StatsColumn
+									label={{ desktop: "Incoming", mobile: "In" }}
+									total={totalIncoming}
+									dailyAverage={dailyIncomingAverage}
+								/>
+
+								<StatsColumn
+									label={{ desktop: "Outgoing", mobile: "Out" }}
+									total={totalOutgoing}
+									dailyAverage={dailyOutgoingAverage}
+								/>
+
+								<StatsColumn label={{ desktop: "Net", mobile: "Net" }} total={net} dailyAverage={dailyNetAverage} />
 							</div>
 						</div>
 					);
@@ -229,9 +201,7 @@ function CalendarCustomized({
 									overflow: "visible",
 									alignSelf: "start",
 									position: "relative",
-									// paddingRight: "16px",
 									width: "100%",
-									// textAlign: "right",
 								}}
 								className="text-center md:text-right md:pr-[16px]"
 							>
@@ -292,6 +262,57 @@ function CalendarCustomized({
 			}}
 			{...props}
 		/>
+	);
+}
+
+function StatsColumn({
+	label,
+	dailyAverage,
+	total,
+}: {
+	label: { desktop: string; mobile: string };
+	total: number;
+	dailyAverage: number;
+}) {
+	return (
+		<div>
+			<p className="text-xs md:text-sm font-medium">
+				{/* Desktop */}
+				<span className="hidden md:inline">
+					{label.desktop}:{" "}
+					<span style={{ color: total < 0 ? "red" : GreenColor }}>
+						{total < 0 ? "" : "+"}
+						{formatMoney(total)}
+					</span>
+				</span>
+				{/* Mobile - shorter label and omit decimals */}
+				<span className="md:hidden inline">
+					{label.mobile}:{" "}
+					<span style={{ color: total < 0 ? "red" : GreenColor }}>
+						{total < 0 ? "" : "+"}
+						{formatMoney(Math.floor(total)).slice(0, -3)}
+					</span>
+				</span>
+			</p>
+			<p className="text-xs">
+				{/* Desktop */}
+				<span className="hidden md:inline">
+					<span style={{ color: dailyAverage < 0 ? "red" : GreenColor }}>
+						{dailyAverage < 0 ? "" : "+"}
+						{formatMoney(dailyAverage)}
+					</span>{" "}
+					per day
+				</span>
+				{/* Mobile - shorter label and omit decimals */}
+				<span className="md:hidden inline">
+					<span style={{ color: dailyAverage < 0 ? "red" : GreenColor }}>
+						{dailyAverage < 0 ? "" : "+"}
+						{formatMoney(Math.floor(dailyAverage)).slice(0, -3)}
+					</span>
+					/day
+				</span>
+			</p>
+		</div>
 	);
 }
 

@@ -82,13 +82,13 @@
 
 ### - add transaction submit disables and does animation for submit button
 
-- info panel banner with monthly incoming, outgoing. Need to change the scroll to just be the table instead of the whole tab for this one, on calendar we'll keep it though
-    - on calendar view, selected month and day need totals
+### - info panel banner with monthly incoming, outgoing. 
+    ### - on calendar view, selected month and day need totals
     - on transactions view, new banner with weighted average
 
-- controlled / uncontrolled starting amount component so it loads properly, currently doesn't update until changing tabs
+### - controlled / uncontrolled starting amount component so it loads properly, currently doesn't update until changing tabs
 
-- cleanup: component for amount that does color and `formatMoney`
+### - decimals on mobile for the new monthly statistics
 
 
 future roadmap:
