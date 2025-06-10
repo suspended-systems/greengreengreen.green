@@ -158,14 +158,14 @@ function CalendarCustomized({
 								<div>
 									<p className="text-xs md:text-sm font-medium">
 										Net:{" "}
-										<span style={{ color: -400 < 0 ? "red" : GreenColor }}>
-											{-400 < 0 ? "" : "+"}
+										<span style={{ color: dailyNetAverage < 0 ? "red" : GreenColor }}>
+											{dailyNetAverage < 0 ? "" : "+"}
 											{formatMoney(net)}
 										</span>
 									</p>
 									<p className="text-xs">
 										<span style={{ color: -400 < 0 ? "red" : GreenColor }}>
-											{-400 < 0 ? "" : "+"}
+											{dailyNetAverage < 0 ? "" : "+"}
 											{formatMoney(dailyNetAverage)}
 										</span>
 										<span className="hidden md:inline"> per day</span>
