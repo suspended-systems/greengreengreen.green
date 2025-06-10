@@ -164,7 +164,7 @@ function CalendarCustomized({
 										</span>
 									</p>
 									<p className="text-xs">
-										<span style={{ color: -400 < 0 ? "red" : GreenColor }}>
+										<span style={{ color: dailyNetAverage < 0 ? "red" : GreenColor }}>
 											{dailyNetAverage < 0 ? "" : "+"}
 											{formatMoney(dailyNetAverage)}
 										</span>
