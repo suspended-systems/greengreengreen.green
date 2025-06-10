@@ -121,11 +121,11 @@ function CalendarCustomized({
 							>
 								{caption}
 							</div>
-							<div className="absolute" style={{ top: 30 }}>
+							<div className="absolute" style={{ top: -24 }}>
 								{(!isSameMonth(props.displayMonth, new Date()) || !isSameYear(props.displayMonth, new Date())) && (
-									<Button variant="outline" onClick={backToToday} className="text-xs" style={{ height: 20 }}>
+									<Button variant="secondary" onClick={backToToday} className="text-xs" style={{ height: 20 }}>
 										<HomeIcon />
-										Back to today
+										Today
 									</Button>
 								)}
 							</div>
