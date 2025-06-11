@@ -228,56 +228,57 @@ function ChatWindowPopover({
 
 			<PopoverContent className="w-auto p-0" align="end">
 				<ChatWindow
-					initialPayload={{
-						name: tx.name,
-						amount: `$${Math.abs(tx.amount)}`,
-						freq: txRRule(tx).toText(),
-					}}
-					onSelectAlternative={async (data) => {
-						setPopoverOpen(false);
+					emptyStateComponent={<>pp</>}
+					// initialPayload={{
+					// 	name: tx.name,
+					// 	amount: `$${Math.abs(tx.amount)}`,
+					// 	freq: txRRule(tx).toText(),
+					// }}
+					// onSelectAlternative={async (data) => {
+					// 	setPopoverOpen(false);
 
-						const transaction: Transaction = {
-							id: uuid(),
-							name: data.name,
-							amount: data.price * -1,
-							date: tx.date,
-							...(tx.freq && { freq: tx.freq, interval: tx.interval }),
-						};
+					// 	const transaction: Transaction = {
+					// 		id: uuid(),
+					// 		name: data.name,
+					// 		amount: data.price * -1,
+					// 		date: tx.date,
+					// 		...(tx.freq && { freq: tx.freq, interval: tx.interval }),
+					// 	};
 
-						/**
-						 * Add the new transaction
-						 */
-						setTransactions((value) => [transaction, ...value]);
+					// 	/**
+					// 	 * Add the new transaction
+					// 	 */
+					// 	setTransactions((value) => [transaction, ...value]);
 
-						if (spreadsheetId) {
-							await appendSheetsRow(spreadsheetId, [
-								transaction.name,
-								transaction.amount,
-								formatDateToSheets(new Date(transaction.date)),
-								transaction.freq ? txRRule(transaction).toText() : "",
-								!transaction.disabled,
-								transaction.id,
-							]);
-						}
+					// 	if (spreadsheetId) {
+					// 		await appendSheetsRow(spreadsheetId, [
+					// 			transaction.name,
+					// 			transaction.amount,
+					// 			formatDateToSheets(new Date(transaction.date)),
+					// 			transaction.freq ? txRRule(transaction).toText() : "",
+					// 			!transaction.disabled,
+					// 			transaction.id,
+					// 		]);
+					// 	}
 
-						toast(`Added new transaction "${transaction.name}"`);
+					// 	toast(`Added new transaction "${transaction.name}"`);
 
-						/**
-						 * Disable the one we're replacing
-						 */
-						setTransactions((value) => value.map((t) => (t.id === tx.id ? { ...t, disabled: true } : t)));
+					// 	/**
+					// 	 * Disable the one we're replacing
+					// 	 */
+					// 	setTransactions((value) => value.map((t) => (t.id === tx.id ? { ...t, disabled: true } : t)));
 
-						if (spreadsheetId) {
-							await updateSheetsRow({
-								spreadsheetId,
-								filterValue: tx.id,
-								column: COLUMNS.Enabled,
-								cellValue: false,
-							});
-						}
+					// 	if (spreadsheetId) {
+					// 		await updateSheetsRow({
+					// 			spreadsheetId,
+					// 			filterValue: tx.id,
+					// 			column: COLUMNS.Enabled,
+					// 			cellValue: false,
+					// 		});
+					// 	}
 
-						toast(`Disabled existing transaction "${tx.name}"`);
-					}}
+					// 	toast(`Disabled existing transaction "${tx.name}"`);
+					// }}
 				/>
 			</PopoverContent>
 		</Popover>

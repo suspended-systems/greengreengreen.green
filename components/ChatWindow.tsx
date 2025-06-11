@@ -1,185 +1,329 @@
-import React, { useState, useEffect, useRef } from "react";
-import { ArrowUpIcon, TriangleAlertIcon } from "lucide-react";
+"use client";
 
-interface Alternative {
-	id: string;
-	name: string;
-	price: number;
-	frequency: string;
-	percentageSavings: number;
-	annualSavings: number;
-	pros: string[];
-	cons: string[];
+import { type Message } from "ai";
+import { useChat } from "ai/react";
+import { useState } from "react";
+import type { FormEvent, ReactNode } from "react";
+import { toast } from "sonner";
+import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
+
+import { ChatMessageBubble } from "@/components/ChatMessageBubble";
+// import { IntermediateStep } from "./IntermediateStep";
+import { Button } from "./ui/button";
+import { ArrowDown, LoaderCircle, Paperclip } from "lucide-react";
+import { Checkbox } from "./ui/checkbox";
+import { UploadDocumentsForm } from "./UploadDocumentsForm";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { cn } from "@/lib/utils";
+
+function ChatMessages(props: {
+	messages: Message[];
+	emptyStateComponent: ReactNode;
+	sourcesForMessages: Record<string, any>;
+	aiEmoji?: string;
+	className?: string;
+}) {
+	return (
+		<div className="flex flex-col max-w-[768px] mx-auto pb-12 w-full">
+			{props.messages.map((m, i) => {
+				if (m.role === "system") {
+					return;
+					// return <IntermediateStep key={m.id} message={m} />;
+				}
+
+				const sourceKey = (props.messages.length - 1 - i).toString();
+				return (
+					<ChatMessageBubble
+						key={m.id}
+						message={m}
+						aiEmoji={props.aiEmoji}
+						sources={props.sourcesForMessages[sourceKey]}
+					/>
+				);
+			})}
+		</div>
+	);
 }
 
-interface ChatMessage {
-	id: string;
-	role: "assistant" | "user" | "system";
-	content: string;
-	summary?: string;
-	alternatives?: Alternative[];
+export function ChatInput(props: {
+	onSubmit: (e: FormEvent<HTMLFormElement>) => void;
+	onStop?: () => void;
+	value: string;
+	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	loading?: boolean;
+	placeholder?: string;
+	children?: ReactNode;
+	className?: string;
+	actions?: ReactNode;
+}) {
+	const disabled = props.loading && props.onStop == null;
+	return (
+		<form
+			onSubmit={(e) => {
+				e.stopPropagation();
+				e.preventDefault();
+
+				if (props.loading) {
+					props.onStop?.();
+				} else {
+					props.onSubmit(e);
+				}
+			}}
+			className={cn("flex w-full flex-col", props.className)}
+		>
+			<div className="border border-input bg-secondary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto">
+				<input
+					value={props.value}
+					placeholder={props.placeholder}
+					onChange={props.onChange}
+					className="border-none outline-none bg-transparent p-4"
+				/>
+
+				<div className="flex justify-between ml-4 mr-2 mb-2">
+					<div className="flex gap-3">{props.children}</div>
+
+					<div className="flex gap-2 self-end">
+						{props.actions}
+						<Button type="submit" className="self-end" disabled={disabled}>
+							{props.loading ? (
+								<span role="status" className="flex justify-center">
+									<LoaderCircle className="animate-spin" />
+									<span className="sr-only">Loading...</span>
+								</span>
+							) : (
+								<span>Send</span>
+							)}
+						</Button>
+					</div>
+				</div>
+			</div>
+		</form>
+	);
 }
 
-interface ChatWindowProps {
-	initialPayload: Record<string, any>;
-	onSelectAlternative: (alt: Alternative) => void;
+function ScrollToBottom(props: { className?: string }) {
+	const { isAtBottom, scrollToBottom } = useStickToBottomContext();
+
+	if (isAtBottom) return null;
+	return (
+		<Button variant="outline" className={props.className} onClick={() => scrollToBottom()}>
+			<ArrowDown className="w-4 h-4" />
+			<span>Scroll to bottom</span>
+		</Button>
+	);
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ initialPayload, onSelectAlternative }) => {
-	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [input, setInput] = useState("");
-	const [loading, setLoading] = useState(false);
-	const lastMsgRef = useRef<HTMLDivElement>(null);
+function StickyToBottomContent(props: {
+	content: ReactNode;
+	footer?: ReactNode;
+	className?: string;
+	contentClassName?: string;
+}) {
+	const context = useStickToBottomContext();
 
-	// Scroll newest message into view at top
-	useEffect(() => {
-		lastMsgRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-	}, [messages]);
+	// scrollRef will also switch between overflow: unset to overflow: auto
+	return (
+		<div
+			ref={context.scrollRef}
+			style={{ width: "100%", height: "100%" }}
+			className={cn("grid grid-rows-[1fr,auto]", props.className)}
+		>
+			<div ref={context.contentRef} className={props.contentClassName}>
+				{props.content}
+			</div>
 
-	// Seed system prompt + first question
-	useEffect(() => {
-		const systemPrompt = `
-  You are a helpful assistant. Given the payload ${JSON.stringify(initialPayload)}, ask: 
-  "What value does ${initialPayload.name} ${initialPayload.freq} provide you?" Then:
-1) Output a concise summary of that value, **ending with** one bridge sentence introducing your money‑saving alternatives.
-2) Generate exactly five cheaper alternatives, normalized to the input frequency.
-3) **For each alternative, set**  
-   – **name**: a brief noun phrase (e.g. “Drive‑thru pickup”, “Meal kit”, “Grocery delivery kit”),  
-   – **cons**: an array of tradeoffs,  
-   etc.
-Return via function "extractAlternatives".`;
-		setMessages([
-			{ id: "system-0", role: "system", content: systemPrompt },
+			{props.footer}
+		</div>
+	);
+}
+
+export function ChatLayout(props: { content: ReactNode; footer: ReactNode }) {
+	return (
+		<StickToBottom>
+			<StickyToBottomContent
+				className="absolute inset-0"
+				contentClassName="py-8 px-2"
+				content={props.content}
+				footer={
+					<div className="sticky bottom-8 px-2">
+						<ScrollToBottom className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4" />
+						{props.footer}
+					</div>
+				}
+			/>
+		</StickToBottom>
+	);
+}
+
+export default function ChatWindow(props: {
+	emptyStateComponent: ReactNode;
+	placeholder?: string;
+	emoji?: string;
+	showIngestForm?: boolean;
+	showIntermediateStepsToggle?: boolean;
+}) {
+	const [showIntermediateSteps, setShowIntermediateSteps] = useState(!!props.showIntermediateStepsToggle);
+	const [intermediateStepsLoading, setIntermediateStepsLoading] = useState(false);
+
+	const [sourcesForMessages, setSourcesForMessages] = useState<Record<string, any>>({});
+
+	const chat = useChat({
+		api: "/api/chat",
+		onResponse(response) {
+			const sourcesHeader = response.headers.get("x-sources");
+			const sources = sourcesHeader ? JSON.parse(Buffer.from(sourcesHeader, "base64").toString("utf8")) : [];
+
+			const messageIndexHeader = response.headers.get("x-message-index");
+			if (sources.length && messageIndexHeader !== null) {
+				setSourcesForMessages({
+					...sourcesForMessages,
+					[messageIndexHeader]: sources,
+				});
+			}
+		},
+		streamMode: "text",
+		onError: (e) =>
+			toast.error(`Error while processing your request`, {
+				description: e.message,
+			}),
+	});
+
+	async function sendMessage(e: FormEvent<HTMLFormElement>) {
+		e.preventDefault();
+		if (chat.isLoading || intermediateStepsLoading) return;
+
+		if (!showIntermediateSteps) {
+			chat.handleSubmit(e);
+			return;
+		}
+
+		// Some extra work to show intermediate steps properly
+		setIntermediateStepsLoading(true);
+
+		chat.setInput("");
+		const messagesWithUserReply = chat.messages.concat({
+			id: chat.messages.length.toString(),
+			content: chat.input,
+			role: "user",
+		});
+		chat.setMessages(messagesWithUserReply);
+
+		const response = await fetch("/api/chat", {
+			method: "POST",
+			body: JSON.stringify({
+				messages: messagesWithUserReply,
+				show_intermediate_steps: true,
+			}),
+		});
+		const json = await response.json();
+		setIntermediateStepsLoading(false);
+
+		if (!response.ok) {
+			toast.error(`Error while processing your request`, {
+				description: json.error,
+			});
+			return;
+		}
+
+		const responseMessages: Message[] = json.messages;
+
+		// Represent intermediate steps as system messages for display purposes
+		// TODO: Add proper support for tool messages
+		const toolCallMessages = responseMessages.filter((responseMessage: Message) => {
+			return (
+				(responseMessage.role === "assistant" && !!responseMessage.tool_calls?.length) ||
+				responseMessage.role === "tool"
+			);
+		});
+
+		const intermediateStepMessages = [];
+		for (let i = 0; i < toolCallMessages.length; i += 2) {
+			const aiMessage = toolCallMessages[i];
+			const toolMessage = toolCallMessages[i + 1];
+			intermediateStepMessages.push({
+				id: (messagesWithUserReply.length + i / 2).toString(),
+				role: "system" as const,
+				content: JSON.stringify({
+					action: aiMessage.tool_calls?.[0],
+					observation: toolMessage.content,
+				}),
+			});
+		}
+		const newMessages = messagesWithUserReply;
+		for (const message of intermediateStepMessages) {
+			newMessages.push(message);
+			chat.setMessages([...newMessages]);
+			await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 1000));
+		}
+
+		chat.setMessages([
+			...newMessages,
 			{
-				id: "assistant-00",
+				id: newMessages.length.toString(),
+				content: responseMessages[responseMessages.length - 1].content,
 				role: "assistant",
-				content: `Let's help you save some green by finding cheaper alternatives to ${initialPayload.name} 🤑`,
-			},
-			{
-				id: "assistant-0",
-				role: "assistant",
-				content: `What value does ${initialPayload.name} ${initialPayload.freq} provide you?`,
 			},
 		]);
-	}, [initialPayload]);
-
-	// Send user message + fetch assistant reply
-	const sendMessage = async (text: string) => {
-		const userMsg: ChatMessage = { id: `u${Date.now()}`, role: "user", content: text };
-		const convo = [...messages, userMsg];
-		setMessages(convo);
-		setInput("");
-		setLoading(true);
-
-		try {
-			const res = await fetch("/api/chat", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ messages: convo.map((m) => ({ role: m.role, content: m.content })) }),
-			});
-			const data = await res.json();
-			let assistantMsg: ChatMessage;
-			if (data.function_call) {
-				const args = JSON.parse(data.function_call.arguments);
-				assistantMsg = {
-					id: `a${Date.now()}`,
-					role: "assistant",
-					content: args.summary,
-					alternatives: args.alternatives,
-				};
-			} else {
-				assistantMsg = { id: `a${Date.now()}`, role: "assistant", content: data.content };
-			}
-			setMessages((prev) => [...prev, assistantMsg]);
-		} catch (err) {
-			console.error(err);
-		} finally {
-			setLoading(false);
-		}
-	};
+	}
 
 	return (
 		<div className="w-80 h-96 bg-white dark:bg-[#519c6b]/5 shadow-lg flex flex-col">
-			<div className="flex-1 overflow-y-auto p-2">
-				{messages
-					.filter((m) => m.role !== "system")
-					.map((m, i, arr) => {
-						const isLast = i === arr.length - 1;
-						return (
-							<div
-								key={m.id}
-								ref={isLast ? lastMsgRef : undefined}
-								className={`mb-2 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-							>
-								<div>
-									{m.content && (
-										<div
-											className={`inline-block px-2 py-1 rounded ${
-												m.role === "user"
-													? "bg-[#519c6b] text-white"
-													: "bg-gray-100 dark:bg-[#519c6b]/10 text-gray-900 dark:text-gray-100"
-											}`}
-										>
-											{m.content}
-										</div>
-									)}
-									{m.alternatives && (
-										<>
-											<div className="mt-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Options:</div>
-											{m.alternatives.slice(0, 5).map((alt) => (
-												<div key={alt.id} className="p-2 border border-gray-300 dark:border-[#519c6b]/40 rounded mb-2">
-													<button
-														className="font-medium cursor-pointer bg-[#519c6b] text-white px-2 py-1 rounded"
-														onClick={() => onSelectAlternative(alt)}
-														disabled={loading}
-													>
-														{`$${alt.price} (save ${alt.percentageSavings}%) — ${alt.name} (save $${alt.annualSavings} annually)`}
-													</button>
-													<div className="text-xs mt-1 text-gray-800 dark:text-gray-200">
-														<div className="font-semibold">Tradeoffs:</div>
-														<ul className="list-disc list-inside text-xs">
-															{alt.cons.map((con, i) => (
-																<li key={i}>{con}</li>
-															))}
-														</ul>
-													</div>
-												</div>
-											))}
-										</>
-									)}
-								</div>
-							</div>
-						);
-					})}
-				{loading && <div className="text-center text-sm text-gray-500 dark:text-gray-400">Assistant is typing...</div>}
-			</div>
+			<ChatLayout
+				content={
+					chat.messages.length === 0 ? (
+						<div>{props.emptyStateComponent}</div>
+					) : (
+						<ChatMessages
+							aiEmoji={props.emoji}
+							messages={chat.messages}
+							emptyStateComponent={props.emptyStateComponent}
+							sourcesForMessages={sourcesForMessages}
+						/>
+					)
+				}
+				footer={
+					<ChatInput
+						value={chat.input}
+						onChange={chat.handleInputChange}
+						onSubmit={sendMessage}
+						loading={chat.isLoading || intermediateStepsLoading}
+						placeholder={props.placeholder ?? "What's it like to be a pirate?"}
+					>
+						{props.showIngestForm && (
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button variant="ghost" className="pl-2 pr-3 -ml-2" disabled={chat.messages.length !== 0}>
+										<Paperclip className="size-4" />
+										<span>Upload document</span>
+									</Button>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Upload document</DialogTitle>
+										<DialogDescription>Upload a document to use for the chat.</DialogDescription>
+									</DialogHeader>
+									<UploadDocumentsForm />
+								</DialogContent>
+							</Dialog>
+						)}
 
-			<div className="p-2 border-t border-gray-200 dark:border-[#519c6b]/40 flex">
-				<textarea
-					rows={3}
-					className="flex-1 px-2 py-1 border border-gray-300 dark:border-[#519c6b]/40 rounded resize-none bg-white dark:bg-[#519c6b]/10 text-gray-900 dark:text-gray-100"
-					value={input}
-					disabled={loading}
-					onChange={(e) => setInput(e.target.value)}
-					onKeyDown={(e) =>
-						e.key === "Enter" && !e.shiftKey && input.trim() && (e.preventDefault(), sendMessage(input.trim()))
-					}
-					placeholder="Type your message…"
-				/>
-				<button
-					className="ml-2 px-3 py-1 bg-[#519c6b] text-white rounded disabled:opacity-50 cursor-pointer"
-					disabled={!input.trim() || loading}
-					onClick={() => sendMessage(input.trim())}
-				>
-					<ArrowUpIcon />
-				</button>
-			</div>
-			<p className="pointer-events-none inline-flex gap-1 items-center p-2 text-muted-foreground text-sm">
-				<TriangleAlertIcon size={14} />
-				Chat recommendations are in beta
-			</p>
+						{props.showIntermediateStepsToggle && (
+							<div className="flex items-center gap-2">
+								<Checkbox
+									id="show_intermediate_steps"
+									name="show_intermediate_steps"
+									checked={showIntermediateSteps}
+									disabled={chat.isLoading || intermediateStepsLoading}
+									onCheckedChange={(e) => setShowIntermediateSteps(!!e)}
+								/>
+								<label htmlFor="show_intermediate_steps" className="text-sm">
+									Show intermediate steps
+								</label>
+							</div>
+						)}
+					</ChatInput>
+				}
+			/>
 		</div>
 	);
-};
-
-export default ChatWindow;
+}

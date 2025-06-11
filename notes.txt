@@ -90,6 +90,8 @@
 
 ### - decimals on mobile for the new monthly statistics
 
+- langchain for fin advisor
+
 
 future roadmap:
 - "build a profile for me" AI button for rent, utilities as individual water trash gas etc, internet, gas, car insurance, or as onboarding

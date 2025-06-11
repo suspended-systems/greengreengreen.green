@@ -1,54 +1,73 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import OpenAI from "openai";
+import { z } from "zod";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+import { ChatOpenAI } from "@langchain/openai";
+import { PromptTemplate } from "@langchain/core/prompts";
+import { NextApiRequest, NextApiResponse } from "next/types";
 
+const TEMPLATE = `Extract the requested fields from the input.
+
+The field "entity" refers to the first mentioned entity in the input.
+
+Input:
+
+{input}`;
+
+/**
+ * This handler initializes and calls an OpenAI Functions powered
+ * structured output chain. See the docs for more information:
+ *
+ * https://js.langchain.com/v0.2/docs/how_to/structured_output
+ */
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { messages } = req.body as { messages: { role: string; content: string }[] };
+		const body = await req.body;
+		const messages = body.messages ?? [];
+		const currentMessageContent = messages[messages.length - 1].content;
 
-		const completion = await openai.chat.completions.create({
+		const prompt = PromptTemplate.fromTemplate(TEMPLATE);
+		/**
+		 * Function calling is currently only supported with ChatOpenAI models
+		 */
+		const model = new ChatOpenAI({
+			temperature: 0.8,
 			model: "gpt-4o-mini",
-			// temperature: 0.7,
-			// @ts-ignore
-			messages,
-			functions: [
-				{
-					name: "extractAlternatives",
-					description:
-						"Return a concise summary and exactly five diverse, cheaper alternatives with metadata, normalized to the input frequency",
-					parameters: {
-						type: "object",
-						properties: {
-							summary: { type: "string" },
-							alternatives: {
-								type: "array",
-								items: {
-									type: "object",
-									properties: {
-										id: { type: "string" },
-										name: { type: "string" },
-										price: { type: "number" },
-										frequency: { type: "string" },
-										percentageSavings: { type: "number" },
-										annualSavings: { type: "number" },
-										pros: { type: "array", items: { type: "string" } },
-										cons: { type: "array", items: { type: "string" } },
-									},
-									required: ["id", "name", "price", "frequency", "percentageSavings", "annualSavings", "pros", "cons"],
-								},
-							},
-						},
-						required: ["summary", "alternatives"],
-					},
-				},
-			],
-			function_call: "auto",
 		});
 
-		return res.status(200).json(completion.choices[0].message);
-	} catch (error: any) {
-		console.error(error);
-		return res.status(500).json({ error: error.message });
+		/**
+		 * We use Zod (https://zod.dev) to define our schema for convenience,
+		 * but you can pass JSON schema if desired.
+		 */
+		const schema = z
+			.object({
+				tone: z.enum(["positive", "negative", "neutral"]).describe("The overall tone of the input"),
+				entity: z.string().describe("The entity mentioned in the input"),
+				word_count: z.number().describe("The number of words in the input"),
+				chat_response: z.string().describe("A response to the human's input"),
+				final_punctuation: z.optional(z.string()).describe("The final punctuation mark in the input, if any."),
+			})
+			.describe("Should always be used to properly format output");
+
+		/**
+		 * Bind schema to the OpenAI model.
+		 * Future invocations of the returned model will always match the schema.
+		 *
+		 * Under the hood, uses tool calling by default.
+		 */
+		const functionCallingModel = model.withStructuredOutput(schema, {
+			name: "output_formatter",
+		});
+
+		/**
+		 * Returns a chain with the function calling model.
+		 */
+		const chain = prompt.pipe(functionCallingModel);
+
+		const result = await chain.invoke({
+			input: currentMessageContent,
+		});
+
+		return res.status(200).json(result);
+	} catch (e: any) {
+		return res.status(e.status ?? 500).json({ error: e.message });
 	}
 }
