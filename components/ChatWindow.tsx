@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { v4 as uuid } from "uuid";
 import { ArrowUpIcon, TriangleAlertIcon } from "lucide-react";
 
 interface Alternative {
@@ -36,27 +37,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ initialPayload, onSelectAlterna
 		lastMsgRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 	}, [messages]);
 
-	// Seed system prompt + first question
 	useEffect(() => {
-		const systemPrompt = `
-  You are a helpful assistant. Given the payload ${JSON.stringify(initialPayload)}, ask: 
-  "What value does ${initialPayload.name} ${initialPayload.freq} provide you?" Then:
-1) Output a concise summary of that value, **ending with** one bridge sentence introducing your money‑saving alternatives.
-2) Generate exactly five cheaper alternatives, normalized to the input frequency.
-3) **For each alternative, set**  
-   – **name**: a brief noun phrase (e.g. “Drive‑thru pickup”, “Meal kit”, “Grocery delivery kit”),  
-   – **cons**: an array of tradeoffs,  
-   etc.
-Return via function "extractAlternatives".`;
 		setMessages([
-			{ id: "system-0", role: "system", content: systemPrompt },
 			{
-				id: "assistant-00",
+				id: uuid(),
 				role: "assistant",
 				content: `Let's help you save some green by finding cheaper alternatives to ${initialPayload.name} 🤑`,
 			},
 			{
-				id: "assistant-0",
+				id: uuid(),
 				role: "assistant",
 				content: `What value does ${initialPayload.name} ${initialPayload.freq} provide you?`,
 			},
@@ -75,21 +64,21 @@ Return via function "extractAlternatives".`;
 			const res = await fetch("/api/chat", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ messages: convo.map((m) => ({ role: m.role, content: m.content })) }),
+				body: JSON.stringify({
+					spendingHabit: initialPayload,
+					messages: convo.map((m) => ({ role: m.role, content: m.content })),
+				}),
 			});
 			const data = await res.json();
-			let assistantMsg: ChatMessage;
-			if (data.function_call) {
-				const args = JSON.parse(data.function_call.arguments);
-				assistantMsg = {
-					id: `a${Date.now()}`,
-					role: "assistant",
-					content: args.summary,
-					alternatives: args.alternatives,
-				};
-			} else {
-				assistantMsg = { id: `a${Date.now()}`, role: "assistant", content: data.content };
-			}
+
+			const { summary, alternatives } = data as { summary: string; alternatives: Alternative[] };
+			const assistantMsg = {
+				id: `assistant-${Date.now()}`,
+				role: "assistant" as const,
+				content: summary,
+				alternatives,
+			};
+
 			setMessages((prev) => [...prev, assistantMsg]);
 		} catch (err) {
 			console.error(err);
