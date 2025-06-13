@@ -67,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			valueProposition: valuePropositionText,
 		});
 
-		return res.status(200).json(result);
+		return res.json(result);
 	} catch (error: any) {
 		console.error(error);
 		return res.status(500).json({ error: error.message });
