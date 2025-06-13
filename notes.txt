@@ -90,7 +90,23 @@
 
 ### - decimals on mobile for the new monthly statistics
 
-- langchain for fin advisor
+### - langchain for fin advisor
+
+- make the chat results display experience better. Maybe shrink the chat on results loading.
+
+- second recommendations version: where it takes all the txs rather than focusing on one. instead of chat, show as tiles in tx view
+
+- forecast graph tab
+
+- fix Starting date loading
+
+- Allow typing date instead of date picker
+
+- show recurring icon in item list calendar view 
+
+- favicon
+
+- calendar filtering like "only show expenses over $50", "hide recurring", "only recurring", etc
 
 
 future roadmap:
@@ -108,3 +124,8 @@ future roadmap:
 - assign happiness points to transactions
 - categorize transactions
 - represent recurring date as more complex things like "last friday of every month" so start date is just day of month for example not a specific day
+
+
+stretch:
+- library for google sheets as DB where you only have to visually represent the tabs/etc and it handles the rest
+- shadcn library for 

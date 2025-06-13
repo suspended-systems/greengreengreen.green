@@ -1,73 +1,75 @@
+import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
-
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { NextApiRequest, NextApiResponse } from "next/types";
 
-const TEMPLATE = `Extract the requested fields from the input.
+const AlternativeSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	price: z.number(),
+	frequency: z.string(),
+	percentageSavings: z.number(),
+	annualSavings: z.number(),
+	pros: z.array(z.string()),
+	cons: z.array(z.string()),
+});
 
-The field "entity" refers to the first mentioned entity in the input.
+const OutputSchema = z
+	.object({
+		summary: z.string(),
+		alternatives: z.array(AlternativeSchema).length(5),
+	})
+	.describe("Summary plus exactly five cheaper alternatives");
 
-Input:
+const TEMPLATE = `
+You are a helpful financial advisor assistant. Your primary goal is to help the user find compelling, cheaper alternatives to their spending habits while not trading off on value propositions like convenience or happiness.
 
-{input}`;
+The user has a spending habit:
+- name: {spendingHabitName}
+- cost: {spendingHabitCost}
+- recurrence: {spendingHabitRecurrence}
 
-/**
- * This handler initializes and calls an OpenAI Functions powered
- * structured output chain. See the docs for more information:
- *
- * https://js.langchain.com/v0.2/docs/how_to/structured_output
- */
+The user has also described what value proposition the spending habit has for them:
+
+{valueProposition}
+
+Return a concise summary and exactly five diverse, cheaper alternatives.
+The cheaper alternatives must be...
+- normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence})
+- meet as much of the existing described value proposition as possible, as little tradeoffs as possible
+- a replacement that is not basically the same thing as the existing spending habit
+`;
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const body = await req.body;
-		const messages = body.messages ?? [];
-		const currentMessageContent = messages[messages.length - 1].content;
+		const { spendingHabit, messages } = req.body as {
+			spendingHabit: { name: string; amount: `$${string}`; freq: string };
+			messages: { role: string; content: string }[];
+		};
 
-		const prompt = PromptTemplate.fromTemplate(TEMPLATE);
-		/**
-		 * Function calling is currently only supported with ChatOpenAI models
-		 */
+		const valuePropositionText = messages.find(({ role }) => role === "user")?.content!;
+
 		const model = new ChatOpenAI({
-			temperature: 0.8,
-			model: "gpt-4o-mini",
+			modelName: "gpt-4o-mini",
+			temperature: 0.7,
 		});
 
-		/**
-		 * We use Zod (https://zod.dev) to define our schema for convenience,
-		 * but you can pass JSON schema if desired.
-		 */
-		const schema = z
-			.object({
-				tone: z.enum(["positive", "negative", "neutral"]).describe("The overall tone of the input"),
-				entity: z.string().describe("The entity mentioned in the input"),
-				word_count: z.number().describe("The number of words in the input"),
-				chat_response: z.string().describe("A response to the human's input"),
-				final_punctuation: z.optional(z.string()).describe("The final punctuation mark in the input, if any."),
-			})
-			.describe("Should always be used to properly format output");
-
-		/**
-		 * Bind schema to the OpenAI model.
-		 * Future invocations of the returned model will always match the schema.
-		 *
-		 * Under the hood, uses tool calling by default.
-		 */
-		const functionCallingModel = model.withStructuredOutput(schema, {
-			name: "output_formatter",
-		});
-
-		/**
-		 * Returns a chain with the function calling model.
-		 */
-		const chain = prompt.pipe(functionCallingModel);
+		const chain = PromptTemplate.fromTemplate(TEMPLATE).pipe(
+			model.withStructuredOutput(OutputSchema, {
+				name: "extractAlternatives",
+			}),
+		);
 
 		const result = await chain.invoke({
-			input: currentMessageContent,
+			spendingHabitCost: spendingHabit.amount,
+			spendingHabitName: spendingHabit.name,
+			spendingHabitRecurrence: spendingHabit.freq,
+			valueProposition: valuePropositionText,
 		});
 
 		return res.status(200).json(result);
-	} catch (e: any) {
-		return res.status(e.status ?? 500).json({ error: e.message });
+	} catch (error: any) {
+		console.error(error);
+		return res.status(500).json({ error: error.message });
 	}
 }
