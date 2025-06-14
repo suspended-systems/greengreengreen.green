@@ -1,5 +1,27 @@
+# greengreengreengreen.green
 
-balance? XD
+https://greengreengreen.green
+
+*green* is a digital financial calendar for visually managing your finances.
+
+# dev setup
+
+Install deps
+```sh
+npm i
+```
+
+Run dev
+```sh
+npm run dev
+```
+
+# deployment
+
+hosted on vercel. main branch is production.
+
+
+# Next.js
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
