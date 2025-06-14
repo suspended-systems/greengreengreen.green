@@ -1,7 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
-import { PromptTemplate } from "@langchain/core/prompts";
+import { prompt } from "@/lib/ai";
+
+const gpt4oMini = new ChatOpenAI({
+	modelName: "gpt-4o-mini",
+	temperature: 0.7,
+});
 
 const AlternativeSchema = z.object({
 	id: z.string(),
@@ -14,14 +19,8 @@ const AlternativeSchema = z.object({
 	cons: z.array(z.string()),
 });
 
-const OutputSchema = z
-	.object({
-		summary: z.string(),
-		alternatives: z.array(AlternativeSchema).length(5),
-	})
-	.describe("Summary plus exactly five cheaper alternatives");
-
-const TEMPLATE = `
+const chain = prompt(
+	`
 You are a helpful financial advisor assistant. Your primary goal is to help the user find compelling, cheaper alternatives to their spending habits while not trading off on value propositions like convenience or happiness.
 
 The user has a spending habit:
@@ -38,7 +37,15 @@ The cheaper alternatives must be...
 - normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence})
 - meet as much of the existing described value proposition as possible, as little tradeoffs as possible
 - a replacement that is not basically the same thing as the existing spending habit
-`;
+`,
+	z
+		.object({
+			summary: z.string(),
+			alternatives: z.array(AlternativeSchema).length(5),
+		})
+		.describe("Summary plus exactly five cheaper alternatives"),
+	gpt4oMini,
+);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -47,27 +54,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			messages: { role: string; content: string }[];
 		};
 
-		const valuePropositionText = messages.find(({ role }) => role === "user")?.content!;
+		// Pass in all the user messages as context. Usually this will just be one message, but will be more if the user keeps chatting.
+		const userMessageLog = messages
+			.filter(({ role }) => role === "user")
+			.map((m) => m.content)
+			.join("\n");
 
-		const model = new ChatOpenAI({
-			modelName: "gpt-4o-mini",
-			temperature: 0.7,
-		});
-
-		const chain = PromptTemplate.fromTemplate(TEMPLATE).pipe(
-			model.withStructuredOutput(OutputSchema, {
-				name: "extractAlternatives",
-			}),
-		);
-
-		const result = await chain.invoke({
+		const { summary, alternatives } = await chain.invoke({
 			spendingHabitCost: spendingHabit.amount,
 			spendingHabitName: spendingHabit.name,
 			spendingHabitRecurrence: spendingHabit.freq,
-			valueProposition: valuePropositionText,
+			valueProposition: userMessageLog,
 		});
 
-		return res.json(result);
+		return res.json({ summary, alternatives });
 	} catch (error: any) {
 		console.error(error);
 		return res.status(500).json({ error: error.message });
