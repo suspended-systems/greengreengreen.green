@@ -108,6 +108,8 @@
 
 - calendar filtering like "only show expenses over $50", "hide recurring", "only recurring", etc
 
+- get rid of any types, think just next auth left to do
+
 
 future roadmap:
 - "build a profile for me" AI button for rent, utilities as individual water trash gas etc, internet, gas, car insurance, or as onboarding

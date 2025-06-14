@@ -8,16 +8,20 @@ const gpt4oMini = new ChatOpenAI({
 	temperature: 0.7,
 });
 
-const AlternativeSchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	price: z.number(),
-	frequency: z.string(),
-	percentageSavings: z.number(),
-	annualSavings: z.number(),
-	pros: z.array(z.string()),
-	cons: z.array(z.string()),
-});
+const AlternativeSchema = z
+	.object({
+		id: z.string(),
+		name: z.string().describe("a brief noun phrase (e.g. “Drive‑thru pickup”, “Meal kit”, “Grocery delivery kit”)"),
+		price: z.number().describe("cheaper than the existing spending habit price (i.e. {spendingHabitCost})"),
+		frequency: z.string(),
+		percentageSavings: z.number(),
+		annualSavings: z.number(),
+		pros: z.array(z.string()),
+		cons: z.array(z.string()).describe("an array of tradeoffs"),
+	})
+	.describe(
+		"a replacement that is not basically the same thing as the existing spending habi, normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence}), meet as much of the existing described value proposition as possible, as little tradeoffs as possible",
+	);
 
 const chain = prompt(
 	`
@@ -32,7 +36,7 @@ The user has also described what value proposition the spending habit has for th
 
 {valueProposition}
 
-Return a concise second-person summary and exactly five diverse, cheaper alternatives.
+Return a concise second-person summary (must have it **ending with** one bridge sentence introducing your money‑saving alternatives) and exactly five diverse, cheaper alternatives.
 The cheaper alternatives must be...
 - normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence})
 - meet as much of the existing described value proposition as possible, as little tradeoffs as possible
@@ -68,8 +72,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		});
 
 		return res.json({ summary, alternatives });
-	} catch (error: any) {
+	} catch (error) {
 		console.error(error);
-		return res.status(500).json({ error: error.message });
+		return res.status(500).json({ error: (error as Error).message });
 	}
 }
