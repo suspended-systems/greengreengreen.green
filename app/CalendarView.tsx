@@ -260,8 +260,6 @@ function ChatWindowPopover({
 							]);
 						}
 
-						toast(`Added new transaction "${transaction.name}"`);
-
 						/**
 						 * Disable the one we're replacing
 						 */
@@ -276,7 +274,12 @@ function ChatWindowPopover({
 							});
 						}
 
-						toast(`Disabled existing transaction "${tx.name}"`);
+						toast(`Disabled existing transaction "${tx.name}"`, {
+							// This runs once the success-toast’s duration elapses
+							onAutoClose() {
+								toast(`Added new transaction "${transaction.name}"`);
+							},
+						});
 					}}
 				/>
 			</PopoverContent>
