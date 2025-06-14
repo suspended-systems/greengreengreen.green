@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
-import { prompt } from "@/lib/ai";
+import { structuredPrompt } from "@/lib/ai";
 
 const gpt4oMini = new ChatOpenAI({
 	modelName: "gpt-4o-mini",
@@ -23,7 +23,24 @@ const AlternativeSchema = z
 		"a replacement that is not basically the same thing as the existing spending habi, normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence}), meet as much of the existing described value proposition as possible, as little tradeoffs as possible",
 	);
 
-const chain = prompt(
+const SummaryAndAlternativesSchema = z
+	.object({
+		summary: z
+			.string()
+			.describe(
+				"a concise second-person summary (must have it **ending with** one bridge sentence introducing your money‑saving alternatives)",
+			),
+		alternatives: z.array(AlternativeSchema).length(5).describe(`
+exactly five diverse, cheaper alternatives.
+The cheaper alternatives must be...
+- normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence})
+- meet as much of the existing described value proposition as possible, as little tradeoffs as possible
+- a replacement that is not basically the same thing as the existing spending habit
+`),
+	})
+	.describe("Summary plus exactly five cheaper alternatives");
+
+const chain = structuredPrompt(
 	`
 You are a helpful financial advisor assistant. Your primary goal is to help the user find compelling, cheaper alternatives to their spending habits while not trading off on value propositions like convenience or happiness.
 
@@ -36,18 +53,9 @@ The user has also described what value proposition the spending habit has for th
 
 {valueProposition}
 
-Return a concise second-person summary (must have it **ending with** one bridge sentence introducing your money‑saving alternatives) and exactly five diverse, cheaper alternatives.
-The cheaper alternatives must be...
-- normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence})
-- meet as much of the existing described value proposition as possible, as little tradeoffs as possible
-- a replacement that is not basically the same thing as the existing spending habit
+Return a result containing a summary and alternatives
 `,
-	z
-		.object({
-			summary: z.string(),
-			alternatives: z.array(AlternativeSchema).length(5),
-		})
-		.describe("Summary plus exactly five cheaper alternatives"),
+	SummaryAndAlternativesSchema,
 	gpt4oMini,
 );
 

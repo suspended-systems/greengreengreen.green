@@ -167,7 +167,6 @@ export function TransactionsView<TData, TValue>({
 					}
 				/>
 			)}
-			<div className="flex flex-col gap-4">
 				<div className="flex gap-4">
 					<AddTransaction {...{ spreadsheetId, setTransactions }} />
 					<Input
@@ -313,7 +312,6 @@ export function TransactionsView<TData, TValue>({
 						<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
 							<ChevronRightIcon />
 						</Button>
-					</div>
 				</div>
 			</div>
 		</div>
