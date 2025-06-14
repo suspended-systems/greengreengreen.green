@@ -89,7 +89,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ initialPayload, onSelectAlterna
 
 	return (
 		<div className="w-80 h-120 bg-white dark:bg-[#1A1E1B] shadow-lg flex flex-col">
-			<div className="flex-1 overflow-y-auto p-2">
+			<div className="flex-1 overflow-y-auto overflow-x-hidden p-2">
 				{messages
 					.filter((m) => m.role !== "system")
 					.map((m, i, arr) => {
