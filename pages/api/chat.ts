@@ -32,7 +32,7 @@ The user has also described what value proposition the spending habit has for th
 
 {valueProposition}
 
-Return a concise summary and exactly five diverse, cheaper alternatives.
+Return a concise second-person summary and exactly five diverse, cheaper alternatives.
 The cheaper alternatives must be...
 - normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence})
 - meet as much of the existing described value proposition as possible, as little tradeoffs as possible
