@@ -3,9 +3,13 @@ import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
 import { structuredPrompt } from "@/lib/ai";
 
+export const maxDuration = 60; // 60s
+
 const gpt4oMini = new ChatOpenAI({
 	modelName: "gpt-4o-mini",
 	temperature: 0.7,
+	timeout: 60_000, // 60s
+	maxRetries: 2,
 });
 
 const AlternativeSchema = z
