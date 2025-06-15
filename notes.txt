@@ -96,6 +96,8 @@
 
 - ensure chat can't 504 or response hanging
 
+- mobile make tab buttons position fixed so scroll only covers tab content
+
 - fix Starting date loading
 
 - get rid of `any` types, think just next auth left to do
