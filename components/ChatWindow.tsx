@@ -101,7 +101,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ initialPayload, onSelectAlterna
 							<div
 								key={m.id}
 								ref={isLast ? lastMsgRef : undefined}
-								className={`mb-2 flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+								className={`${noTail ? "mb-0.5" : "mb-2"} flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
 							>
 								<div>
 									{m.content && (
@@ -122,16 +122,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ initialPayload, onSelectAlterna
 								
 										  /* colored tail */
 										  ${
-												isUser
+												!noTail &&
+												(isUser
 													? "before:right-[-7px] before:bg-[#519c6b] before:[border-bottom-left-radius:16px_14px]"
-													: "before:left-[-7px] before:bg-gray-100 dark:before:bg-[#202A22] before:[border-bottom-right-radius:16px_14px]"
+													: "before:left-[-7px] before:bg-gray-100 dark:before:bg-[#202A22] before:[border-bottom-right-radius:16px_14px]")
 											}
 								
 										  /* cut-out to mask the tail */
 										  ${
-												isUser
+												!noTail &&
+												(isUser
 													? "after:right-[-26px] after:bg-white dark:after:bg-[#1A1E1B] after:rounded-bl-[10px]"
-													: "after:left-[-26px]  after:bg-white dark:after:bg-[#1A1E1B] after:rounded-br-[10px]"
+													: "after:left-[-26px]  after:bg-white dark:after:bg-[#1A1E1B] after:rounded-br-[10px]")
 											}
 										`}
 										>

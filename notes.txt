@@ -94,7 +94,9 @@
 
 ### - langchain for fin advisor
 
-- ensure chat can't 504 or response hanging
+### - ensure chat can't 504 or response hanging
+
+- fix session/tabbing out resetting the chat, assistant is typing cleanup
 
 - mobile make tab buttons position fixed so scroll only covers tab content  
 
