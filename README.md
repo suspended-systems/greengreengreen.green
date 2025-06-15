@@ -2,18 +2,20 @@
 
 https://greengreengreen.green
 
-*green* is a digital financial calendar for visually managing your finances.
+_green_ is a digital financial calendar for visually managing your finances.
 
-More useful than RocketMoney.
+Exists in the same category as RocketMoney.
 
 # dev setup
 
 Install deps
+
 ```sh
-npm i
+pnpm i
 ```
 
 Run dev
+
 ```sh
 npm run dev
 ```
@@ -21,7 +23,6 @@ npm run dev
 # deployment
 
 hosted on vercel. main branch is production.
-
 
 # Next.js
 

@@ -96,7 +96,7 @@
 
 - ensure chat can't 504 or response hanging
 
-- mobile make tab buttons position fixed so scroll only covers tab content
+- mobile make tab buttons position fixed so scroll only covers tab content  
 
 - fix Starting date loading
 
@@ -108,6 +108,7 @@
 
 
 future roadmap:
+- chat response text streaming
 - make the chat results display experience better. Maybe shrink the chat on results loading.
 - forecast graph tab
 - Allow typing date instead of date picker
