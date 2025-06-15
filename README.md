@@ -4,6 +4,8 @@ https://greengreengreen.green
 
 *green* is a digital financial calendar for visually managing your finances.
 
+More useful than RocketMoney.
+
 # dev setup
 
 Install deps

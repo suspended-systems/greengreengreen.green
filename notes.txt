@@ -82,6 +82,8 @@
 
 ### - add transaction submit disables and does animation for submit button
 
+### - make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
+
 ### - info panel banner with monthly incoming, outgoing. 
     ### - on calendar view, selected month and day need totals
     - on transactions view, new banner with weighted average
@@ -92,29 +94,26 @@
 
 ### - langchain for fin advisor
 
-- make the chat results display experience better. Maybe shrink the chat on results loading.
-
-- second recommendations version: where it takes all the txs rather than focusing on one. instead of chat, show as tiles in tx view
-
-- forecast graph tab
+- ensure chat can't 504 or response hanging
 
 - fix Starting date loading
 
-- Allow typing date instead of date picker
+- get rid of `any` types, think just next auth left to do
 
-- show recurring icon in item list calendar view 
+- second recommendations version: where it takes all the txs rather than focusing on one. instead of chat, show as tiles in tx view with overall monthly/average
 
 - favicon
 
-- calendar filtering like "only show expenses over $50", "hide recurring", "only recurring", etc
-
-- get rid of any types, think just next auth left to do
-
 
 future roadmap:
+- make the chat results display experience better. Maybe shrink the chat on results loading.
+- forecast graph tab
+- Allow typing date instead of date picker
+- show recurring icon in item list calendar view 
+- calendar filtering like "only show expenses over $50", "hide recurring", "only recurring", etc
+- Assistant is typing... ellipsis animation
 - "build a profile for me" AI button for rent, utilities as individual water trash gas etc, internet, gas, car insurance, or as onboarding
 - capital one/discover integration / variable payment support
-- graceful handling for if sheet name doesn't match. Display message to user that can't find sheets named x and y.
 - tour "skip" button setting tutorial complete (bug with library callback, needs hacky injection instead)
 - green color as css instead of code
 - more friendly/professional green service account email
@@ -122,12 +121,11 @@ future roadmap:
     -show all names of transactions
     -show just totals
     -show individiual
-- make overflow scrolling on transactions table only affect the table, so buttons above and below don't move/scroll
 - assign happiness points to transactions
 - categorize transactions
-- represent recurring date as more complex things like "last friday of every month" so start date is just day of month for example not a specific day
+- represent recurring date as more complex things like "last friday of every month" so start date is just day of month for example not a specific day, "twice a week for six months"
 
 
-stretch:
-- library for google sheets as DB where you only have to visually represent the tabs/etc and it handles the rest
+modules opportunity:
+- library for google sheets as DB where you only have to visually represent the tabs/etc and it handles the rest, one model for columns and creates your tab
 - shadcn library for 
