@@ -1,14 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse, PageConfig } from "next";
 import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
 import { structuredPrompt } from "@/lib/ai";
 
-export const maxDuration = 60; // 60s
+export const config: PageConfig = {
+	maxDuration: 60, // 60s
+};
 
 const gpt4oMini = new ChatOpenAI({
 	modelName: "gpt-4o-mini",
 	temperature: 0.7,
-	timeout: 60_000, // 60s
+	timeout: 30_000, // 30s
 	maxRetries: 2,
 });
 
