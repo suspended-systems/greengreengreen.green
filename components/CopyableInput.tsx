@@ -5,12 +5,7 @@ import { Input } from "@/components/ui/input";
 import { CopyButton } from "@/components/CopyButton";
 import { cn } from "@/lib/utils";
 
-interface CopyableInputProps {
-	value: string;
-	label?: string;
-}
-
-export function CopyableInput({ value, label }: CopyableInputProps) {
+export function CopyableInput({ value, label }: { value: string; label?: string }) {
 	return (
 		<div className="space-y-1">
 			{label && <label className="text-sm font-medium">{label}</label>}

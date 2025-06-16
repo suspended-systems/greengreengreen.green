@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { v4 as uuid } from "uuid";
 import { ArrowUpIcon, TriangleAlertIcon } from "lucide-react";
+import { toast } from "sonner";
 
-interface Alternative {
+type Alternative = {
 	id: string;
 	name: string;
 	price: number;
@@ -11,22 +12,23 @@ interface Alternative {
 	annualSavings: number;
 	pros: string[];
 	cons: string[];
-}
+};
 
-interface ChatMessage {
+type ChatMessage = {
 	id: string;
 	role: "assistant" | "user" | "system";
 	content: string;
 	summary?: string;
 	alternatives?: Alternative[];
-}
+};
 
-interface ChatWindowProps {
+const ChatWindow = ({
+	initialPayload,
+	onSelectAlternative,
+}: {
 	initialPayload: Record<string, any>;
 	onSelectAlternative: (alt: Alternative) => void;
-}
-
-const ChatWindow: React.FC<ChatWindowProps> = ({ initialPayload, onSelectAlternative }) => {
+}) => {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [input, setInput] = useState("");
 	const [loading, setLoading] = useState(false);
