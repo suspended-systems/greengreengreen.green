@@ -96,9 +96,9 @@
 
 ### - ensure chat can't 504 or response hanging
 
-- fix session/tabbing out resetting the chat, assistant is typing cleanup
+- more complex langchain pipeline!
 
-- mobile make tab buttons position fixed so scroll only covers tab content  
+- fix session/tabbing out resetting the chat, assistant is typing cleanup
 
 - fix Starting date loading
 
@@ -112,6 +112,7 @@
 future roadmap:
 - chat response text streaming
 - make the chat results display experience better. Maybe shrink the chat on results loading.
+- mobile make tab buttons position fixed so scroll only covers tab content  
 - forecast graph tab
 - Allow typing date instead of date picker
 - show recurring icon in item list calendar view 
