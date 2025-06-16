@@ -387,7 +387,7 @@ async function getStartingValues(
 			})
 		).data.values?.[0] ?? [];
 
-	const startDate = startingDate === "string" ? parseDate(startingDate, tz) : null;
+	const startDate = typeof startingDate === "string" ? parseDate(startingDate, tz) : null;
 
 	const startAmount = startingAmount != null ? Number(startingAmount) : null;
 
