@@ -42,8 +42,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CopyableInput } from "@/components/CopyableInput";
 
 import { AddTransactionForm } from "./AddTransactionForm";
-import { Transaction } from "../transactions";
+import { calcProjectedValue, Transaction } from "../transactions";
 import getSheetsData from "../sheets";
+import { partition } from "lodash";
+import { formatMoney, GreenColor } from "../utils";
 
 export function TransactionsView<TData, TValue>({
 	spreadsheetId,
@@ -97,6 +99,36 @@ export function TransactionsView<TData, TValue>({
 	const totalRows = table.getFilteredRowModel().rows.length;
 	const startRow = pageIndex * pageSize + 1;
 	const endRow = pageIndex * pageSize + table.getRowModel().rows.length;
+
+	/**
+	 * Stats
+	 */
+
+	const [incomingTxs, outgoingTxs] = partition((transactions as Transaction[]) ?? [], (tx) => tx.amount >= 0);
+	const startOfYearUTC = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1, 0, 0, 0, 0));
+	const endOfYearUTC = new Date(Date.UTC(new Date().getUTCFullYear(), 11, 31, 23, 59, 59, 999));
+
+	const annualIncomingAverage = calcProjectedValue({
+		startValue: 0,
+		startDate: startOfYearUTC,
+		endDate: endOfYearUTC,
+		transactions: incomingTxs ?? [],
+	});
+	const monthlyIncomingAverage = annualIncomingAverage / 12;
+	const dailyIncomingAverage = annualIncomingAverage / 365;
+
+	const annualOutgoingAverage = calcProjectedValue({
+		startValue: 0,
+		startDate: startOfYearUTC,
+		endDate: endOfYearUTC,
+		transactions: outgoingTxs ?? [],
+	});
+	const monthlyOutgoingAverage = annualOutgoingAverage / 12;
+	const dailyOutgoingAverage = annualOutgoingAverage / 365;
+
+	const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
+	const monthlyNetAverage = annualNetAverage / 12;
+	const dailyNetAverage = annualNetAverage / 365;
 
 	return (
 		<div className="flex flex-col gap-4 max-w-5xl mx-auto px-2 md:px-4">
@@ -167,151 +199,223 @@ export function TransactionsView<TData, TValue>({
 					}
 				/>
 			)}
-				<div className="flex gap-4">
-					<AddTransaction {...{ spreadsheetId, setTransactions }} />
-					<Input
-						placeholder="Search..."
-						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-						className="text-sm"
-					/>
-					{spreadsheetId && (
-						<Button
-							variant="outline"
-							onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
-						>
-							<SquareArrowOutUpRightIcon />
-							<span className="hidden md:block">Open in Sheets</span>
+			<InfoBannerBox
+				content={
+					<div className="flex w-full justify-evenly text-sm ">
+						<div className="flex flex-col gap-2">
+							<span className="font-medium text-center">Incoming</span>
+							<p>
+								Annually:{" "}
+								<span className="whitespace-nowrap" style={{ color: GreenColor }}>
+									+{formatMoney(annualIncomingAverage)}
+								</span>
+							</p>
+							<p>
+								Monthly:{" "}
+								<span className="whitespace-nowrap" style={{ color: GreenColor }}>
+									+{formatMoney(monthlyIncomingAverage)}
+								</span>
+							</p>
+							<p>
+								Daily:{" "}
+								<span className="whitespace-nowrap" style={{ color: GreenColor }}>
+									+{formatMoney(dailyIncomingAverage)}
+								</span>
+							</p>
+						</div>
+						<div className="flex flex-col gap-2">
+							<span className="font-medium text-center">Outgoing</span>
+							<p>
+								Annually:{" "}
+								<span className="whitespace-nowrap" style={{ color: "red" }}>
+									{formatMoney(annualOutgoingAverage)}
+								</span>
+							</p>
+							<p>
+								Monthly:{" "}
+								<span className="whitespace-nowrap" style={{ color: "red" }}>
+									{formatMoney(monthlyOutgoingAverage)}
+								</span>
+							</p>
+							<p>
+								Daily:{" "}
+								<span className="whitespace-nowrap" style={{ color: "red" }}>
+									{formatMoney(dailyOutgoingAverage)}
+								</span>
+							</p>
+						</div>
+						<div className="flex flex-col gap-2">
+							<span className="font-medium text-center">Net</span>
+							<p>
+								Annually:{" "}
+								<span className="whitespace-nowrap" style={{ color: annualNetAverage < 0 ? "red" : GreenColor }}>
+									{annualNetAverage < 0 ? "" : "+"}
+									{formatMoney(annualNetAverage)}
+								</span>
+							</p>
+							<p>
+								Monthly:{" "}
+								<span className="whitespace-nowrap" style={{ color: monthlyNetAverage < 0 ? "red" : GreenColor }}>
+									{monthlyNetAverage < 0 ? "" : "+"}
+									{formatMoney(monthlyNetAverage)}
+								</span>
+							</p>
+							<p>
+								Daily:{" "}
+								<span style={{ color: dailyNetAverage < 0 ? "red" : GreenColor }}>
+									{dailyNetAverage < 0 ? "" : "+"}
+									{formatMoney(dailyNetAverage)}
+								</span>
+							</p>
+						</div>
+					</div>
+				}
+			/>
+			<div className="flex gap-4">
+				<AddTransaction {...{ spreadsheetId, setTransactions }} />
+				<Input
+					placeholder="Search..."
+					value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+					onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+					className="text-sm"
+				/>
+				{spreadsheetId && (
+					<Button
+						variant="outline"
+						onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
+					>
+						<SquareArrowOutUpRightIcon />
+						<span className="hidden md:block">Open in Sheets</span>
+					</Button>
+				)}
+				{spreadsheetId && (
+					<Button
+						variant="outline"
+						onClick={async () => {
+							const spinStart = Date.now();
+							setPullSheetsLoading(true);
+
+							try {
+								await getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then((data) => {
+									if (typeof data !== "string" && data) {
+										const {
+											transactions: spreadsheetTransactions,
+											startDate: spreadsheetStartDate,
+											startAmount: spreadsheetStartValue,
+											malformedTransactions,
+										} = data;
+
+										if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
+										if (spreadsheetStartValue) setStartAmount(spreadsheetStartValue);
+										setTransactions(spreadsheetTransactions);
+
+										toast("✅ Successfully imported Sheets transactions", {
+											// This runs once the success-toast’s duration elapses
+											onAutoClose() {
+												if (malformedTransactions?.length) {
+													toast(`⚠️ Sheet contains ${malformedTransactions.length} malformed transaction(s)`);
+												}
+											},
+										});
+									}
+								});
+							} finally {
+								// how long since we kicked off the spin?
+								const elapsed = (Date.now() - spinStart) % 1000;
+								// wait until the end of that 1 s cycle so the animation completes fully
+								setTimeout(() => setPullSheetsLoading(false), 1000 - elapsed);
+							}
+						}}
+					>
+						<RefreshCcwIcon
+							className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
+						/>
+						<span className="hidden md:block">Pull Sheets Changes</span>
+						<span className="sr-only">Sync from Google Sheets</span>
+					</Button>
+				)}
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<Button variant="outline" className="ml-auto">
+							<EyeOffIcon />
+							<span className="sr-only">Toggle transaction table columns</span>
 						</Button>
-					)}
-					{spreadsheetId && (
-						<Button
-							variant="outline"
-							onClick={async () => {
-								const spinStart = Date.now();
-								setPullSheetsLoading(true);
-
-								try {
-									await getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then((data) => {
-										if (typeof data !== "string" && data) {
-											const {
-												transactions: spreadsheetTransactions,
-												startDate: spreadsheetStartDate,
-												startAmount: spreadsheetStartValue,
-												malformedTransactions,
-											} = data;
-
-											if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
-											if (spreadsheetStartValue) setStartAmount(spreadsheetStartValue);
-											setTransactions(spreadsheetTransactions);
-
-											toast("✅ Successfully imported Sheets transactions", {
-												// This runs once the success-toast’s duration elapses
-												onAutoClose() {
-													if (malformedTransactions?.length) {
-														toast(`⚠️ Sheet contains ${malformedTransactions.length} malformed transaction(s)`);
-													}
-												},
-											});
-										}
-									});
-								} finally {
-									// how long since we kicked off the spin?
-									const elapsed = (Date.now() - spinStart) % 1000;
-									// wait until the end of that 1 s cycle so the animation completes fully
-									setTimeout(() => setPullSheetsLoading(false), 1000 - elapsed);
-								}
-							}}
-						>
-							<RefreshCcwIcon
-								className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
-							/>
-							<span className="hidden md:block">Pull Sheets Changes</span>
-							<span className="sr-only">Sync from Google Sheets</span>
-						</Button>
-					)}
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="outline" className="ml-auto">
-								<EyeOffIcon />
-								<span className="sr-only">Toggle transaction table columns</span>
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							{table
-								.getAllColumns()
-								.filter((column) => column.getCanHide())
-								.map((column) => {
-									return (
-										<DropdownMenuCheckboxItem
-											key={column.id}
-											className="capitalize"
-											checked={column.getIsVisible()}
-											onCheckedChange={(value) => column.toggleVisibility(!!value)}
-										>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="end">
+						{table
+							.getAllColumns()
+							.filter((column) => column.getCanHide())
+							.map((column) => {
+								return (
+									<DropdownMenuCheckboxItem
+										key={column.id}
+										className="capitalize"
+										checked={column.getIsVisible()}
+										onCheckedChange={(value) => column.toggleVisibility(!!value)}
+									>
+										{
 											{
-												{
-													disabled: "Toggle",
-													name: "Name",
-													date: "Date",
-													freq: "Recurrence",
-													amount: "Amount",
-													actions: "Delete",
-												}[column.id]
-											}
-										</DropdownMenuCheckboxItem>
+												disabled: "Toggle",
+												name: "Name",
+												date: "Date",
+												freq: "Recurrence",
+												amount: "Amount",
+												actions: "Delete",
+											}[column.id]
+										}
+									</DropdownMenuCheckboxItem>
+								);
+							})}
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</div>
+			<div className="rounded-md border">
+				<Table className="overflow-x-visible overscroll-x-contain">
+					<TableHeader>
+						{table.getHeaderGroups().map((headerGroup) => (
+							<TableRow key={headerGroup.id}>
+								{headerGroup.headers.map((header) => {
+									return (
+										<TableHead key={header.id}>
+											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHead>
 									);
 								})}
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</div>
-				<div className="rounded-md border">
-					<Table className="overflow-x-visible overscroll-x-contain">
-						<TableHeader>
-							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => {
-										return (
-											<TableHead key={header.id}>
-												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-											</TableHead>
-										);
-									})}
-								</TableRow>
-							))}
-						</TableHeader>
-						<TableBody>
-							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
-							) : (
-								<TableRow>
-									<TableCell
-										colSpan={columns.length}
-										className="h-24 text-center min-w-[970px]" // cheaphax: prevent table width from changing when no results by matching width (970 is computed via column hardcodes, which are hardcoded so row hover inline editing is stable)
-									>
-										No results.
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</div>
-				<div className="pb-4 w-full flex items-center justify-between">
-					<span className="flex-1 text-sm text-muted-foreground">
-						Showing {startRow}–{endRow} of {totalRows}
-					</span>
-					<div className="flex items-center space-x-2">
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => table.previousPage()}
-							disabled={!table.getCanPreviousPage()}
-						>
-							<ChevronLeftIcon />
-						</Button>
-						<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-							<ChevronRightIcon />
-						</Button>
+							</TableRow>
+						))}
+					</TableHeader>
+					<TableBody>
+						{table.getRowModel().rows?.length ? (
+							table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
+						) : (
+							<TableRow>
+								<TableCell
+									colSpan={columns.length}
+									className="h-24 text-center min-w-[970px]" // cheaphax: match empty table width with the dynamic computed width of the columns so the table doesn't change size when searching
+								>
+									No results.
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
+			</div>
+			<div className="pb-4 w-full flex items-center justify-between">
+				<span className="flex-1 text-sm text-muted-foreground">
+					Showing {startRow}–{endRow} of {totalRows}
+				</span>
+				<div className="flex items-center space-x-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => table.previousPage()}
+						disabled={!table.getCanPreviousPage()}
+					>
+						<ChevronLeftIcon />
+					</Button>
+					<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+						<ChevronRightIcon />
+					</Button>
 				</div>
 			</div>
 		</div>

@@ -20,6 +20,10 @@ Run dev
 npm run dev
 ```
 
+Test desktop view using Safari and/or Chrome.
+
+Test mobile view using iOS simulator.
+
 # deployment
 
 hosted on vercel. main branch is production.
