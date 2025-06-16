@@ -26,7 +26,7 @@ const AlternativeSchema = z
 		cons: z.array(z.string()).describe("an array of tradeoffs"),
 	})
 	.describe(
-		"a replacement that is not basically the same thing as the existing spending habi, normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence}), meet as much of the existing described value proposition as possible, as little tradeoffs as possible",
+		"a replacement that is not basically the same thing as the existing spending habit, normalized to the same recurrence as the spending habit (i.e. {spendingHabitRecurrence}), meet as much of the existing described value proposition as possible, as little tradeoffs as possible",
 	);
 
 const SummaryAndAlternativesSchema = z
