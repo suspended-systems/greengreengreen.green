@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse, PageConfig } from "next";
 import { z } from "zod";
 import { ChatOpenAI } from "@langchain/openai";
 import { structuredPrompt } from "@/lib/ai";
+import { ReplacementRecommender } from "../../lib/ReplacementRecommender";
 
 export const config: PageConfig = {
 	maxDuration: 60, // 60s
@@ -78,14 +79,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			.map((m) => m.content)
 			.join("\n");
 
-		const { summary, alternatives } = await chain.invoke({
-			spendingHabitCost: spendingHabit.amount,
-			spendingHabitName: spendingHabit.name,
-			spendingHabitRecurrence: spendingHabit.freq,
-			valueProposition: userMessageLog,
-		});
+		// const { summary, alternatives } = await chain.invoke({
+		// 	spendingHabitCost: spendingHabit.amount,
+		// 	spendingHabitName: spendingHabit.name,
+		// 	spendingHabitRecurrence: spendingHabit.freq,
+		// 	valueProposition: userMessageLog,
+		// });
 
-		return res.json({ summary, alternatives });
+		const rec = new ReplacementRecommender();
+		const candidates = await rec.recommendReplacements(spendingHabit.name, userMessageLog);
+
+		return res.json({
+			summary: "",
+			alternatives: candidates.map((c, i) => {
+				return {
+					id: i,
+					name: c.name,
+					price: c.cost,
+					frequency: "",
+					percentageSavings: 0,
+					annualSavings: 0,
+					pros: [],
+					cons: [],
+				};
+			}),
+		});
 	} catch (error) {
 		console.error(error);
 		return res.status(500).json({ error: (error as Error).message });
