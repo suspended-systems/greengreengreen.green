@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const alternatives = await new ReplacementRecommender({
 			resultSize: 5,
-			poolToChooseFromSize: 100,
+			poolToChooseFromSize: 5,
 			diversityVsRelevanceTradeoffZeroToOne: 0.5,
 			basicEquivalenceSimilarityScoreThresholdZeroToOne: 0.8,
 			tooManyTradeoffsScoreThresholdZeroToOne: 0.5,

@@ -48,6 +48,17 @@ and the value proposition of the spending habit described by the user:
 {valueProposition}
 `;
 
+const alreadyRejectedContextSnippet = (
+	rejectedCandidates: Array<{ alternative: Pick<Candidate, "name">; reasons: string[] }>,
+) =>
+	!rejectedCandidates.length
+		? ""
+		: `
+The following replacement spending habits were already previously rejected, please do not suggest them and please also factor this in to what you come up to help prevent it from also getting rejected:
+${rejectedCandidates
+	.map(({ alternative, reasons }) => `\n- "${alternative.name}" was rejected because: ${reasons.join(" and ")}`)
+	.join("")}`;
+
 const preventDupesContextSnippet = (names: string[]) =>
 	!names.length
 		? ""
@@ -68,7 +79,7 @@ const DEFAULT_BUCKET_CONFIGS = [
  */
 export class ReplacementRecommender {
 	private pool: Array<Candidate> = [];
-	private weights = DEFAULT_WEIGHTS; // gets overriden by derived weights
+	private weights = DEFAULT_WEIGHTS; // gets overridden by derived weights
 	private bucketConfigs = DEFAULT_BUCKET_CONFIGS;
 
 	constructor(
@@ -278,12 +289,11 @@ AttributeWeights={WEIGHTS_JSON}`,
 	 */
 	private async generateRelevantCandidates(
 		amountToRequest: number,
-		retryConfig?: { additionalContext: string },
+		retryConfig?: {
+			alreadyRejected?: Array<{ alternative: Pick<Candidate, "name">; reasons: string[] }>;
+			alreadyExisting?: Candidate[];
+		},
 	): Promise<Candidate[]> {
-		if (retryConfig?.additionalContext) {
-			console.log({ additionalContext: retryConfig.additionalContext });
-		}
-
 		const chain = structuredPrompt(
 			`
 You are an expert financial advisor assistant. Your primary goal is to help the user find compelling, cheaper alternatives to their spending habits, while not trading off on value propositions like convenience or happiness.
@@ -292,7 +302,9 @@ ${spendingHabitContextSnippet}
 
 Please suggest {amountToRequest} replacement spending habits.
 
-{additionalContext}
+{alreadyRejectedContext}
+
+{preventDupesContext}
 `,
 			z
 				.object({
@@ -310,13 +322,17 @@ Please suggest {amountToRequest} replacement spending habits.
 			gpt4oMini,
 		);
 
+		const alreadyRejectedContext = alreadyRejectedContextSnippet(retryConfig?.alreadyRejected ?? []);
+		const preventDupesContext = preventDupesContextSnippet(retryConfig?.alreadyExisting?.map(({ name }) => name) ?? []);
+
 		const { alternatives } = await chain.invoke({
 			valueProposition: this.props.valueProposition,
 			spendingHabitCost: this.props.spendingHabit.amount,
 			spendingHabitName: this.props.spendingHabit.name,
 			spendingHabitRecurrence: this.props.spendingHabit.freq,
 			amountToRequest,
-			additionalContext: retryConfig?.additionalContext ? retryConfig.additionalContext + "." : "",
+			alreadyRejectedContext,
+			preventDupesContext,
 		});
 
 		const passing = [];
@@ -349,24 +365,11 @@ Please suggest {amountToRequest} replacement spending habits.
 		 * Kinda morbid if you think about it
 		 */
 		if (amountNeedingRetry > 0) {
-			const alreadyRejectedContext = `
-The following previous replacement spending habits were rejected, please do not suggest them and please also factor this in to what you come up so it doesn't get rejected:
-${notPassing
-	.map(({ alternative, reasons }) => `\n- "${alternative.name}" was rejected because "${reasons}"`)
-	.join("")}`;
-
-			const preventDupesContext = preventDupesContextSnippet(results.map(({ name }) => name));
-
 			return [
 				...results,
 				...(await this.generateRelevantCandidates(amountNeedingRetry, {
-					additionalContext: `
-                    ${retryConfig?.additionalContext ?? ""}
-
-                    ${alreadyRejectedContext}
-
-                    ${preventDupesContext}
-                    `,
+					alreadyRejected: notPassing,
+					alreadyExisting: results,
 				})),
 			];
 		}
@@ -379,12 +382,11 @@ ${notPassing
 	 */
 	private async generateDiverseCandidates(
 		amountToRequest: number,
-		retryConfig?: { additionalContext: string },
+		retryConfig?: {
+			alreadyRejected?: Array<{ alternative: Pick<Candidate, "name">; reasons: string[] }>;
+			alreadyExisting?: Candidate[];
+		},
 	): Promise<Candidate[]> {
-		if (retryConfig?.additionalContext) {
-			console.log({ additionalContext: retryConfig.additionalContext });
-		}
-
 		const chain = structuredPrompt(
 			`
 You are a creative helpful financial advisor assistant. Your primary goal is to help the user find compelling, cheaper alternatives to their spending habits they would have not come up with themself, while not trading off on value propositions like convenience or happiness. Try to think outside of the box to save money while still meeting the value proposition.
@@ -393,7 +395,9 @@ ${spendingHabitContextSnippet}
 
 Please suggest {amountToRequest} unconventional or contrasting replacement spending habits.
 
-{additionalContext}
+{alreadyRejectedContext}
+
+{preventDupesContext}
 `,
 			z
 				.object({
@@ -411,13 +415,17 @@ Please suggest {amountToRequest} unconventional or contrasting replacement spend
 			gpt4oMini,
 		);
 
+		const alreadyRejectedContext = alreadyRejectedContextSnippet(retryConfig?.alreadyRejected ?? []);
+		const preventDupesContext = preventDupesContextSnippet(retryConfig?.alreadyExisting?.map(({ name }) => name) ?? []);
+
 		const { alternatives } = await chain.invoke({
 			valueProposition: this.props.valueProposition,
 			spendingHabitCost: this.props.spendingHabit.amount,
 			spendingHabitName: this.props.spendingHabit.name,
 			spendingHabitRecurrence: this.props.spendingHabit.freq,
 			amountToRequest,
-			additionalContext: retryConfig?.additionalContext ? retryConfig.additionalContext + "." : "",
+			alreadyRejectedContext,
+			preventDupesContext,
 		});
 
 		const passing = [];
@@ -450,24 +458,11 @@ Please suggest {amountToRequest} unconventional or contrasting replacement spend
 		 * Kinda morbid if you think about it
 		 */
 		if (amountNeedingRetry > 0) {
-			const alreadyRejectedContext = `
-The following previous replacement spending habits were rejected, please do not suggest them and please also factor this in to what you come up so it doesn't get rejected:
-${notPassing
-	.map(({ alternative, reasons }) => `\n- "${alternative.name}" was rejected because "${reasons}"`)
-	.join("")}`;
-
-			const preventDupesContext = preventDupesContextSnippet(results.map(({ name }) => name));
-
 			return [
 				...results,
 				...(await this.generateDiverseCandidates(amountNeedingRetry, {
-					additionalContext: `
-                    ${retryConfig?.additionalContext ?? ""}
-
-                    ${alreadyRejectedContext}
-
-                    ${preventDupesContext}
-                    `,
+					alreadyRejected: notPassing,
+					alreadyExisting: results,
 				})),
 			];
 		}
@@ -486,7 +481,7 @@ ${notPassing
 		const relevantCandidates = await this.generateRelevantCandidates(relevantToGenerate);
 
 		const diverseCandidates = await this.generateDiverseCandidates(diverseToGenerate, {
-			additionalContext: preventDupesContextSnippet(relevantCandidates.map(({ name }) => name)),
+			alreadyExisting: relevantCandidates,
 		});
 
 		this.pool = [...relevantCandidates, ...diverseCandidates];
