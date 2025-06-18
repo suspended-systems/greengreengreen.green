@@ -56,39 +56,49 @@ The following replacement spending habits were already recommended, please do no
 ${names.map((name) => `\n- "${name}"`)}
 `;
 
+const DEFAULT_WEIGHTS = { cost: 0.25, convenience: 0.25, experience: 0.25, healthImpact: 0.25 };
+const DEFAULT_BUCKET_CONFIGS = [
+	{ minSimilarity: 0.75, maxSimilarity: 1.0, targetCount: 3 },
+	{ minSimilarity: 0.45, maxSimilarity: 0.74, targetCount: 1 },
+	{ minSimilarity: 0.0, maxSimilarity: 0.44, targetCount: 1 },
+];
+
 /**
  * Replacement recommendation orchestrator
  */
 export class ReplacementRecommender {
-	private weights: {
-		cost: number;
-		convenience: number;
-		experience: number;
-		healthImpact: number;
-	};
-	private bucketConfigs: Array<{
-		minSimilarity: number;
-		maxSimilarity: number;
-		targetCount: number;
-	}>;
+	private pool: Array<Candidate> = [];
+	private weights = DEFAULT_WEIGHTS; // gets overriden by derived weights
+	private bucketConfigs = DEFAULT_BUCKET_CONFIGS;
 
-	constructor() {
-		// Default uniform weights until overridden by user
-		this.weights = { cost: 0.25, convenience: 0.25, experience: 0.25, healthImpact: 0.25 };
-		this.bucketConfigs = [
-			{ minSimilarity: 0.75, maxSimilarity: 1.0, targetCount: 3 },
-			{ minSimilarity: 0.45, maxSimilarity: 0.74, targetCount: 1 },
-			{ minSimilarity: 0.0, maxSimilarity: 0.44, targetCount: 1 },
-		];
+	constructor(
+		private props: {
+			resultSize: number;
+			poolToChooseFromSize: number;
+			diversityVsRelevanceTradeoffZeroToOne: number;
+			basicEquivalenceSimilarityScoreThresholdZeroToOne: number;
+			tooManyTradeoffsScoreThresholdZeroToOne: number;
+			valueProposition: string;
+			spendingHabit: { name: string; amount: `$${string}`; freq: string };
+		},
+	) {}
+
+	/**
+	 * Full pipeline: derive weights, generate, score, diversify, select
+	 */
+	async run(): Promise<Candidate[]> {
+		await this.deriveWeights();
+		await this.generatePool();
+		await this.tagAndScorePool();
+		await this.applyDiversityToPool();
+		await this.selectFinalPool();
+		return this.pool;
 	}
 
 	/**
 	 * Derive attribute weights from the user's value proposition description
 	 */
-	async deriveWeights(
-		valueProposition: string,
-		spendingHabit: { name: string; amount: `$${string}`; freq: string },
-	): Promise<void> {
+	async deriveWeights() {
 		const chain = structuredPrompt(
 			`
 You are an expert at deriving value proposition.
@@ -114,34 +124,32 @@ Assign weights to these attributes so they sum to 1: cost, convenience, experien
 		);
 
 		this.weights = await chain.invoke({
-			valueProposition,
-			spendingHabitCost: spendingHabit.amount,
-			spendingHabitName: spendingHabit.name,
-			spendingHabitRecurrence: spendingHabit.freq,
+			valueProposition: this.props.valueProposition,
+			spendingHabitCost: this.props.spendingHabit.amount,
+			spendingHabitName: this.props.spendingHabit.name,
+			spendingHabitRecurrence: this.props.spendingHabit.freq,
 		});
 	}
 
 	/**
 	 * Check candidate tradeoffs and similarity, returning pass/fail & reasons
 	 */
-	async checkCandidate(
-		valueProposition: string,
-		spendingHabit: { name: string; amount: `$${string}`; freq: string },
-		candidate: z.infer<typeof AlternativeSchema>,
-	): Promise<{ reasons: string[] }> {
+	async checkCandidate(candidate: z.infer<typeof AlternativeSchema>) {
 		const reasons: string[] = [];
 
 		const percentageSavings = Math.round(
-			((Number(spendingHabit.amount.slice(1)) - candidate.price) / Number(spendingHabit.amount.slice(1))) * 100,
+			((Number(this.props.spendingHabit.amount.slice(1)) - candidate.price) /
+				Number(this.props.spendingHabit.amount.slice(1))) *
+				100,
 		);
 
 		/**
 		 * If the savings is negligible then check if it's basically the same thing
 		 */
-		if (percentageSavings < 20) {
+		if (percentageSavings < 40) {
 			const judgeEquivalence = structuredPrompt(
 				`
-            ### SYSTEM
+### SYSTEM
 You are a personal-finance coach checking whether two consumer spending habits
 are *functionally equivalent* (see definition below).
 
@@ -177,18 +185,18 @@ Candidate="{CANDIDATE}"
 				similarity_score,
 				reason: equivalenceReason,
 			} = await judgeEquivalence.invoke({
-				ORIGINAL: spendingHabit.name,
+				ORIGINAL: this.props.spendingHabit.name,
 				CANDIDATE: candidate.name,
 			});
 
-			// e.g. treat as “too similar” if similarity_score > 0.8
-			if (equivalent && similarity_score > 0.8) {
+			if (equivalent && similarity_score > this.props.basicEquivalenceSimilarityScoreThresholdZeroToOne) {
 				reasons.push(`Basically equivalent to user's spending habit: ${equivalenceReason}`);
 			}
 		}
 
 		const judgeTradeoffs = structuredPrompt(
-			`### SYSTEM
+			`
+### SYSTEM
 You are a personal-finance coach who rates replacement spending habits for
 *trade-offs* vs an original habit.
 
@@ -252,13 +260,13 @@ AttributeWeights={WEIGHTS_JSON}`,
 			overall_score,
 			reason: tradeoffsReason,
 		} = await judgeTradeoffs.invoke({
-			ORIGINAL: spendingHabit.name,
+			ORIGINAL: this.props.spendingHabit.name,
 			CANDIDATE: candidate.name,
-			VALUE_PROP: valueProposition,
+			VALUE_PROP: this.props.valueProposition,
 			WEIGHTS_JSON: JSON.stringify(this.weights),
 		});
 
-		if (!minimal_tradeoffs && overall_score < 0.5) {
+		if (!minimal_tradeoffs && overall_score < this.props.tooManyTradeoffsScoreThresholdZeroToOne) {
 			reasons.push(`Too many tradeoffs to user's spending habit: ${tradeoffsReason}`);
 		}
 
@@ -269,8 +277,6 @@ AttributeWeights={WEIGHTS_JSON}`,
 	 * Generate {amountToRequest} highly relevant replacements
 	 */
 	private async generateRelevantCandidates(
-		valueProposition: string,
-		spendingHabit: { name: string; amount: `$${string}`; freq: string },
 		amountToRequest: number,
 		retryConfig?: { additionalContext: string },
 	): Promise<Candidate[]> {
@@ -305,10 +311,10 @@ Please suggest {amountToRequest} replacement spending habits.
 		);
 
 		const { alternatives } = await chain.invoke({
-			valueProposition,
-			spendingHabitCost: spendingHabit.amount,
-			spendingHabitName: spendingHabit.name,
-			spendingHabitRecurrence: spendingHabit.freq,
+			valueProposition: this.props.valueProposition,
+			spendingHabitCost: this.props.spendingHabit.amount,
+			spendingHabitName: this.props.spendingHabit.name,
+			spendingHabitRecurrence: this.props.spendingHabit.freq,
 			amountToRequest,
 			additionalContext: retryConfig?.additionalContext ? retryConfig.additionalContext + "." : "",
 		});
@@ -316,7 +322,7 @@ Please suggest {amountToRequest} replacement spending habits.
 		const passing = [];
 		const notPassing = [];
 		for (const alternative of alternatives) {
-			const { reasons } = await this.checkCandidate(valueProposition, spendingHabit, alternative);
+			const { reasons } = await this.checkCandidate(alternative);
 
 			if (reasons.length) {
 				notPassing.push({ alternative, reasons });
@@ -353,7 +359,7 @@ ${notPassing
 
 			return [
 				...results,
-				...(await this.generateRelevantCandidates(valueProposition, spendingHabit, amountNeedingRetry, {
+				...(await this.generateRelevantCandidates(amountNeedingRetry, {
 					additionalContext: `
                     ${retryConfig?.additionalContext ?? ""}
 
@@ -372,8 +378,6 @@ ${notPassing
 	 * Generate {amountToRequest} diverse/unexpected replacements
 	 */
 	private async generateDiverseCandidates(
-		valueProposition: string,
-		spendingHabit: { name: string; amount: `$${string}`; freq: string },
 		amountToRequest: number,
 		retryConfig?: { additionalContext: string },
 	): Promise<Candidate[]> {
@@ -408,10 +412,10 @@ Please suggest {amountToRequest} unconventional or contrasting replacement spend
 		);
 
 		const { alternatives } = await chain.invoke({
-			valueProposition,
-			spendingHabitCost: spendingHabit.amount,
-			spendingHabitName: spendingHabit.name,
-			spendingHabitRecurrence: spendingHabit.freq,
+			valueProposition: this.props.valueProposition,
+			spendingHabitCost: this.props.spendingHabit.amount,
+			spendingHabitName: this.props.spendingHabit.name,
+			spendingHabitRecurrence: this.props.spendingHabit.freq,
 			amountToRequest,
 			additionalContext: retryConfig?.additionalContext ? retryConfig.additionalContext + "." : "",
 		});
@@ -419,7 +423,7 @@ Please suggest {amountToRequest} unconventional or contrasting replacement spend
 		const passing = [];
 		const notPassing = [];
 		for (const alternative of alternatives) {
-			const { reasons } = await this.checkCandidate(valueProposition, spendingHabit, alternative);
+			const { reasons } = await this.checkCandidate(alternative);
 
 			if (reasons.length) {
 				notPassing.push({ alternative, reasons });
@@ -456,7 +460,7 @@ ${notPassing
 
 			return [
 				...results,
-				...(await this.generateDiverseCandidates(valueProposition, spendingHabit, amountNeedingRetry, {
+				...(await this.generateDiverseCandidates(amountNeedingRetry, {
 					additionalContext: `
                     ${retryConfig?.additionalContext ?? ""}
 
@@ -474,47 +478,32 @@ ${notPassing
 	/**
 	 * Feed output of one candidate generator into the next to prevent duplicate results
 	 */
-	async generateCandidates(
-		valueProposition: string,
-		spendingHabit: { name: string; amount: `$${string}`; freq: string },
-	): Promise<Candidate[]> {
-		const relevant = await this.generateRelevantCandidates(valueProposition, spendingHabit, 3);
+	async generatePool() {
+		// 60 : 40 split
+		const relevantToGenerate = Math.round(this.props.poolToChooseFromSize * 0.6);
+		const diverseToGenerate = Math.round(this.props.poolToChooseFromSize * 0.4);
 
-		const diverse = await this.generateDiverseCandidates(valueProposition, spendingHabit, 2, {
-			additionalContext: preventDupesContextSnippet(relevant.map(({ name }) => name)),
+		const relevantCandidates = await this.generateRelevantCandidates(relevantToGenerate);
+
+		const diverseCandidates = await this.generateDiverseCandidates(diverseToGenerate, {
+			additionalContext: preventDupesContextSnippet(relevantCandidates.map(({ name }) => name)),
 		});
 
-		return [...relevant, ...diverse];
+		this.pool = [...relevantCandidates, ...diverseCandidates];
 	}
 
 	/**
 	 * Deterministically compute cost, estimate the other attributes via LLM
 	 */
-	async tagAndScoreCandidates(
-		valueProposition: string,
-		spendingHabit: { name: string; amount: `$${string}`; freq: string },
-		candidates: Candidate[],
-	): Promise<Candidate[]> {
-		const originalCost = Number(spendingHabit.amount.slice(1)); // slice removes leading $
+	async tagAndScorePool() {
+		const originalCost = Number(this.props.spendingHabit.amount.slice(1)); // slice removes leading $
 
 		// todo: all in one prompt!
-		for (const candidate of candidates) {
-			const candidateCost = candidate.price;
-
+		for (const candidate of this.pool) {
 			// Normalize cost: equal = 0.5; more expensive < 0.5; cheaper > 0.5 up to 1.0
-			const ratio = candidateCost > 0 ? originalCost / candidateCost : 0;
-			let costScore: number;
-			if (Math.abs(ratio - 1) < 1e-6) {
-				costScore = 0.5;
-			} else if (ratio < 1) {
-				// Candidate is more expensive: map ratio [0,1) to [0,0.5)
-				costScore = ratio * 0.5;
-			} else {
-				// Candidate is cheaper: map ratio (1,2] to (0.5,1], cap at ratio=2
-				const capped = Math.min(ratio, 2);
-				costScore = 0.5 + (capped - 1) * 0.5;
-			}
-			candidate.cost = costScore;
+			const ratio = candidate.price > 0 ? originalCost / candidate.price : 0;
+			candidate.cost =
+				Math.abs(ratio - 1) < 1e-6 ? 0.5 : ratio < 1 ? ratio * 0.5 : 0.5 + (Math.min(ratio, 2) - 1) * 0.5;
 
 			// Similarity score
 			const simChain = structuredPrompt(
@@ -531,10 +520,10 @@ On a scale from 0 to 1, how similar is replacement spending habit "{candidate}" 
 			);
 			const { similarity } = await simChain.invoke({
 				candidate: candidate.name,
-				valueProposition,
-				spendingHabitCost: spendingHabit.amount,
-				spendingHabitName: spendingHabit.name,
-				spendingHabitRecurrence: spendingHabit.freq,
+				valueProposition: this.props.valueProposition,
+				spendingHabitCost: this.props.spendingHabit.amount,
+				spendingHabitName: this.props.spendingHabit.name,
+				spendingHabitRecurrence: this.props.spendingHabit.freq,
 			});
 
 			candidate.similarityScore = similarity;
@@ -564,30 +553,28 @@ Estimate on a scale from 0 to 1 these attributes for "{candidate}": convenience,
 				candidate.experience * this.weights.experience +
 				candidate.healthImpact * this.weights.healthImpact;
 		}
-		return candidates;
 	}
 
 	/**
-	 * 1) Re-rank by MMR for diversity
-	 * 2) Assign each candidate to a bucket.
+	 * Re-rank by MMR for diversity.
+	 * Assign each candidate to a bucket.
 	 */
-	async applyDiversity(candidates: Candidate[]): Promise<Candidate[]> {
-		const ideal = {
-			cost: 0.75,
-			convenience: 1.0,
-			experience: 0.5,
-			healthImpact: 0.25,
-		};
-		const idealEmbedding = [ideal.cost, ideal.convenience, ideal.experience, ideal.healthImpact];
+	async applyDiversityToPool() {
+		const idealEmbedding = [
+			this.weights.cost,
+			this.weights.convenience,
+			this.weights.experience,
+			this.weights.healthImpact,
+		];
 
-		const embeddings = candidates.map((c) => [c.cost, c.convenience, c.experience, c.healthImpact]);
+		const embeddings = this.pool.map((c) => [c.cost, c.convenience, c.experience, c.healthImpact]);
 		const idxs = maximalMarginalRelevance(
 			idealEmbedding, // e.g. same 4-D vector of the “ideal” candidate profile
 			embeddings,
-			0.5, // diversity vs. relevance tradeoff
-			candidates.length,
+			this.props.diversityVsRelevanceTradeoffZeroToOne,
+			this.pool.length,
 		);
-		const list = idxs.map((i) => candidates[i]);
+		const list = idxs.map((i) => this.pool[i]);
 
 		// Now assign each candidate to its bucket based on similarityScore
 		list.forEach((c) => {
@@ -597,20 +584,19 @@ Estimate on a scale from 0 to 1 these attributes for "{candidate}": convenience,
 			c.bucketIndex = idx >= 0 ? idx : this.bucketConfigs.length - 1;
 		});
 
-		return list;
+		this.pool = list;
 	}
 
 	/**
-	 * 1) For each bucket, sample up to targetCount items by utility-weighted random.
-	 * 2) If you still have fewer than 5, backfill by sampling remaining items
-	 *    with weight = computedUtility + similarityScore.
+	 * For each bucket, sample up to {this.props.resultSize} items by utility-weighted random.
+	 * If we still have fewer than {this.props.resultSize}, backfill by sampling remaining items with weight = computedUtility + similarityScore.
 	 */
-	async selectFinal(candidates: Candidate[]): Promise<Candidate[]> {
+	async selectFinalPool() {
 		const finalList: Candidate[] = [];
 
 		// Per-bucket weighted sampling
 		this.bucketConfigs.forEach((b, i) => {
-			const bucketItems = candidates.filter((c) => c.bucketIndex === i);
+			const bucketItems = this.pool.filter((c) => c.bucketIndex === i);
 
 			if (bucketItems.length <= b.targetCount) {
 				finalList.push(...bucketItems);
@@ -629,9 +615,9 @@ Estimate on a scale from 0 to 1 these attributes for "{candidate}": convenience,
 		});
 
 		// Backfill up to 5 if needed
-		if (finalList.length < 5) {
-			const needed = 5 - finalList.length;
-			const remaining = _.difference(candidates, finalList);
+		if (finalList.length < this.props.resultSize) {
+			const needed = this.props.resultSize - finalList.length;
+			const remaining = _.difference(this.pool, finalList);
 
 			if (remaining.length) {
 				const weightedItems = remaining.map((c) => ({
@@ -646,34 +632,6 @@ Estimate on a scale from 0 to 1 these attributes for "{candidate}": convenience,
 			}
 		}
 
-		return finalList.slice(0, 5);
-	}
-
-	/**
-	 * Validation stub
-	 */
-	async validate(candidates: Candidate[]): Promise<Candidate[]> {
-		// TODO: add business-rule filters (user preferences, allergens) or human review
-		return candidates;
-	}
-
-	/**
-	 * Full pipeline: derive weights, generate, score, diversify, select, validate
-	 */
-	async recommendReplacements(
-		spendingHabit: { name: string; amount: `$${string}`; freq: string },
-		valueProposition: string,
-	): Promise<Candidate[]> {
-		await this.deriveWeights(valueProposition, spendingHabit);
-		let pool = await this.generateCandidates(valueProposition, spendingHabit);
-		pool = await this.tagAndScoreCandidates(valueProposition, spendingHabit, pool);
-		pool = await this.applyDiversity(pool);
-		pool = await this.selectFinal(pool);
-		pool = await this.validate(pool);
-		return pool;
+		this.pool = finalList.slice(0, this.props.resultSize);
 	}
 }
-
-// Example usage (stubbed):
-// const rec = new ReplacementRecommender(process.env.OPENAI_API_KEY!);
-// rec.recommendReplacements("DoorDash", "I want affordable, quick options that support healthy eating").then(console.log);

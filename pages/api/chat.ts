@@ -18,7 +18,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			.map((m) => m.content)
 			.join("\n");
 
-		const alternatives = await new ReplacementRecommender().recommendReplacements(spendingHabit, userMessageLog);
+		const alternatives = await new ReplacementRecommender({
+			resultSize: 5,
+			poolToChooseFromSize: 100,
+			diversityVsRelevanceTradeoffZeroToOne: 0.5,
+			basicEquivalenceSimilarityScoreThresholdZeroToOne: 0.8,
+			tooManyTradeoffsScoreThresholdZeroToOne: 0.5,
+			spendingHabit,
+			valueProposition: userMessageLog,
+		}).run();
 
 		return res.json({
 			summary: "",

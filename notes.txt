@@ -96,11 +96,15 @@
 
 ### - ensure chat can't 504 or response hanging
 
+### - fix Starting date loading
+
+### - fix session/tabbing out resetting the chat, assistant is typing cleanup
+
 #- more complex langchain pipeline!
-
-- fix session/tabbing out resetting the chat, assistant is typing cleanup
-
-- fix Starting date loading
+    - adjust additionalContext to one header/list per section
+    - make all calls into one
+    - increase candidate pool size
+    - fine tuning on prioritizing cost saving in weights
 
 - get rid of `any` types, think just next auth left to do
 
@@ -112,7 +116,8 @@
 future roadmap:
 - "Warning: you'll be in the red starting on {DATE}" calendar view with go to date button ->
 - chat response text streaming
-- make the chat results display experience better. Maybe shrink the chat on results loading.
+- make the chat results display experience better. Maybe shrink the text input on results loading.
+- tx table column for adjusted {daily} cost or whatever time unit you choose (drop down menu). So you can sort by adjusted cost
 - mobile make tab buttons position fixed so scroll only covers tab content  
 - forecast graph tab
 - Allow typing date instead of date picker
