@@ -96,7 +96,7 @@
 
 ### - ensure chat can't 504 or response hanging
 
-- more complex langchain pipeline!
+#- more complex langchain pipeline!
 
 - fix session/tabbing out resetting the chat, assistant is typing cleanup
 
@@ -110,6 +110,7 @@
 
 
 future roadmap:
+- "Warning: you'll be in the red starting on {DATE}" calendar view with go to date button ->
 - chat response text streaming
 - make the chat results display experience better. Maybe shrink the chat on results loading.
 - mobile make tab buttons position fixed so scroll only covers tab content  
