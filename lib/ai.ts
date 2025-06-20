@@ -1,6 +1,14 @@
+import { ChatOpenAI } from "@langchain/openai";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { z } from "zod";
+
+export const gpt4oMini = new ChatOpenAI({
+	modelName: "gpt-4o-mini",
+	temperature: 0.7,
+	timeout: 30_000, // 30s
+	maxRetries: 2,
+});
 
 /**
  * Helper for writing a chain

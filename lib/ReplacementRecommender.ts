@@ -1,9 +1,9 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { structuredPrompt } from "./ai";
 import { z } from "zod";
 import _ from "lodash";
 import { maximalMarginalRelevance } from "@langchain/core/utils/math";
 import { createWeightedSampler } from "efficient-random-weighted";
+
+import { gpt4oMini, structuredPrompt } from "./ai";
 
 type Candidate = {
 	name: string;
@@ -16,20 +16,13 @@ type Candidate = {
 	bucketIndex?: number;
 } & z.infer<typeof AlternativeSchema>;
 
-const gpt4oMini = new ChatOpenAI({
-	modelName: "gpt-4o-mini",
-	temperature: 0.7,
-	timeout: 30_000, // 30s
-	maxRetries: 2,
-});
-
 const ZeroToOneInclusiveSchema = z
 	.number()
 	.min(0, { message: "Must be at least 0" })
 	.max(1, { message: "Must be at most 1" })
 	.describe("<0-1>");
 
-const AlternativeSchema = z.object({
+export const AlternativeSchema = z.object({
 	id: z.string(),
 	name: z.string().describe("a brief noun phrase (e.g. “Drive‑thru pickup”, “Meal kit”, “Grocery delivery kit”)"),
 	price: z.number().describe("cheaper than the existing spending habit price (i.e. {spendingHabitCost})"),
@@ -145,31 +138,27 @@ Assign weights to these attributes so they sum to 1: cost, convenience, experien
 	/**
 	 * Check candidate tradeoffs and similarity, returning pass/fail & reasons
 	 */
-	async checkCandidate(candidate: z.infer<typeof AlternativeSchema>) {
-		const reasons: string[] = [];
-
-		const percentageSavings = Math.round(
-			((Number(this.props.spendingHabit.amount.slice(1)) - candidate.price) /
-				Number(this.props.spendingHabit.amount.slice(1))) *
-				100,
-		);
-
-		/**
-		 * If the savings is negligible then check if it's basically the same thing
-		 */
-		if (percentageSavings < 40) {
-			const judgeEquivalence = structuredPrompt(
-				`
-### SYSTEM
-You are a personal-finance coach checking whether two consumer spending habits
-are *functionally equivalent* (see definition below).
+	async verifyAlternativesMeetCriteria(candidates: Array<z.infer<typeof AlternativeSchema>>) {
+		// return { passing: candidates };
+		const prompt = structuredPrompt(
+			`### SYSTEM
+You are a personal-finance coach rating items in a list of candidate replacement spending habits for...
+- whether replacement is *functionally equivalent* (see definition below) to original
+- *trade-offs* vs original
 
 DEFINITION OF “FUNCTIONALLY EQUIVALENT”:
 A pair is equivalent only if a typical consumer could substitute one for the
 other with **negligible change** in job-to-be-done, context of use, economic
 model, *and* switch-cost.
 
-### EXAMPLES
+DEFINITION OF “MINIMAL TRADE-OFFS” (see four rules below):
+1. Preserve or improve every *key attribute* of the user’s value proposition.
+2. Do not appreciably worsen hygiene factors (convenience, availability,
+   reliability, safety).
+3. Overall weighted utility change must be ≥ 0 (no net loss).
+4. No single attribute can be ≥ 2 levels worse on a 5-point scale.
+
+### "ARE EQUIVALENT" EXAMPLES
 User: Original="DoorDash", Candidate="Uber Eats"
 Assistant: {{"equivalent": true, "similarity_score": 0.93, "reason": "Both are on-demand restaurant delivery apps with near-identical ordering flows, pricing, and usage contexts."}}
 
@@ -179,46 +168,7 @@ Assistant: {{"equivalent": false, "similarity_score": 0.27, "reason": "DoorDash 
 User: Original="Amazon Prime Video", Candidate="Netflix"
 Assistant: {{"equivalent": true, "similarity_score": 0.86, "reason": "Both are flat-rate streaming video subscriptions consumed on the same devices and contexts."}}
 
-### TASK
-Original="{ORIGINAL}"
-Candidate="{CANDIDATE}"
-`,
-				z.object({
-					equivalent: z.boolean().describe("true ↔ functionally equivalent"),
-					similarity_score: z.number().min(0).max(1).describe("0.0-1.0, higher = more similar"),
-					reason: z.string().max(60).describe("≤ 40 words"),
-				}),
-				gpt4oMini,
-			);
-
-			const {
-				equivalent,
-				similarity_score,
-				reason: equivalenceReason,
-			} = await judgeEquivalence.invoke({
-				ORIGINAL: this.props.spendingHabit.name,
-				CANDIDATE: candidate.name,
-			});
-
-			if (equivalent && similarity_score > this.props.basicEquivalenceSimilarityScoreThresholdZeroToOne) {
-				reasons.push(`Basically equivalent to user's spending habit: ${equivalenceReason}`);
-			}
-		}
-
-		const judgeTradeoffs = structuredPrompt(
-			`
-### SYSTEM
-You are a personal-finance coach who rates replacement spending habits for
-*trade-offs* vs an original habit.
-
-DEFINITION OF “MINIMAL TRADE-OFFS” (see four rules below):
-1. Preserve or improve every *key attribute* of the user’s value proposition.
-2. Do not appreciably worsen hygiene factors (convenience, availability,
-   reliability, safety).
-3. Overall weighted utility change must be ≥ 0 (no net loss).
-4. No single attribute can be ≥ 2 levels worse on a 5-point scale.
-
-### EXAMPLES
+### "TRADEOFFS" EXAMPLES
 User:
   Original="DoorDash", Candidate="Home-cooked meal prep",
   ValueProposition="I value convenience and good taste but want to lower cost and
@@ -244,44 +194,88 @@ Assistant:
 
 ### TASK
 Original="{ORIGINAL}"
-Candidate="{CANDIDATE}"
-UserValueProposition="{VALUE_PROP}"
-AttributeWeights={WEIGHTS_JSON}`,
+Candidates={CANDIDATES_JSON}
+ValueProposition="{VALUE_PROP}"
+AttributeWeights={WEIGHTS_JSON}
+`,
 			z.object({
-				minimal_tradeoffs: z.boolean().describe("true ↔ minimal trade-offs"),
-				overall_score: z.number().min(0).max(1).describe("0-1 where 1 = perfect, 0 = unacceptable"),
-				attribute_deltas: z
-					.object({
-						cost: z.number().min(-2).max(2),
-						convenience: z.number().min(-2).max(2),
-						experience: z.number().min(-2).max(2),
-						healthImpact: z.number().min(-2).max(2),
-						reliability: z.number().min(-2).max(2),
-						availability: z.number().min(-2).max(2),
-						safety: z.number().min(-2).max(2),
-					})
-					.describe("-2..+2 per attribute (5-point scale diff)"),
-				reason: z.string().max(80).describe("≤ 60 words"),
+				candidateJudgements: z.array(
+					z.object({
+						name: z.string().describe("the name of the respective replacement spending habit from the JSON list"),
+						equivalenceJudgement: z.object({
+							equivalent: z.boolean().describe("true ↔ functionally equivalent"),
+							similarity_score: z.number().min(0).max(1).describe("0.0-1.0, higher = more similar"),
+							reason: z.string().max(60).describe("≤ 40 words"),
+						}),
+						tradeoffsJudgement: z.object({
+							minimal_tradeoffs: z.boolean().describe("true ↔ minimal trade-offs"),
+							overall_score: z.number().min(0).max(1).describe("0-1 where 1 = perfect, 0 = unacceptable"),
+							attribute_deltas: z
+								.object({
+									cost: z.number().min(-2).max(2),
+									convenience: z.number().min(-2).max(2),
+									experience: z.number().min(-2).max(2),
+									healthImpact: z.number().min(-2).max(2),
+									reliability: z.number().min(-2).max(2),
+									availability: z.number().min(-2).max(2),
+									safety: z.number().min(-2).max(2),
+								})
+								.describe("-2..+2 per attribute (5-point scale diff)"),
+							reason: z.string().max(80).describe("≤ 60 words"),
+						}),
+					}),
+				),
 			}),
 			gpt4oMini,
 		);
 
-		const {
-			minimal_tradeoffs,
-			overall_score,
-			reason: tradeoffsReason,
-		} = await judgeTradeoffs.invoke({
+		const { candidateJudgements } = await prompt.invoke({
 			ORIGINAL: this.props.spendingHabit.name,
-			CANDIDATE: candidate.name,
+			CANDIDATES_JSON: JSON.stringify(candidates),
 			VALUE_PROP: this.props.valueProposition,
 			WEIGHTS_JSON: JSON.stringify(this.weights),
 		});
 
-		if (!minimal_tradeoffs && overall_score < this.props.tooManyTradeoffsScoreThresholdZeroToOne) {
-			reasons.push(`Too many tradeoffs to user's spending habit: ${tradeoffsReason}`);
-		}
+		const passing: Array<z.infer<typeof AlternativeSchema>> = [];
+		const failing: Array<{ alternative: z.infer<typeof AlternativeSchema>; reasons: string[] }> = [];
+		candidates.forEach((candidate) => {
+			const judgement = candidateJudgements.find(({ name }) => name === candidate.name)!; // todo: graceful handling if LLM were to not include a candidate
 
-		return { reasons };
+			const { equivalent, similarity_score, reason: equivalenceReason } = judgement.equivalenceJudgement;
+
+			const { minimal_tradeoffs, overall_score, reason: tradeoffsReason } = judgement.tradeoffsJudgement;
+
+			const percentageSavings = Math.round(
+				((Number(this.props.spendingHabit.amount.slice(1)) - candidate.price) /
+					Number(this.props.spendingHabit.amount.slice(1))) *
+					100,
+			);
+
+			const reasons: string[] = [];
+
+			/**
+			 * If the savings is negligible then make sure it's not basically the same thing
+			 */
+			if (
+				percentageSavings <= 25 &&
+				equivalent &&
+				similarity_score > this.props.basicEquivalenceSimilarityScoreThresholdZeroToOne
+			) {
+				reasons.push(`Basically equivalent to user's spending habit: ${equivalenceReason}`);
+			}
+
+			if (!minimal_tradeoffs && overall_score < this.props.tooManyTradeoffsScoreThresholdZeroToOne) {
+				reasons.push(`Too many tradeoffs to user's spending habit: ${tradeoffsReason}`);
+			}
+
+			if (reasons.length) {
+				failing.push({ alternative: candidate, reasons });
+			} else {
+				passing.push(candidate);
+			}
+		});
+
+		return { failing, passing };
 	}
 
 	/**
@@ -294,6 +288,16 @@ AttributeWeights={WEIGHTS_JSON}`,
 			alreadyExisting?: Candidate[];
 		},
 	): Promise<Candidate[]> {
+		retryConfig?.alreadyRejected &&
+			console.log("relevant", {
+				amountToRequest,
+				retryConfig: {
+					alreadyRejected: retryConfig?.alreadyRejected?.map(({ alternative, reasons }) =>
+						JSON.stringify([alternative.name, reasons]),
+					),
+				},
+			});
+
 		const chain = structuredPrompt(
 			`
 You are an expert financial advisor assistant. Your primary goal is to help the user find compelling, cheaper alternatives to their spending habits, while not trading off on value propositions like convenience or happiness.
@@ -335,17 +339,7 @@ Please suggest {amountToRequest} replacement spending habits.
 			preventDupesContext,
 		});
 
-		const passing = [];
-		const notPassing = [];
-		for (const alternative of alternatives) {
-			const { reasons } = await this.checkCandidate(alternative);
-
-			if (reasons.length) {
-				notPassing.push({ alternative, reasons });
-			} else {
-				passing.push(alternative);
-			}
-		}
+		const { passing, failing } = await this.verifyAlternativesMeetCriteria(alternatives);
 
 		const results = passing.map((alternative) => ({
 			...alternative,
@@ -368,8 +362,8 @@ Please suggest {amountToRequest} replacement spending habits.
 			return [
 				...results,
 				...(await this.generateRelevantCandidates(amountNeedingRetry, {
-					alreadyRejected: notPassing,
-					alreadyExisting: results,
+					alreadyRejected: [...(retryConfig?.alreadyRejected ?? []), ...failing],
+					alreadyExisting: [...(retryConfig?.alreadyExisting ?? []), ...results],
 				})),
 			];
 		}
@@ -387,6 +381,16 @@ Please suggest {amountToRequest} replacement spending habits.
 			alreadyExisting?: Candidate[];
 		},
 	): Promise<Candidate[]> {
+		retryConfig?.alreadyRejected &&
+			console.log("diverse", {
+				amountToRequest,
+				retryConfig: {
+					alreadyRejected: retryConfig?.alreadyRejected?.map(({ alternative, reasons }) =>
+						JSON.stringify([alternative.name, reasons]),
+					),
+				},
+			});
+
 		const chain = structuredPrompt(
 			`
 You are a creative helpful financial advisor assistant. Your primary goal is to help the user find compelling, cheaper alternatives to their spending habits they would have not come up with themself, while not trading off on value propositions like convenience or happiness. Try to think outside of the box to save money while still meeting the value proposition.
@@ -428,17 +432,7 @@ Please suggest {amountToRequest} unconventional or contrasting replacement spend
 			preventDupesContext,
 		});
 
-		const passing = [];
-		const notPassing = [];
-		for (const alternative of alternatives) {
-			const { reasons } = await this.checkCandidate(alternative);
-
-			if (reasons.length) {
-				notPassing.push({ alternative, reasons });
-			} else {
-				passing.push(alternative);
-			}
-		}
+		const { passing, failing } = await this.verifyAlternativesMeetCriteria(alternatives);
 
 		const results = passing.map((alternative) => ({
 			...alternative,
@@ -461,8 +455,8 @@ Please suggest {amountToRequest} unconventional or contrasting replacement spend
 			return [
 				...results,
 				...(await this.generateDiverseCandidates(amountNeedingRetry, {
-					alreadyRejected: notPassing,
-					alreadyExisting: results,
+					alreadyRejected: [...(retryConfig?.alreadyRejected ?? []), ...failing],
+					alreadyExisting: [...(retryConfig?.alreadyExisting ?? []), ...results],
 				})),
 			];
 		}
@@ -493,53 +487,59 @@ Please suggest {amountToRequest} unconventional or contrasting replacement spend
 	async tagAndScorePool() {
 		const originalCost = Number(this.props.spendingHabit.amount.slice(1)); // slice removes leading $
 
-		// todo: all in one prompt!
-		for (const candidate of this.pool) {
+		const prompt = structuredPrompt(
+			`
+${spendingHabitContextSnippet}
+
+And given this this JSON list of candidate replacement spending habits:
+{jsonCandidatesList}
+
+On a scale from 0 to 1, how similar is each replacement spending habit to the user's spending habit"?
+
+Then estimate on a scale from 0 to 1 these attributes for each replacement spending habit: convenience, experience, healthImpact.
+`,
+			z.object({
+				candidateScores: z.array(
+					z.object({
+						name: z.string().describe("the name of the respective replacement spending habit from the JSON list"),
+						similarity: ZeroToOneInclusiveSchema.describe(
+							"0-1 similarity of replacement spending habit to the user's spending habit ({spendingHabitName})",
+						),
+						attributes: z.object({
+							convenience: ZeroToOneInclusiveSchema,
+							experience: ZeroToOneInclusiveSchema,
+							healthImpact: ZeroToOneInclusiveSchema,
+						}),
+					}),
+				),
+			}),
+			gpt4oMini,
+		);
+
+		const { candidateScores } = await prompt.invoke({
+			valueProposition: this.props.valueProposition,
+			spendingHabitCost: this.props.spendingHabit.amount,
+			spendingHabitName: this.props.spendingHabit.name,
+			spendingHabitRecurrence: this.props.spendingHabit.freq,
+			jsonCandidatesList: JSON.stringify(this.pool),
+		});
+
+		/**
+		 * Assign scores
+		 */
+		this.pool.forEach((candidate) => {
 			// Normalize cost: equal = 0.5; more expensive < 0.5; cheaper > 0.5 up to 1.0
 			const ratio = candidate.price > 0 ? originalCost / candidate.price : 0;
+
 			candidate.cost =
 				Math.abs(ratio - 1) < 1e-6 ? 0.5 : ratio < 1 ? ratio * 0.5 : 0.5 + (Math.min(ratio, 2) - 1) * 0.5;
 
-			// Similarity score
-			const simChain = structuredPrompt(
-				`
-${spendingHabitContextSnippet}
-                
-On a scale from 0 to 1, how similar is replacement spending habit "{candidate}" to the user's spending habit"?`,
-				z
-					.object({ similarity: ZeroToOneInclusiveSchema })
-					.describe(
-						"0-1 similarity of replacement spending habit ({candidate}) to the user's spending habit ({spendingHabitName})",
-					),
-				gpt4oMini,
-			);
-			const { similarity } = await simChain.invoke({
-				candidate: candidate.name,
-				valueProposition: this.props.valueProposition,
-				spendingHabitCost: this.props.spendingHabit.amount,
-				spendingHabitName: this.props.spendingHabit.name,
-				spendingHabitRecurrence: this.props.spendingHabit.freq,
-			});
+			const { attributes, similarity } = candidateScores.find(({ name }) => name === candidate.name)!; // todo: graceful handling if LLM were to not include a candidate
 
 			candidate.similarityScore = similarity;
-
-			// Estimate remaining attributes via LLM
-			const attrChain = structuredPrompt(
-				`
-Estimate on a scale from 0 to 1 these attributes for "{candidate}": convenience, experience, healthImpact.
-`,
-				z.object({
-					convenience: ZeroToOneInclusiveSchema,
-					experience: ZeroToOneInclusiveSchema,
-					healthImpact: ZeroToOneInclusiveSchema,
-				}),
-				gpt4oMini,
-			);
-			const { convenience, experience, healthImpact } = await attrChain.invoke({ candidate: candidate.name });
-
-			candidate.convenience = convenience;
-			candidate.experience = experience;
-			candidate.healthImpact = healthImpact;
+			candidate.convenience = attributes.convenience;
+			candidate.experience = attributes.experience;
+			candidate.healthImpact = attributes.healthImpact;
 
 			// Compute utility: weighted sum
 			candidate.computedUtility =
@@ -547,7 +547,7 @@ Estimate on a scale from 0 to 1 these attributes for "{candidate}": convenience,
 				candidate.convenience * this.weights.convenience +
 				candidate.experience * this.weights.experience +
 				candidate.healthImpact * this.weights.healthImpact;
-		}
+		});
 	}
 
 	/**
