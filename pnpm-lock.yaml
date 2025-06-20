@@ -59,6 +59,9 @@ importers:
       deepmerge:
         specifier: ^4.3.1
         version: 4.3.1
+      efficient-random-weighted:
+        specifier: ^1.0.4
+        version: 1.0.4
       google-auth-library:
         specifier: ^9.15.1
         version: 9.15.1
@@ -1715,6 +1718,9 @@ packages:
 
   ecdsa-sig-formatter@1.0.11:
     resolution: {integrity: sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==}
+
+  efficient-random-weighted@1.0.4:
+    resolution: {integrity: sha512-UN5rhjUkE4kIZBsOobLPIsqJ+RgjFZoE+7cPMUNY5Sll2tRJDRO8L/D0D59tUrBFmzcYiW4hcqdxotjqXRkRVQ==}
 
   emoji-regex@9.2.2:
     resolution: {integrity: sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==}
@@ -4815,6 +4821,8 @@ snapshots:
   ecdsa-sig-formatter@1.0.11:
     dependencies:
       safe-buffer: 5.2.1
+
+  efficient-random-weighted@1.0.4: {}
 
   emoji-regex@9.2.2: {}
 

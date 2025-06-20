@@ -27,6 +27,7 @@
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "deepmerge": "^4.3.1",
+    "efficient-random-weighted": "^1.0.4",
     "google-auth-library": "^9.15.1",
     "google-spreadsheet": "^4.1.4",
     "googleapis": "^148.0.0",

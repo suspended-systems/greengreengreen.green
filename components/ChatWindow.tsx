@@ -1,15 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { v4 as uuid } from "uuid";
 import { ArrowUpIcon, TriangleAlertIcon } from "lucide-react";
-import { toast } from "sonner";
 
 type Alternative = {
 	id: string;
 	name: string;
 	price: number;
 	frequency: string;
-	percentageSavings: number;
-	annualSavings: number;
 	pros: string[];
 	cons: string[];
 };
@@ -49,7 +46,7 @@ const ChatWindow = ({
 			{
 				id: uuid(),
 				role: "assistant",
-				content: `What value does ${initialPayload.name} ${initialPayload.freq} provide you?`,
+				content: `What does ${initialPayload.name} ${initialPayload.freq} do for you?`,
 			},
 		]);
 	}, [initialPayload]);
@@ -148,11 +145,14 @@ const ChatWindow = ({
 											{m.alternatives.slice(0, 5).map((alt) => (
 												<div key={alt.id} className="p-2 border border-gray-300 dark:border-[#519c6b]/40 rounded mb-2">
 													<button
-														className="font-medium cursor-pointer bg-[#519c6b] text-white px-2 py-1 rounded"
+														className="w-full font-medium cursor-pointer bg-[#519c6b] text-white px-2 py-1 rounded"
 														onClick={() => onSelectAlternative(alt)}
 														disabled={loading}
 													>
-														{`$${alt.price} (save ${alt.percentageSavings}%) — ${alt.name} (save $${alt.annualSavings} annually)`}
+														<p>{alt.name}</p>
+														<p>{`$${alt.price} (save ${Math.round(
+															((initialPayload.amount.slice(1) - alt.price) / initialPayload.amount.slice(1)) * 100,
+														)}%)`}</p>
 													</button>
 													<div className="text-xs mt-1 text-gray-800 dark:text-gray-200">
 														<div className="font-semibold">Tradeoffs:</div>

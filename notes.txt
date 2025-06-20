@@ -96,22 +96,27 @@
 
 ### - ensure chat can't 504 or response hanging
 
-- more complex langchain pipeline!
+### - fix Starting date loading
 
-- fix session/tabbing out resetting the chat, assistant is typing cleanup
+### - fix session/tabbing out resetting the chat, assistant is typing cleanup
 
-- fix Starting date loading
+### - more complex langchain pipeline!
+    ### - adjust additionalContext to one header/list per section
+    ### - make all calls into one
+    ### - increase candidate pool size 
 
-- get rid of `any` types, think just next auth left to do
-
-- second recommendations version: where it takes all the txs rather than focusing on one. instead of chat, show as tiles in tx view with overall monthly/average
-
-- favicon
-
+### - get rid of `any` types, think just next auth left to do
 
 future roadmap:
+- experimental chat engine incorporation
+- favicon
+- better dedupe for chat recommendations
+- better cost saving weighting/fine tuning for chat recommendations
+- second recommendations version: where it takes all the txs rather than focusing on one. instead of chat, show as tiles in tx view with overall monthly/average
+- "Warning: you'll be in the red starting on {DATE}" calendar view with go to date button ->
 - chat response text streaming
-- make the chat results display experience better. Maybe shrink the chat on results loading.
+- make the chat results display experience better. Maybe shrink the text input on results loading. Maybe each option can be "retried" and given a reason why it is not liked/curator experience
+- tx table column for adjusted {daily} cost or whatever time unit you choose (drop down menu). So you can sort by adjusted cost
 - mobile make tab buttons position fixed so scroll only covers tab content  
 - forecast graph tab
 - Allow typing date instead of date picker
