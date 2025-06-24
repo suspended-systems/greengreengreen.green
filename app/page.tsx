@@ -30,14 +30,33 @@ import getSheetsData from "./sheets";
 export default function Home() {
 	const { data: session, status } = useSession();
 
-	const { data, isLoading } = useSWRImmutable(session?.accessToken ? "sheetsData" : null, async () => {
-		try {
-			const data = await getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone });
-			return data;
-		} catch (error) {
-			toast("⚠️ Error getting sheets data. Please try refreshing the page.", { duration: Infinity });
-		}
-	});
+	/**
+	 * Load Sheets data
+	 */
+	const { isLoading } = useSWRImmutable(
+		session?.accessToken ? "sheetsData" : null,
+		() => getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+		{
+			onError: () => toast("⚠️ Error getting sheets data. Please try refreshing the page.", { duration: Infinity }),
+			onSuccess: (data) => {
+				if (!data) {
+					// user still needs to complete set up
+					return;
+				}
+
+				setSpreadsheetId(data.sheet.id);
+
+				if (data.startDate) setStartDate(data.startDate);
+				if (data.startAmount) setStartAmount(data.startAmount);
+				setTransactions(data.transactions);
+
+				if (data.malformedTransactions.length > 0) {
+					toast(`⚠️ Sheet contains ${data.malformedTransactions.length} malformed transaction(s)`);
+				}
+			},
+		},
+	);
+
 	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
 	const [isTourComplete, setTourComplete] = useLocalStorage(`isGreenTourComplete`, false);
 	const [activeTab, setActiveTab] = useState("calendar");
@@ -53,23 +72,6 @@ export default function Home() {
 		() => columnsData({ spreadsheetId, setTransactions }),
 		[spreadsheetId, setTransactions],
 	);
-
-	/**
-	 * Load Sheets data
-	 */
-	useEffect(() => {
-		if (!data) return;
-
-		setSpreadsheetId(data.sheet.id);
-
-		if (data.startDate) setStartDate(data.startDate);
-		if (data.startAmount) setStartAmount(data.startAmount);
-		setTransactions(data.transactions);
-
-		if (data.malformedTransactions.length) {
-			toast(`⚠️ Sheet contains ${data.malformedTransactions.length} malformed transaction(s)`);
-		}
-	}, [data]);
 
 	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
 		const manageTransactionsIndex = 4;
