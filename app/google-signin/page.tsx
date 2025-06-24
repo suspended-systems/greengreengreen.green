@@ -1,4 +1,7 @@
 // source: https://github.com/arye321/nextauth-google-popup-login
+
+"use client";
+
 import { signIn, useSession } from "next-auth/react";
 import { useEffect } from "react";
 
