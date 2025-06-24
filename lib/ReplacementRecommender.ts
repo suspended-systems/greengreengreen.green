@@ -139,7 +139,6 @@ Assign weights to these attributes so they sum to 1: cost, convenience, experien
 	 * Check candidate tradeoffs and similarity, returning pass/fail & reasons
 	 */
 	async verifyAlternativesMeetCriteria(candidates: Array<z.infer<typeof AlternativeSchema>>) {
-		// return { passing: candidates };
 		const prompt = structuredPrompt(
 			`### SYSTEM
 You are a personal-finance coach rating items in a list of candidate replacement spending habits for...
@@ -288,7 +287,8 @@ AttributeWeights={WEIGHTS_JSON}
 			alreadyExisting?: Candidate[];
 		},
 	): Promise<Candidate[]> {
-		retryConfig?.alreadyRejected &&
+		process.env.NODE_ENV === "development" &&
+			retryConfig?.alreadyRejected &&
 			console.log("relevant", {
 				amountToRequest,
 				retryConfig: {
@@ -381,7 +381,8 @@ Please suggest {amountToRequest} replacement spending habits.
 			alreadyExisting?: Candidate[];
 		},
 	): Promise<Candidate[]> {
-		retryConfig?.alreadyRejected &&
+		process.env.NODE_ENV === "development" &&
+			retryConfig?.alreadyRejected &&
 			console.log("diverse", {
 				amountToRequest,
 				retryConfig: {

@@ -108,6 +108,7 @@
 ### - get rid of `any` types, think just next auth left to do
 
 future roadmap:
+- use chat to generate transactions to add. Talk to green!
 - experimental chat engine incorporation
 - favicon
 - better dedupe for chat recommendations
