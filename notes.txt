@@ -108,6 +108,8 @@
 ### - get rid of `any` types, think just next auth left to do
 
 future roadmap:
+- sheets integration column value updating debouncing
+- use supabase fdw + dreambase using gviz and supabase blog post tutorial
 - use chat to generate transactions to add. Talk to green!
 - experimental chat engine incorporation
 - favicon

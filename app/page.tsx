@@ -86,8 +86,10 @@ export default function Home() {
 
 	return (
 		<>
+			{/* Joyride Tour */}
 			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
-			{/* night mode toggle */}
+
+			{/* settings cog (night mode toggle/sign out) */}
 			<div className="absolute" style={{ right: 3, top: 3 }}>
 				<Popover>
 					<PopoverTrigger>
@@ -131,6 +133,7 @@ export default function Home() {
 			>
 				💸 greengreengreen.green
 			</div>
+
 			{/* green fading divider */}
 			<div
 				style={{
@@ -142,6 +145,7 @@ export default function Home() {
 				}}
 				className="mx-auto"
 			/>
+
 			{/* tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
 				<TabsList
