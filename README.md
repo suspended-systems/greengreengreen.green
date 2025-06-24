@@ -8,7 +8,7 @@ Transactions logic tests →
 
 Chat → [chat.ts](pages/chat.ts)
 
-Experimental LangChain powered recommendations engine → [ReplacementRecommender.ts](lib/ReplacementRecommender.ts)
+Experimental Chat v2 → [ReplacementRecommender.ts](lib/ReplacementRecommender.ts)
 
 
 ---
