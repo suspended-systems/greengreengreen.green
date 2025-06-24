@@ -18,12 +18,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import CalendarView from "./CalendarView";
 import { columns as columnsData } from "./TransactionsView/tableColumns";
 import { SetUpWithGoogleSheetsButton, TransactionsView } from "./TransactionsView";
-import { ModeSwitcher } from "./ModeSwitcher";
+import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
 import { GreenColor } from "./utils";
 
 import { CallBackProps } from "react-joyride";
-const Tour = dynamic(() => import("./Tour"), { ssr: false });
+const Tour = dynamic(() => import("@/components/Tour"), { ssr: false });
 
 import getSheetsData from "./sheets";
 

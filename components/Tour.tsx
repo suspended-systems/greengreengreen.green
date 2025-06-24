@@ -1,6 +1,6 @@
 import React from "react";
 import JoyRide, { Callback } from "react-joyride";
-import { GreenColor } from "./utils";
+import { GreenColor } from "@/app/utils";
 
 const TOUR_STEPS = [
 	{

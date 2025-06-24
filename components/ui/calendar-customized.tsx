@@ -6,8 +6,8 @@ import { DayPicker, useDayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { calcProjectedValue, getTransactionsOnDay, Transaction } from "../../app/transactions";
-import { DAY_MS, formatMoney, GreenColor } from "../../app/utils";
+import { calcProjectedValue, getTransactionsOnDay, Transaction } from "@/app/transactions";
+import { DAY_MS, formatMoney, GreenColor } from "@/app/utils";
 import { endOfDay, endOfMonth, getDaysInMonth, isSameMonth, isSameYear, startOfDay, startOfMonth } from "date-fns";
 import { partition } from "lodash";
 

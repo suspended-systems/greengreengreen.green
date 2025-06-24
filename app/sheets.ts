@@ -1,7 +1,7 @@
 "use server";
 import { google } from "googleapis";
 import { getServerSession, Session } from "next-auth";
-import { authOptions } from "../pages/api/auth/[...nextauth]";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction, txRRule } from "./transactions";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
