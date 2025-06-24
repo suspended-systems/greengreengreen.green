@@ -23,7 +23,11 @@ const ChatWindow = ({
 	initialPayload,
 	onSelectAlternative,
 }: {
-	initialPayload: Record<string, any>;
+	initialPayload: {
+		name: string;
+		amount: `$${string}`;
+		freq: string;
+	};
 	onSelectAlternative: (alt: Alternative) => void;
 }) => {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -151,7 +155,9 @@ const ChatWindow = ({
 													>
 														<p>{alt.name}</p>
 														<p>{`$${alt.price} (save ${Math.round(
-															((initialPayload.amount.slice(1) - alt.price) / initialPayload.amount.slice(1)) * 100,
+															((Number(initialPayload.amount.slice(1)) - alt.price) /
+																Number(initialPayload.amount.slice(1))) *
+																100,
 														)}%)`}</p>
 													</button>
 													<div className="text-xs mt-1 text-gray-800 dark:text-gray-200">
