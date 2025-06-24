@@ -74,11 +74,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				valueProposition: userMessageLog,
 			}).run();
 
-			return res.json({
-				summary: "",
-				// ensure unique ids
-				alternatives: alternatives.map((a, i) => ({ ...a, id: i })),
-			});
+			return res.json({ summary: "", alternatives: alternatives.map((a, i) => ({ ...a, id: i })) }); // ensure unique ids
 		}
 
 		const { summary, alternatives } = await chain.invoke({
