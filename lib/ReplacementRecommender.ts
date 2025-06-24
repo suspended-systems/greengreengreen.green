@@ -610,7 +610,7 @@ Then estimate on a scale from 0 to 1 these attributes for each replacement spend
 			}
 		});
 
-		// Backfill up to 5 if needed
+		// Backfill up to {this.props.resultSize} if needed
 		if (finalList.length < this.props.resultSize) {
 			const needed = this.props.resultSize - finalList.length;
 			const remaining = _.difference(this.pool, finalList);
