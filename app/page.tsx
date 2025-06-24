@@ -30,12 +30,12 @@ import getSheetsData from "./sheets";
 export default function Home() {
 	const { data: session, status } = useSession();
 
-	const { data, isLoading } = useSWRImmutable(session?.accessToken ? "sheetsData" : null, () => {
+	const { data, isLoading } = useSWRImmutable(session?.accessToken ? "sheetsData" : null, async () => {
 		try {
-			return getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone });
+			const data = await getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone });
+			return data;
 		} catch (error) {
-			// In case of any sheets loading errors, log them
-			console.warn("Error getting sheets data", { error: JSON.stringify(error, undefined, 2) });
+			toast("⚠️ Error getting sheets data. Please try refreshing the page.", { duration: Infinity });
 		}
 	});
 	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
