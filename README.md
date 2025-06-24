@@ -1,3 +1,18 @@
+# code samples
+
+Google Sheets integration →
+[sheets.ts](app/sheets.ts)
+
+Transactions logic tests →
+[transactions.test.ts](app/transactions.test.ts)
+
+Chat → [chat.ts](pages/chat.ts)
+
+Experimental LangChain powered recommendations engine → [ReplacementRecommender.ts](lib/ReplacementRecommender.ts)
+
+
+---
+
 # greengreengreen.green
 
 https://greengreengreen.green
