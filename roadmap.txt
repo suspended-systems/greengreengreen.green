@@ -1,0 +1,28 @@
+future roadmap:
+- favicon
+- forecast graph tab
+- sheets integration column value updating debouncing
+- use supabase fdw + dreambase using gviz and supabase blog post tutorial
+- use chat to generate transactions to add. Talk to green!
+- better dedupe for chat recommendations
+- better cost saving weighting/fine tuning for chat recommendations
+- auto gen'd spending habit replacement recommendations panel in transactions tab
+- "Warning: you'll be in the red starting on {DATE}" calendar view with go to date button
+- chat response text streaming / animation
+- make the chat results experience better. Maybe shrink the text input on results loading. Maybe each option can be "retried" and given a reason why it is not liked/curator experience
+- tx table column for adjusted {daily} cost or whatever time unit you choose (drop down menu). So you can sort by adjusted cost
+- improve mobile tab buttons: adjust things so tab elements are not overlaying, so scroll bottom touches top of tab buttons  
+- Allow typing date instead of date picker
+- show recurring icon in item list calendar view 
+- calendar filtering like "only show expenses over $50", "hide recurring", "only recurring", etc
+- "build a profile for me" AI button for rent, utilities as individual water trash gas etc, internet, gas, car insurance, or as onboarding
+- capital one/discover integration / variable payment support, more transaction kinds support in general (insurance, loans, etc)
+- tour "skip" button setting tutorial complete (bug with joyride)
+- more friendly/professional green service account email
+- toggles for calendar day card view
+    -show all names of transactions
+    -show just totals
+    -show individiual
+- assign happiness points to transactions
+- categorize transactions
+- represent recurring date as more complex things like "last friday of every month" so start date is just day of month for example not a specific day, "twice a week for six months" 
