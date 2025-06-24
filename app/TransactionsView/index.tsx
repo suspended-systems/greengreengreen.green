@@ -143,15 +143,13 @@ export function TransactionsView<TData, TValue>({
 									<p className="text-center">
 										You are in demo mode. <span className="font-medium">Data will not save.</span>
 									</p>
-									<p className="text-center">Set up with Google Sheets to store your transactions.</p>
+									<p className="text-center">Set up with Google Sheets to store your transactions:</p>
 									<SetUpWithGoogleSheetsButton />
 								</>
 							) : (
 								<>
-									<p className="text-center text-muted-foreground max-w-[600px]">
-										⚠️ Data will not save until setup is complete.
-									</p>
-									<p className="text-center text-muted-foreground max-w-[600px]">
+									<p className="text-muted-foreground">⚠️ Data will not save until setup is complete.</p>
+									<p className="text-muted-foreground">
 										❗️ Make sure you are signed in to the same Google Account across green and Sheets.
 									</p>
 									<div className="prose">
