@@ -62,11 +62,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			.map((m) => m.content)
 			.join("\n");
 
+		// Experimental engine
 		if (process.env.USE_EXPERIMENTAL_ENGINE?.toLowerCase() === "true") {
-			/**
-			 * The experimental engine coordinates many prompts, inherently taking much longer.
-			 */
-
 			const alternatives = await new ReplacementRecommender({
 				resultSize: 5,
 				poolToChooseFromSize: 25,
