@@ -66,10 +66,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		if (process.env.USE_EXPERIMENTAL_ENGINE?.toLowerCase() === "true") {
 			const alternatives = await new ReplacementRecommender({
 				resultSize: 5,
-				poolToChooseFromSize: 25,
-				diversityVsRelevanceTradeoffZeroToOne: 0.5,
+				poolToChooseFromSize: 30,
+				diversityVsRelevanceTradeoffZeroToOne: 0.25,
 				basicEquivalenceSimilarityScoreThresholdZeroToOne: 0.8,
-				tooManyTradeoffsScoreThresholdZeroToOne: 0.5,
+				tooManyTradeoffsScoreThresholdZeroToOne: 0.3,
 				spendingHabit,
 				valueProposition: userMessageLog,
 			}).run();
