@@ -340,7 +340,7 @@ export class ReplacementRecommender {
 	async run(): Promise<Array<Candidate>> {
 		await this.deriveWeights();
 		await this.generatePool();
-		await this.tagAndScorePool();
+		await this.scorePool();
 		this.bucketAndSelectTopMMR();
 
 		return this.pool;
@@ -510,7 +510,7 @@ export class ReplacementRecommender {
 	/**
 	 * Deterministically compute cost, estimate the other attributes via LLM
 	 */
-	async tagAndScorePool() {
+	async scorePool() {
 		const [
 			{ candidateScores: convenienceScores },
 			{ candidateScores: experienceScores },
