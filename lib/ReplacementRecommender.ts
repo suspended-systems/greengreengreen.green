@@ -511,6 +511,11 @@ export class ReplacementRecommender {
 	 * Deterministically compute cost, estimate the other attributes via LLM
 	 */
 	async scorePool() {
+		/**
+		 * Experimenting with having 3 prompts run in parallel, each processing a different score
+		 * 
+		 * Seems to work faster but at the cost of more tokens
+		 */
 		const [
 			{ candidateScores: convenienceScores },
 			{ candidateScores: experienceScores },
