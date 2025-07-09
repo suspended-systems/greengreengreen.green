@@ -51,10 +51,13 @@ Return a result containing a summary and alternatives
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { spendingHabit, messages } = req.body as {
+		const {
+			spendingHabit,
+			messages,
+		}: {
 			spendingHabit: { name: string; amount: `$${string}`; freq: string };
 			messages: { role: string; content: string }[];
-		};
+		} = req.body;
 
 		// Pass in all the user messages as context. Usually this will just be one message, but will be more if the user keeps chatting.
 		const userMessageLog = messages
