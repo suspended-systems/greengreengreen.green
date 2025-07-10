@@ -6,7 +6,7 @@ Google Sheets integration →
 Transactions logic tests →
 [transactions.test.ts](app/transactions.test.ts)
 
-Chat → [chat.ts](pages/chat.ts)
+Chat → [chat.ts](pages/api/chat.ts)
 
 Experimental Chat v2 → [ReplacementRecommender.ts](lib/ReplacementRecommender.ts)
 
