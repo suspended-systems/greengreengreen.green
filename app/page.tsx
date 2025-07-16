@@ -6,7 +6,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useLocalStorage } from "react-use";
 import useSWRImmutable from "swr/immutable";
 import { toast } from "sonner";
-import { CalendarDaysIcon, CircleDollarSignIcon, CogIcon, Loader2 } from "lucide-react";
+import { CalendarDaysIcon, CircleDollarSignIcon, CogIcon, Loader2, TrendingUpIcon } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
@@ -16,8 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import CalendarView from "./CalendarView";
+import ForecastView from "./ForecastView";
 import { columns as columnsData } from "./TransactionsView/tableColumns";
-import { SetUpWithGoogleSheetsButton, TransactionsView } from "./TransactionsView";
+import { SetUpWithGoogleSheetsButton, TransactionsView } from "./TransactionsView/TransactionsView";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
 import { GreenColor } from "./utils";
@@ -153,7 +154,7 @@ export default function Home() {
 				<TabsList
 					className="
        sticky bottom-0 z-10           /* stick to viewport bottom */
-       grid grid-cols-2 w-full        /* two columns, full width */
+       grid grid-cols-3 w-full        /* three columns, full width */
        order-1 md:order-0             /* bottom on mobile, top on md+ */
        h-18 md:h-9                    /* mobile: 4.5rem, desktop: 2.25rem */
        pb-[env(safe-area-inset-bottom)] /* iOS safe-area inset */
@@ -162,6 +163,10 @@ export default function Home() {
 					<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
 						<CalendarDaysIcon className="size-8 md:size-4" />
 						Calendar
+					</TabsTrigger>
+					<TabsTrigger value="forecast" className="flex flex-col md:flex-row text-xs md:text-sm">
+						<TrendingUpIcon className="size-8 md:size-4" />
+						Forecast
 					</TabsTrigger>
 					<TabsTrigger value="transactions" className="tour-transactions flex flex-col md:flex-row text-xs md:text-sm">
 						<CircleDollarSignIcon className="size-8 md:size-4" />
@@ -173,7 +178,6 @@ export default function Home() {
 					className="
           flex-1 overflow-y-auto tab-content w-full
           pt-4
-          pb-18                  /* match the mobile tab-bar height */
           pb-[env(safe-area-inset-bottom)] /* plus safe-area inset */
 		  min-h-[calc(100vh-71px)] /* 72 - 1 so the green fading divider is out of view */
           md:min-h-screen
@@ -200,6 +204,15 @@ export default function Home() {
 										transactions,
 										setTransactions,
 										spreadsheetId,
+									}}
+								/>
+							</TabsContent>
+							<TabsContent value="forecast">
+								<ForecastView
+									{...{
+										startAmount,
+										startDate,
+										transactions,
 									}}
 								/>
 							</TabsContent>

@@ -150,7 +150,6 @@ export function AddTransactionForm({
 											mode="single"
 											selected={field.value}
 											initialFocus
-											className="rounded-md border shadow"
 											onDayClick={field.onChange}
 										/>
 									</PopoverContent>

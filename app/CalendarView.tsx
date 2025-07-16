@@ -52,10 +52,10 @@ export default function CalendarView({
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
-		<div className="flex flex-col md:flex-row md:gap-8 w-fit mx-auto overscroll-x-auto px-2 md:px-4">
+		<div className="flex flex-col md:flex-row md:gap-8 w-fit mx-auto overscroll-x-auto px-2 md:px-4 pb-4">
 			{/* left panel */}
 			<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
-				<div className="tour-starting mx-auto flex gap-2 items-center text-sm">
+				<div className="tour-starting w-full mx-auto flex gap-2 items-center text-sm justify-between">
 					{/* starting values */}
 					<span className="hidden md:inline" style={{ whiteSpace: "nowrap" }}>
 						Starting on
@@ -83,7 +83,6 @@ export default function CalendarView({
 									}
 								}}
 								initialFocus
-								className="rounded-md border shadow"
 							/>
 						</PopoverContent>
 					</Popover>
@@ -197,7 +196,7 @@ export default function CalendarView({
 				mode="single"
 				selected={endDate}
 				onSelect={setEndDate}
-				className="tour-calendar rounded-md md:border mt-8 md:mt-0"
+				className="tour-calendar rounded-xl border mt-4 md:mt-0 bg-card"
 			/>
 		</div>
 	);
