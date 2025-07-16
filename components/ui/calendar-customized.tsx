@@ -125,7 +125,7 @@ function CalendarCustomized({
 								{(!isSameMonth(props.displayMonth, new Date()) || !isSameYear(props.displayMonth, new Date())) && (
 									<Button variant="secondary" onClick={backToToday} className="text-xs" style={{ height: 20 }}>
 										<HomeIcon />
-										Today
+										Back to today
 									</Button>
 								)}
 							</div>
