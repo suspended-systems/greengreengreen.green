@@ -103,7 +103,7 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 			</div>
 
 			{/* Timeline Chart */}
-			<Card>
+			<Card className="w-fit mx-auto">
 				<CardHeader>
 					<CardTitle>90-Day Financial Forecast</CardTitle>
 					<CardDescription>Projected balance over the next 90 days based on your transactions</CardDescription>
