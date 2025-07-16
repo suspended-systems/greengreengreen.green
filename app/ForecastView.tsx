@@ -69,8 +69,7 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 	}
 
 	return (
-		<div className="space-y-6 p-4">
-			{/* Summary Cards */}
+		<div className="flex flex-col gap-4 w-fit mx-auto px-2 md:px-4">
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card>
 					<CardHeader className="pb-2">
@@ -103,7 +102,7 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 			</div>
 
 			{/* Timeline Chart */}
-			<Card className="w-fit mx-auto">
+			<Card>
 				<CardHeader>
 					<CardTitle>90-Day Financial Forecast</CardTitle>
 					<CardDescription>Projected balance over the next 90 days based on your transactions</CardDescription>

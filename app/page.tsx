@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import CalendarView from "./CalendarView";
 import ForecastView from "./ForecastView";
 import { columns as columnsData } from "./TransactionsView/tableColumns";
-import { SetUpWithGoogleSheetsButton, TransactionsView } from "./TransactionsView";
+import { SetUpWithGoogleSheetsButton, TransactionsView } from "./TransactionsView/TransactionsView";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
 import { GreenColor } from "./utils";

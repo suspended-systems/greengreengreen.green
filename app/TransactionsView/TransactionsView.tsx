@@ -40,6 +40,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CopyableInput } from "@/components/CopyableInput";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { AddTransactionForm } from "./AddTransactionForm";
 import { calcProjectedValue, Transaction } from "../transactions";
@@ -197,78 +198,86 @@ export function TransactionsView<TData, TValue>({
 					}
 				/>
 			)}
-			<InfoBannerBox
-				content={
-					<div className="flex w-full justify-evenly text-sm ">
-						<div className="flex flex-col gap-2">
-							<span className="font-medium text-center">Incoming</span>
-							<p>
-								Annually:{" "}
-								<span className="whitespace-nowrap" style={{ color: GreenColor }}>
-									+{formatMoney(annualIncomingAverage)}
-								</span>
-							</p>
-							<p>
-								Monthly:{" "}
-								<span className="whitespace-nowrap" style={{ color: GreenColor }}>
-									+{formatMoney(monthlyIncomingAverage)}
-								</span>
-							</p>
-							<p>
-								Daily:{" "}
-								<span className="whitespace-nowrap" style={{ color: GreenColor }}>
-									+{formatMoney(dailyIncomingAverage)}
-								</span>
-							</p>
-						</div>
-						<div className="flex flex-col gap-2">
-							<span className="font-medium text-center">Outgoing</span>
-							<p>
-								Annually:{" "}
-								<span className="whitespace-nowrap" style={{ color: "red" }}>
-									{formatMoney(annualOutgoingAverage)}
-								</span>
-							</p>
-							<p>
-								Monthly:{" "}
-								<span className="whitespace-nowrap" style={{ color: "red" }}>
-									{formatMoney(monthlyOutgoingAverage)}
-								</span>
-							</p>
-							<p>
-								Daily:{" "}
-								<span className="whitespace-nowrap" style={{ color: "red" }}>
-									{formatMoney(dailyOutgoingAverage)}
-								</span>
-							</p>
-						</div>
-						<div className="flex flex-col gap-2">
-							<span className="font-medium text-center">Net</span>
-							<p>
-								Annually:{" "}
-								<span className="whitespace-nowrap" style={{ color: annualNetAverage < 0 ? "red" : GreenColor }}>
-									{annualNetAverage < 0 ? "" : "+"}
-									{formatMoney(annualNetAverage)}
-								</span>
-							</p>
-							<p>
-								Monthly:{" "}
-								<span className="whitespace-nowrap" style={{ color: monthlyNetAverage < 0 ? "red" : GreenColor }}>
-									{monthlyNetAverage < 0 ? "" : "+"}
-									{formatMoney(monthlyNetAverage)}
-								</span>
-							</p>
-							<p>
-								Daily:{" "}
-								<span style={{ color: dailyNetAverage < 0 ? "red" : GreenColor }}>
-									{dailyNetAverage < 0 ? "" : "+"}
-									{formatMoney(dailyNetAverage)}
-								</span>
-							</p>
-						</div>
-					</div>
-				}
-			/>
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle>Incoming</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p>
+							Annually:{" "}
+							<span className="whitespace-nowrap" style={{ color: GreenColor }}>
+								+{formatMoney(annualIncomingAverage)}
+							</span>
+						</p>
+						<p>
+							Monthly:{" "}
+							<span className="whitespace-nowrap" style={{ color: GreenColor }}>
+								+{formatMoney(monthlyIncomingAverage)}
+							</span>
+						</p>
+						<p>
+							Daily:{" "}
+							<span className="whitespace-nowrap" style={{ color: GreenColor }}>
+								+{formatMoney(dailyIncomingAverage)}
+							</span>
+						</p>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle>Outgoing</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p>
+							Annually:{" "}
+							<span className="whitespace-nowrap" style={{ color: "red" }}>
+								{formatMoney(annualOutgoingAverage)}
+							</span>
+						</p>
+						<p>
+							Monthly:{" "}
+							<span className="whitespace-nowrap" style={{ color: "red" }}>
+								{formatMoney(monthlyOutgoingAverage)}
+							</span>
+						</p>
+						<p>
+							Daily:{" "}
+							<span className="whitespace-nowrap" style={{ color: "red" }}>
+								{formatMoney(dailyOutgoingAverage)}
+							</span>
+						</p>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle>Net</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<p>
+							Annually:{" "}
+							<span className="whitespace-nowrap" style={{ color: annualNetAverage < 0 ? "red" : GreenColor }}>
+								{annualNetAverage < 0 ? "" : "+"}
+								{formatMoney(annualNetAverage)}
+							</span>
+						</p>
+						<p>
+							Monthly:{" "}
+							<span className="whitespace-nowrap" style={{ color: monthlyNetAverage < 0 ? "red" : GreenColor }}>
+								{monthlyNetAverage < 0 ? "" : "+"}
+								{formatMoney(monthlyNetAverage)}
+							</span>
+						</p>
+						<p>
+							Daily:{" "}
+							<span style={{ color: dailyNetAverage < 0 ? "red" : GreenColor }}>
+								{dailyNetAverage < 0 ? "" : "+"}
+								{formatMoney(dailyNetAverage)}
+							</span>
+						</p>
+					</CardContent>
+				</Card>
+			</div>
 			<div className="flex gap-4">
 				<AddTransaction {...{ spreadsheetId, setTransactions }} />
 				<Input
@@ -367,7 +376,7 @@ export function TransactionsView<TData, TValue>({
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>
-			<div className="rounded-md border">
+			<div className="rounded-xl border bg-card">
 				<Table className="overflow-x-visible overscroll-x-contain">
 					<TableHeader>
 						{table.getHeaderGroups().map((headerGroup) => (

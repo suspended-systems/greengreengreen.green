@@ -178,7 +178,6 @@ export const columns = ({
 									}
 								}}
 								initialFocus
-								className="rounded-md border shadow"
 							/>
 						</PopoverContent>
 					</Popover>

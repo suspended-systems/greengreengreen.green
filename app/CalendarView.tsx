@@ -83,7 +83,6 @@ export default function CalendarView({
 									}
 								}}
 								initialFocus
-								className="rounded-md border shadow"
 							/>
 						</PopoverContent>
 					</Popover>
@@ -197,7 +196,7 @@ export default function CalendarView({
 				mode="single"
 				selected={endDate}
 				onSelect={setEndDate}
-				className="tour-calendar rounded-md md:border mt-8 md:mt-0"
+				className="tour-calendar rounded-xl md:border mt-8 md:mt-0 bg-card"
 			/>
 		</div>
 	);
