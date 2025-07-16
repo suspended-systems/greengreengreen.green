@@ -178,7 +178,6 @@ export default function Home() {
 					className="
           flex-1 overflow-y-auto tab-content w-full
           pt-4
-          pb-18                  /* match the mobile tab-bar height */
           pb-[env(safe-area-inset-bottom)] /* plus safe-area inset */
 		  min-h-[calc(100vh-71px)] /* 72 - 1 so the green fading divider is out of view */
           md:min-h-screen

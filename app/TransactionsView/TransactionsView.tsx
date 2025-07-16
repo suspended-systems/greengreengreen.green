@@ -41,12 +41,12 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CopyableInput } from "@/components/CopyableInput";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Money from "@/components/Money";
 
 import { AddTransactionForm } from "./AddTransactionForm";
 import { calcProjectedValue, Transaction } from "../transactions";
 import getSheetsData from "../sheets";
 import { partition } from "lodash";
-import { formatMoney, GreenColor } from "../utils";
 
 export function TransactionsView<TData, TValue>({
 	spreadsheetId,
@@ -115,8 +115,6 @@ export function TransactionsView<TData, TValue>({
 		endDate: endOfYearUTC,
 		transactions: incomingTxs ?? [],
 	});
-	const monthlyIncomingAverage = annualIncomingAverage / 12;
-	const dailyIncomingAverage = annualIncomingAverage / 365;
 
 	const annualOutgoingAverage = calcProjectedValue({
 		startValue: 0,
@@ -124,25 +122,24 @@ export function TransactionsView<TData, TValue>({
 		endDate: endOfYearUTC,
 		transactions: outgoingTxs ?? [],
 	});
-	const monthlyOutgoingAverage = annualOutgoingAverage / 12;
-	const dailyOutgoingAverage = annualOutgoingAverage / 365;
 
 	const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
-	const monthlyNetAverage = annualNetAverage / 12;
-	const dailyNetAverage = annualNetAverage / 365;
 
 	return (
-		<div className="flex flex-col gap-4 max-w-5xl mx-auto px-2 md:px-4">
+		<div className="flex flex-col gap-4 pb-4 max-w-5xl mx-auto px-2 md:px-4">
 			{/* Sheets setup / demo warning info banner */}
 			{!spreadsheetId && !isDemoWarningClosed && (
-				<InfoBannerBox
-					title={session ? "Google Sheets Setup" : "⚠️ Warning"}
-					content={
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-sm font-medium">{session ? "Google Sheets setup" : "Demo mode"}</CardTitle>
+					</CardHeader>
+
+					<CardContent>
 						<div className="prose mt-8 flex flex-col items-center gap-4">
 							{!session ? (
 								<>
 									<p className="text-center">
-										You are in demo mode. <span className="font-medium">Data will not save.</span>
+										You are in demo mode. <span className="font-bold">Data will not save.</span>
 									</p>
 									<p className="text-center">Set up with Google Sheets to store your transactions:</p>
 									<SetUpWithGoogleSheetsButton />
@@ -195,88 +192,13 @@ export function TransactionsView<TData, TValue>({
 								</>
 							)}
 						</div>
-					}
-				/>
+					</CardContent>
+				</Card>
 			)}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle>Incoming</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p>
-							Annually:{" "}
-							<span className="whitespace-nowrap" style={{ color: GreenColor }}>
-								+{formatMoney(annualIncomingAverage)}
-							</span>
-						</p>
-						<p>
-							Monthly:{" "}
-							<span className="whitespace-nowrap" style={{ color: GreenColor }}>
-								+{formatMoney(monthlyIncomingAverage)}
-							</span>
-						</p>
-						<p>
-							Daily:{" "}
-							<span className="whitespace-nowrap" style={{ color: GreenColor }}>
-								+{formatMoney(dailyIncomingAverage)}
-							</span>
-						</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle>Outgoing</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p>
-							Annually:{" "}
-							<span className="whitespace-nowrap" style={{ color: "red" }}>
-								{formatMoney(annualOutgoingAverage)}
-							</span>
-						</p>
-						<p>
-							Monthly:{" "}
-							<span className="whitespace-nowrap" style={{ color: "red" }}>
-								{formatMoney(monthlyOutgoingAverage)}
-							</span>
-						</p>
-						<p>
-							Daily:{" "}
-							<span className="whitespace-nowrap" style={{ color: "red" }}>
-								{formatMoney(dailyOutgoingAverage)}
-							</span>
-						</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle>Net</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p>
-							Annually:{" "}
-							<span className="whitespace-nowrap" style={{ color: annualNetAverage < 0 ? "red" : GreenColor }}>
-								{annualNetAverage < 0 ? "" : "+"}
-								{formatMoney(annualNetAverage)}
-							</span>
-						</p>
-						<p>
-							Monthly:{" "}
-							<span className="whitespace-nowrap" style={{ color: monthlyNetAverage < 0 ? "red" : GreenColor }}>
-								{monthlyNetAverage < 0 ? "" : "+"}
-								{formatMoney(monthlyNetAverage)}
-							</span>
-						</p>
-						<p>
-							Daily:{" "}
-							<span style={{ color: dailyNetAverage < 0 ? "red" : GreenColor }}>
-								{dailyNetAverage < 0 ? "" : "+"}
-								{formatMoney(dailyNetAverage)}
-							</span>
-						</p>
-					</CardContent>
-				</Card>
+				<StatsBox title="Incoming" annually={annualIncomingAverage} />
+				<StatsBox title="Outgoing" annually={annualOutgoingAverage} />
+				<StatsBox title="Net" annually={annualNetAverage} />
 			</div>
 			<div className="flex gap-4">
 				<AddTransaction {...{ spreadsheetId, setTransactions }} />
@@ -407,7 +329,7 @@ export function TransactionsView<TData, TValue>({
 					</TableBody>
 				</Table>
 			</div>
-			<div className="pb-4 w-full flex items-center justify-between">
+			<div className="w-full flex items-center justify-between">
 				<span className="flex-1 text-sm text-muted-foreground">
 					Showing {startRow}–{endRow} of {totalRows}
 				</span>
@@ -548,30 +470,33 @@ export function SetUpWithGoogleSheetsButton() {
 	);
 }
 
-function InfoBannerBox({
-	title,
-	content,
-	onClose,
-}: {
-	title?: string;
-	content: React.JSX.Element;
-	onClose?: () => void; // omit an `onClose` to hide the close button
-}) {
-	return (
-		<div className="relative w-full md:w-full rounded-md border p-6 flex flex-col gap-4 items-center">
-			{onClose && (
-				<button
-					onClick={() => onClose()}
-					// copied from Dialog.Close
-					className="absolute top-4 right-4 ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-				>
-					<XIcon />
-					<span className="sr-only">Hide</span>
-				</button>
-			)}
-			{title && <p className="text-lg font-semibold absolute top-4">{title}</p>}
+function StatsBox({ title, annually }: { title: "Incoming" | "Outgoing" | "Net"; annually: number }) {
+	const monthly = annually / 12;
+	const daily = annually / 365;
 
-			{content}
-		</div>
+	return (
+		<Card>
+			<CardHeader className="pb-2">
+				<CardTitle className="text-sm font-medium">{title}</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div className="grid grid-cols-2 grid-rows-3">
+					<div className="text-xl font-bold">Daily</div>
+					<div>
+						<div className="font-semibold text-right">
+							<Money amount={daily} />
+						</div>
+					</div>
+					<div className="text-xl font-bold">Monthly</div>
+					<div className="font-semibold text-right">
+						<Money amount={monthly} />
+					</div>
+					<div className="text-xl font-bold">Annually</div>
+					<div className="font-semibold text-right">
+						<Money amount={annually} />
+					</div>
+				</div>
+			</CardContent>
+		</Card>
 	);
 }

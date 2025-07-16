@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ReferenceLine } from "recharts";
 import { format, addDays, startOfDay } from "date-fns";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import Money from "@/components/Money";
 
 import { Transaction, calcProjectedValue } from "./transactions";
 import { GreenColor } from "./utils";
@@ -17,9 +18,13 @@ type ForecastViewProps = {
 };
 
 const chartConfig = {
-	balance: {
+	positiveBalance: {
 		label: "Projected Balance",
 		color: GreenColor,
+	},
+	negativeBalance: {
+		label: "Projected Balance",
+		color: "#dc2626", // red-600
 	},
 };
 
@@ -29,7 +34,13 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 
 		const today = startOfDay(new Date());
 		const endDate = addDays(today, 90); // 90 days forecast
-		const data: Array<{ date: string; balance: number; formattedDate: string }> = [];
+		const data: Array<{
+			date: string;
+			balance: number;
+			formattedDate: string;
+			positiveBalance: number | null;
+			negativeBalance: number | null;
+		}> = [];
 
 		// Generate daily projections
 		for (let currentDate = today; currentDate <= endDate; currentDate = addDays(currentDate, 1)) {
@@ -44,6 +55,8 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 				date: format(currentDate, "MMM dd"),
 				balance: projectedValue,
 				formattedDate: format(currentDate, "PPP"),
+				positiveBalance: projectedValue >= 0 ? projectedValue : null,
+				negativeBalance: projectedValue < 0 ? projectedValue : null,
 			});
 		}
 
@@ -69,14 +82,16 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 	}
 
 	return (
-		<div className="flex flex-col gap-4 w-fit mx-auto px-2 md:px-4">
+		<div className="flex flex-col gap-4 pb-4 w-full mx-auto px-2 md:px-4">
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card>
 					<CardHeader className="pb-2">
 						<CardTitle className="text-sm font-medium">Current Balance</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">${stats.current.toLocaleString()}</div>
+						<div className="text-2xl font-bold" style={{ color: stats.current < 0 ? "red" : GreenColor }}>
+							${stats.current.toLocaleString()}
+						</div>
 					</CardContent>
 				</Card>
 
@@ -85,7 +100,9 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 						<CardTitle className="text-sm font-medium">90-Day Projection</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">${stats.projected.toLocaleString()}</div>
+						<div className="text-2xl font-bold">
+							<Money amount={stats.projected} />
+						</div>
 					</CardContent>
 				</Card>
 
@@ -94,8 +111,8 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 						<CardTitle className="text-sm font-medium">Net Change</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className={`text-2xl font-bold ${stats.change >= 0 ? "text-green-600" : "text-red-600"}`}>
-							{stats.change >= 0 ? "+" : ""}${stats.change.toLocaleString()}
+						<div className={`text-2xl font-bold`}>
+							<Money amount={stats.change} />
 						</div>
 					</CardContent>
 				</Card>
@@ -108,7 +125,7 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 					<CardDescription>Projected balance over the next 90 days based on your transactions</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<ChartContainer config={chartConfig} className="h-[400px]">
+					<ChartContainer config={chartConfig} className="h-[400px] w-full">
 						<AreaChart
 							accessibilityLayer
 							data={forecastData}
@@ -130,17 +147,28 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 								content={
 									<ChartTooltipContent
 										labelFormatter={(label, payload) => payload?.[0]?.payload?.formattedDate || label}
-										formatter={(value) => [`$${Number(value).toLocaleString()}`, "Balance"]}
+										formatter={(value) => [`$${Number(value).toLocaleString()}`, "Balance"].join(" ")}
 									/>
 								}
 							/>
+							<ReferenceLine y={0} stroke="#64748b" strokeDasharray="3 3" />
 							<Area
-								dataKey="balance"
+								dataKey="positiveBalance"
 								type="monotone"
 								fill={`${GreenColor}20`}
 								fillOpacity={0.4}
 								stroke={GreenColor}
 								strokeWidth={2}
+								connectNulls={false}
+							/>
+							<Area
+								dataKey="negativeBalance"
+								type="monotone"
+								fill="#dc262620"
+								fillOpacity={0.4}
+								stroke="#dc2626"
+								strokeWidth={2}
+								connectNulls={false}
 							/>
 						</AreaChart>
 					</ChartContainer>
