@@ -17,6 +17,8 @@ future roadmap:
 - calendar filtering like "only show expenses over $50", "hide recurring", "only recurring", etc
 - "build a profile for me" AI button for rent, utilities as individual water trash gas etc, internet, gas, car insurance, or as onboarding
 - capital one/discover integration / variable payment support, more transaction kinds support in general (insurance, loans, etc)
+    - synchronize starting value via banking integration (get current balance)
+    - synchronize card payments via integration
 - tour "skip" button setting tutorial complete (bug with joyride)
 - more friendly/professional green service account email
 - toggles for calendar day card view
