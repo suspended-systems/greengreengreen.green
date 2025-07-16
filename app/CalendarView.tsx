@@ -86,7 +86,7 @@ export default function CalendarView({
 							/>
 						</PopoverContent>
 					</Popover>
-					<span className="font-lighter">with</span>
+					with
 					<span className="input-symbol">
 						<NumericInput
 							style={{
