@@ -131,7 +131,7 @@ export function TransactionsView<TData, TValue>({
 			{!spreadsheetId && !isDemoWarningClosed && (
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-sm font-medium">{session ? "Google Sheets setup" : "Demo mode"}</CardTitle>
+						<CardTitle className="text-sm font-medium">{session ? "Google Sheets setup" : "Demo Mode"}</CardTitle>
 					</CardHeader>
 
 					<CardContent>
