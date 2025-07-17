@@ -1,7 +1,8 @@
 import { partition } from "lodash";
-import { Frequency, RRule } from "rrule";
+import { Frequency } from "rrule";
 import { v4 as uuid } from "uuid";
 import { DAY_MS } from "./utils";
+import { txRRule } from "./transaction-schema";
 
 export type Transaction = {
 	id: string;
@@ -12,9 +13,6 @@ export type Transaction = {
 	interval?: number;
 	disabled?: boolean;
 };
-
-export const txRRule = (tx: Transaction) =>
-	new RRule({ freq: tx.freq, interval: tx.interval ?? 1, dtstart: new Date(tx.date) });
 
 /**
  * Get all transactions (both one‐time and recurring) that happen on a specific day.

@@ -9,9 +9,10 @@ import {
 	ChevronLeftIcon,
 	ChevronRightIcon,
 	PlusIcon,
-	XIcon,
 	RefreshCcwIcon,
 	SquareArrowOutUpRightIcon,
+	MinusIcon,
+	DiffIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -196,9 +197,9 @@ export function TransactionsView<TData, TValue>({
 				</Card>
 			)}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<StatsBox title="Incoming" annually={annualIncomingAverage} />
-				<StatsBox title="Outgoing" annually={annualOutgoingAverage} />
-				<StatsBox title="Net" annually={annualNetAverage} />
+				<StatsBox title="Incoming" icon={<PlusIcon />} annually={annualIncomingAverage} />
+				<StatsBox title="Outgoing" icon={<MinusIcon />} annually={annualOutgoingAverage} />
+				<StatsBox title="Net" icon={<DiffIcon />} annually={annualNetAverage} />
 			</div>
 			<div className="flex gap-4">
 				<AddTransaction {...{ spreadsheetId, setTransactions }} />
@@ -470,14 +471,27 @@ export function SetUpWithGoogleSheetsButton() {
 	);
 }
 
-function StatsBox({ title, annually }: { title: "Incoming" | "Outgoing" | "Net"; annually: number }) {
+function StatsBox({
+	title,
+	icon,
+	annually,
+	isHalfHeight,
+}: {
+	title: "Incoming" | "Outgoing" | "Net";
+	icon: React.JSX.Element;
+	annually: number;
+	isHalfHeight?: Boolean;
+}) {
 	const monthly = annually / 12;
 	const daily = annually / 365;
 
 	return (
 		<Card>
 			<CardHeader className="pb-2">
-				<CardTitle className="text-sm font-medium">{title}</CardTitle>
+				<CardTitle className="text-sm font-medium">
+					{icon}
+					{title}
+				</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className="grid grid-cols-2 grid-rows-3">
@@ -485,15 +499,18 @@ function StatsBox({ title, annually }: { title: "Incoming" | "Outgoing" | "Net";
 					<div>
 						<div className="font-semibold text-right">
 							<Money amount={daily} />
+							/day
 						</div>
 					</div>
 					<div className="text-xl font-bold">Monthly</div>
 					<div className="font-semibold text-right">
 						<Money amount={monthly} />
+						/mo
 					</div>
 					<div className="text-xl font-bold">Annually</div>
 					<div className="font-semibold text-right">
 						<Money amount={annually} />
+						/yr
 					</div>
 				</div>
 			</CardContent>

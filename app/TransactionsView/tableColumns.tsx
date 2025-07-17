@@ -19,8 +19,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Switch } from "@/components/ui/switch";
 import NumericInput from "@/components/NumericInput";
 
-import { Transaction, txRRule } from "../transactions";
-import { COLUMNS, formatDateToSheets, formatMoney, frequencies, frequenciesStrings, GreenColor } from "../utils";
+import { Transaction } from "../transactions";
+import { txRRule, FREQUENCY_OPTIONS, TRANSACTION_CONFIG } from "../transaction-schema";
+import { formatDateToSheets, formatMoney, GreenColor } from "../utils";
 import { deleteSheetsRow, updateSheetsRow } from "../sheets";
 
 declare module "@tanstack/react-table" {
@@ -30,28 +31,6 @@ declare module "@tanstack/react-table" {
 }
 
 const safariOnlyTextBottom = () => navigator.userAgent.includes("Safari") && { bottom: 0.5 };
-
-function HeaderWithSort({ column, title }: { column: Column<Transaction, unknown>; title?: string }) {
-	return (
-		<Button
-			size={!title ? "icon" : undefined}
-			variant={column.getIsSorted() ? "secondary" : "ghost"}
-			className={`w-full ${title === "Amount" ? "justify-end" : "justify-start"}`}
-			onClick={() =>
-				column.getIsSorted() === "desc" ? column.clearSorting() : column.toggleSorting(column.getIsSorted() === "asc")
-			}
-		>
-			{title ?? "‎ "}
-			{column.getIsSorted() === "asc" ? (
-				<ArrowUp className="ml-2 h-4 w-4" />
-			) : column.getIsSorted() === "desc" ? (
-				<ArrowDown className="ml-2 h-4 w-4" />
-			) : (
-				""
-			)}
-		</Button>
-	);
-}
 
 export const columns = ({
 	spreadsheetId,
@@ -75,7 +54,7 @@ export const columns = ({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: row.original.id,
-							column: COLUMNS.Enabled,
+							column: TRANSACTION_CONFIG.disabled.sheetsColumnLetter,
 							cellValue: isToggled,
 						});
 					}
@@ -116,7 +95,7 @@ export const columns = ({
 									await updateSheetsRow({
 										spreadsheetId,
 										filterValue: row.original.id,
-										column: COLUMNS.Transaction,
+										column: TRANSACTION_CONFIG.name.sheetsColumnLetter,
 										cellValue: name,
 									});
 								}
@@ -172,7 +151,7 @@ export const columns = ({
 										await updateSheetsRow({
 											spreadsheetId,
 											filterValue: row.original.id,
-											column: COLUMNS.Date,
+											column: TRANSACTION_CONFIG.date.sheetsColumnLetter,
 											cellValue: formatDateToSheets(day),
 										});
 									}
@@ -259,7 +238,7 @@ export const columns = ({
 											await updateSheetsRow({
 												spreadsheetId,
 												filterValue: row.original.id,
-												column: COLUMNS.Amount,
+												column: TRANSACTION_CONFIG.amount.sheetsColumnLetter,
 												cellValue: amount,
 											});
 										}
@@ -351,7 +330,7 @@ function InlineFrequencyEditor({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: tx.id,
-							column: COLUMNS.Recurrence,
+							column: TRANSACTION_CONFIG.interval.sheetsColumnLetter,
 							cellValue: new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: Number(e.target.value) }).toText(),
 						});
 					}
@@ -366,12 +345,12 @@ function InlineFrequencyEditor({
 						style={{ width: 90 }}
 					>
 						<span style={{ width: "100%", textAlign: tx.freq == null ? "center" : "left" }}>
-							{tx.freq != null ? frequenciesStrings[frequenciesStrings.length - 1 - tx.freq] : "Select"}
+							{tx.freq != null ? FREQUENCY_OPTIONS.find((opt) => opt.value === tx.freq)?.label : "Select"}
 						</span>
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: "fit-content" }}>
-					{frequenciesStrings.map((item, i) => (
+					{FREQUENCY_OPTIONS.map((option, i) => (
 						<DropdownMenuItem
 							key={`freq-dropdown-item:${i}`}
 							onClick={async () => {
@@ -380,7 +359,7 @@ function InlineFrequencyEditor({
 										t.id === tx.id
 											? {
 													...t,
-													freq: frequencies[i],
+													freq: option.value,
 											  }
 											: t,
 									),
@@ -390,13 +369,13 @@ function InlineFrequencyEditor({
 									await updateSheetsRow({
 										spreadsheetId,
 										filterValue: tx.id,
-										column: COLUMNS.Recurrence,
-										cellValue: new RRule({ freq: frequencies[i], interval: tx.interval ?? 1 }).toText(),
+										column: TRANSACTION_CONFIG.freq.sheetsColumnLetter,
+										cellValue: new RRule({ freq: option.value, interval: tx.interval ?? 1 }).toText(),
 									});
 								}
 							}}
 						>
-							{item}
+							{option.label}
 						</DropdownMenuItem>
 					))}
 				</DropdownMenuContent>
@@ -421,7 +400,7 @@ function InlineFrequencyEditor({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: tx.id,
-							column: COLUMNS.Recurrence,
+							column: TRANSACTION_CONFIG.freq.sheetsColumnLetter,
 							cellValue: "",
 						});
 					}
@@ -430,5 +409,27 @@ function InlineFrequencyEditor({
 				<XIcon />
 			</Button>
 		</div>
+	);
+}
+
+function HeaderWithSort({ column, title }: { column: Column<Transaction, unknown>; title?: string }) {
+	return (
+		<Button
+			size={!title ? "icon" : undefined}
+			variant={column.getIsSorted() ? "secondary" : "ghost"}
+			className={`w-full ${title === "Amount" ? "justify-end" : "justify-start"}`}
+			onClick={() =>
+				column.getIsSorted() === "desc" ? column.clearSorting() : column.toggleSorting(column.getIsSorted() === "asc")
+			}
+		>
+			{title ?? "‎ "}
+			{column.getIsSorted() === "asc" ? (
+				<ArrowUp className="ml-2 h-4 w-4" />
+			) : column.getIsSorted() === "desc" ? (
+				<ArrowDown className="ml-2 h-4 w-4" />
+			) : (
+				""
+			)}
+		</Button>
 	);
 }
