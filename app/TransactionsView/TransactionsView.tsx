@@ -197,14 +197,12 @@ export function TransactionsView<TData, TValue>({
 					</CardContent>
 				</Card>
 			)}
-			<div className="grid grid-cols-2 gap-4">
+			<div className="grid grid-cols-2 gap-4 items-end">
 				<div className="grid grid-rows-2 gap-4">
 					<StatsBox isMini title="Incoming" Icon={PlusIcon} annually={annualIncomingAverage} />
 					<StatsBox isMini title="Outgoing" Icon={MinusIcon} annually={annualOutgoingAverage} />
 				</div>
-				<div className="row-span-2">
-					<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
-				</div>
+				<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
 			</div>
 			<div className="flex gap-4">
 				<AddTransaction {...{ spreadsheetId, setTransactions }} />
@@ -503,14 +501,14 @@ function StatsBox({
 	);
 
 	return (
-		<Card className={`${isMini ? "gap-0" : "h-full"}`}>
-			<CardHeader className={isMini ? "pb-0" : "pb-2"}>
+		<Card className="gap-0">
+			<CardHeader className={isMini ? "pb-0" : "pb-2"} style={{ ...(!isMini && { marginBottom: 116 }) }}>
 				<CardTitle className={isMini ? "text-xs font-medium" : "text-xl font-medium"}>
 					{<Icon size={isMini ? 16 : 32} />}
 					{title}
 				</CardTitle>
 			</CardHeader>
-			<CardContent className={`${isMini ? "" : "py-2"}`}>
+			<CardContent className={`${isMini ? "pb-2" : "py-2"}`}>
 				<div className="grid grid-cols-2 grid-rows-3">
 					<StatsRow title="Daily" amount={daily} shortenedUnits="/day" />
 					<StatsRow title="Monthly" amount={monthly} shortenedUnits="/mo" />
