@@ -197,14 +197,10 @@ export function TransactionsView<TData, TValue>({
 					</CardContent>
 				</Card>
 			)}
-			<div className="grid grid-cols-2 md:grid-cols-2 gap-4 items-end md:items-end">
-				<div className="grid grid-rows-2 gap-4 col-span-2 md:col-span-1">
-					<StatsBox isMini title="Incoming" Icon={PlusIcon} annually={annualIncomingAverage} />
-					<StatsBox isMini title="Outgoing" Icon={MinusIcon} annually={annualOutgoingAverage} />
-				</div>
-				<div className="col-span-2 md:col-span-1">
-					<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
-				</div>
+			<div className="grid grid-cols-3 gap-4 items-end md:items-end">
+				<StatsBox title="Incoming" Icon={PlusIcon} annually={annualIncomingAverage} />
+				<StatsBox title="Outgoing" Icon={MinusIcon} annually={annualOutgoingAverage} />
+				<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
 			</div>
 			<div className="flex gap-4">
 				<AddTransaction {...{ spreadsheetId, setTransactions }} />
@@ -480,38 +476,33 @@ function StatsBox({
 	title,
 	Icon,
 	annually,
-	isMini,
 }: {
 	title: "Incoming" | "Outgoing" | "Net";
 	Icon: React.ForwardRefExoticComponent<LucideProps>;
 	annually: number;
-	isMini?: boolean;
 }) {
 	const monthly = annually / 12;
 	const daily = annually / 365;
 
 	const StatsRow = ({ title, shortenedUnits, amount }: { title: string; shortenedUnits: string; amount: number }) => (
 		<>
-			<div className={`font-bold ${isMini ? "" : "text-2xl"}`}>{title}</div>
-			<div>
-				<div className={`font-semibold text-right ${isMini ? "text-xs" : "text-lg"}`}>
-					<Money {...{ amount }} />
-					{shortenedUnits}
-				</div>
+			<div className="font-bold text-xl">{title}</div>
+			<div className="justify-bottom text-md font-semibold text-right">
+				<Money {...{ amount }} />
+				<span className="text-sm text-muted-foreground">{shortenedUnits}</span>
 			</div>
 		</>
 	);
 
 	return (
 		<Card className="gap-0">
-			<CardHeader className={isMini ? "pb-0" : "pb-2"} style={{ ...(!isMini && { marginBottom: 116 }) }}>
-				<CardTitle className={isMini ? "text-xs font-medium" : "text-xl font-medium"}>
-					{<Icon size={isMini ? 16 : 32} />}
-					{title}
+			<CardHeader className="pb-2">
+				<CardTitle className="text-sm font-medium">
+					<Icon className="inline" size={16} /> {title}
 				</CardTitle>
 			</CardHeader>
-			<CardContent className={`${isMini ? "pb-2" : "py-2"}`}>
-				<div className="grid grid-cols-2 grid-rows-3">
+			<CardContent className="py-2">
+				<div className="grid grid-cols-2 grid-rows-3 gap-0 items-center">
 					<StatsRow title="Daily" amount={daily} shortenedUnits="/day" />
 					<StatsRow title="Monthly" amount={monthly} shortenedUnits="/mo" />
 					<StatsRow title="Annually" amount={annually} shortenedUnits="/yr" />
