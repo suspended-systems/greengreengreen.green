@@ -9,7 +9,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import Money from "@/components/Money";
 
 import { Transaction, calcProjectedValue } from "./transactions";
-import { GreenColor } from "./utils";
+import { formatMoney, GreenColor } from "./utils";
 
 type ForecastViewProps = {
 	startAmount: number;
@@ -86,33 +86,33 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Current Balance</CardTitle>
+						<CardTitle className="text-sm font-medium whitespace-nowrap">Current Balance</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold" style={{ color: stats.current < 0 ? "red" : GreenColor }}>
-							${stats.current.toLocaleString()}
+							{formatMoney(stats.current)}
 						</div>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">90-Day Projection</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							<Money amount={stats.projected} />
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Net Change</CardTitle>
+						<CardTitle className="text-sm font-medium whitespace-nowrap">90-Day Projected Net Change</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className={`text-2xl font-bold`}>
 							<Money amount={stats.change} />
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle className="text-sm font-medium whitespace-nowrap">90-Day Projected Balance</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className={`text-2xl font-bold`}>
+							<Money hidePlus amount={stats.projected} />
 						</div>
 					</CardContent>
 				</Card>

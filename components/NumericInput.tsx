@@ -73,14 +73,23 @@ export default function NumericInput({
 				}}
 				onBlur={(e) => {
 					setIsFocused(false);
-					// final sync on blur so you’re always up-to-date
+					// final sync on blur so always up to date
 					setDraft(value);
 					onBlur?.(e);
 				}}
 			/>
-			<Button type="button" variant="outline" onClick={toggleSign} className="md:hidden">
-				<DiffIcon />
-			</Button>
+			{isFocused && (
+				<Button
+					type="button"
+					variant="outline"
+					className="md:hidden"
+					// prevent the input from blurring
+					onMouseDown={(e) => e.preventDefault()}
+					onClick={toggleSign}
+				>
+					<DiffIcon />
+				</Button>
+			)}
 		</div>
 	);
 }

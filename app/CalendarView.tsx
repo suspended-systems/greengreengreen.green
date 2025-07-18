@@ -56,11 +56,9 @@ export default function CalendarView({
 		<div className="flex flex-col md:flex-row md:gap-8 w-fit mx-auto overscroll-x-auto px-2 md:px-4 pb-4">
 			{/* left panel */}
 			<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
-				<div className="tour-starting w-full mx-auto flex gap-2 items-center text-sm justify-between">
+				<div className="tour-starting w-full mx-auto flex gap-2 items-center text-sm">
 					{/* starting values */}
-					<span className="hidden md:inline" style={{ whiteSpace: "nowrap" }}>
-						Starting on
-					</span>
+					<span style={{ whiteSpace: "nowrap" }}>Starting on</span>
 					<Popover>
 						<PopoverTrigger asChild>
 							<Button
@@ -197,7 +195,7 @@ export default function CalendarView({
 				mode="single"
 				selected={endDate}
 				onSelect={setEndDate}
-				className="tour-calendar rounded-xl border mt-4 md:mt-0 bg-card"
+				className="tour-calendar rounded-xl w-fit border mt-4 md:mt-0 bg-card"
 			/>
 		</div>
 	);

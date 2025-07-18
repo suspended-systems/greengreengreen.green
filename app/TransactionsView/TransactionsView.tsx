@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 
 import {
@@ -14,6 +14,7 @@ import {
 	MinusIcon,
 	DiffIcon,
 	LucideProps,
+	CogIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -30,6 +31,7 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
+import { partition } from "lodash";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -44,11 +46,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CopyableInput } from "@/components/CopyableInput";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Money from "@/components/Money";
+import { ModeSwitcher } from "@/components/ModeSwitcher";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { AddTransactionForm } from "./AddTransactionForm";
 import { calcProjectedValue, Transaction } from "../transactions";
 import getSheetsData from "../sheets";
-import { partition } from "lodash";
 
 export function TransactionsView<TData, TValue>({
 	spreadsheetId,
@@ -128,228 +131,319 @@ export function TransactionsView<TData, TValue>({
 	const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
 
 	return (
-		<div className="flex flex-col gap-4 pb-4 max-w-5xl mx-auto px-2 md:px-4">
-			{/* Sheets setup / demo warning info banner */}
-			{!spreadsheetId && !isDemoWarningClosed && (
+		<>
+			<div className="flex flex-col gap-4 pb-4 max-w-5xl mx-auto px-2 md:px-4">
+				{/* Sheets setup / demo warning info banner */}
+				{!spreadsheetId && !isDemoWarningClosed && (
+					<Card>
+						<CardHeader>
+							<CardTitle className="text-sm font-medium">{session ? "Google Sheets setup" : "Demo Mode"}</CardTitle>
+						</CardHeader>
+
+						<CardContent>
+							<div className="prose flex flex-col items-center gap-4">
+								{!session ? (
+									<>
+										<p className="text-center">
+											You are in demo mode. <span className="font-bold">Data will not save.</span>
+										</p>
+										<p className="text-center">Set up with Google Sheets to store your transactions:</p>
+										<SetUpWithGoogleSheetsButton />
+									</>
+								) : (
+									<>
+										<p className="text-muted-foreground">⚠️ Data will not save until setup is complete.</p>
+										<p className="text-muted-foreground">
+											❗️ Make sure you are signed in to the same Google Account across green and Sheets.
+										</p>
+										<div className="prose">
+											<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
+												<li>
+													Copy the email to share with:
+													<code className="text-muted-foreground">
+														<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
+													</code>
+												</li>
+												<li>
+													<a
+														href="https://docs.google.com/spreadsheets/create"
+														target="_blank"
+														rel="noopener"
+														className="inline-flex items-baseline"
+													>
+														<SquareArrowOutUpRightIcon size={18} className="self-center" />
+														<span className="pl-1">Create a Sheet (and name it)</span>
+													</a>
+												</li>
+												<li>
+													Share it
+													<div className="flex flex-col items-center">
+														<Image
+															src="/assets/sheets-setup-step-1.png"
+															alt="Sheets Setup Step 1"
+															width={600}
+															height={600}
+														/>
+														<Image
+															src="/assets/sheets-setup-step-2.png"
+															alt="Sheets Setup Step 2"
+															width={300}
+															height={300}
+														/>
+													</div>
+												</li>
+												<li>Refresh this page 🎉</li>
+											</ol>
+										</div>
+									</>
+								)}
+							</div>
+						</CardContent>
+					</Card>
+				)}
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-sm font-medium">{session ? "Google Sheets setup" : "Demo Mode"}</CardTitle>
+						<CardTitle className="text-sm font-medium">Average Stats</CardTitle>
 					</CardHeader>
-
 					<CardContent>
-						<div className="prose mt-8 flex flex-col items-center gap-4">
-							{!session ? (
-								<>
-									<p className="text-center">
-										You are in demo mode. <span className="font-bold">Data will not save.</span>
-									</p>
-									<p className="text-center">Set up with Google Sheets to store your transactions:</p>
-									<SetUpWithGoogleSheetsButton />
-								</>
-							) : (
-								<>
-									<p className="text-muted-foreground">⚠️ Data will not save until setup is complete.</p>
-									<p className="text-muted-foreground">
-										❗️ Make sure you are signed in to the same Google Account across green and Sheets.
-									</p>
-									<div className="prose">
-										<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
-											<li>
-												Copy the email to share with:
-												<code className="text-muted-foreground">
-													<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
-												</code>
-											</li>
-											<li>
-												<a
-													href="https://docs.google.com/spreadsheets/create"
-													target="_blank"
-													rel="noopener"
-													className="inline-flex items-baseline"
-												>
-													<SquareArrowOutUpRightIcon size={18} className="self-center" />
-													<span className="pl-1">Create a Sheet (and name it)</span>
-												</a>
-											</li>
-											<li>
-												Share it
-												<div className="flex flex-col items-center">
-													<Image
-														src="/assets/sheets-setup-step-1.png"
-														alt="Sheets Setup Step 1"
-														width={600}
-														height={600}
-													/>
-													<Image
-														src="/assets/sheets-setup-step-2.png"
-														alt="Sheets Setup Step 2"
-														width={300}
-														height={300}
-													/>
-												</div>
-											</li>
-											<li>Refresh this page 🎉</li>
-										</ol>
-									</div>
-								</>
-							)}
+						<div className="grid grid-cols-4 grid-rows-3">
+							<div></div>
+							<div className="font-semibold text-right">Daily</div>
+							<div className="font-semibold text-right">Monthly</div>
+							<div className="font-semibold text-right">Annually</div>
+
+							<div className="font-semibold">
+								<PlusIcon className="inline" size={16} />
+								Incoming
+							</div>
+							<div className="font-semibold text-right">
+								<Money amount={annualIncomingAverage / 365} />
+							</div>
+							<div className="font-semibold text-right">
+								<Money amount={annualIncomingAverage / 12} />
+							</div>
+							<div className="font-semibold text-right">
+								<Money amount={annualIncomingAverage} />
+							</div>
+
+							<div className="font-semibold">
+								<MinusIcon className="inline" size={16} />
+								Outgoing
+							</div>
+							<div className="font-semibold text-right">
+								<Money amount={annualOutgoingAverage / 365} />
+							</div>
+							<div className="font-semibold text-right">
+								<Money amount={annualOutgoingAverage / 12} />
+							</div>
+							<div className="font-semibold text-right">
+								<Money amount={annualOutgoingAverage} />
+							</div>
+
+							<div className="font-semibold">
+								<DiffIcon className="inline" size={16} />
+								Net
+							</div>
+							<div className="font-bold text-right text-2xl">
+								<Money amount={annualNetAverage / 365} />
+							</div>
+							<div className="font-bold text-right text-2xl">
+								<Money amount={annualNetAverage / 12} />
+							</div>
+							<div className="font-bold text-right text-2xl">
+								<Money amount={annualNetAverage} />
+							</div>
 						</div>
 					</CardContent>
 				</Card>
-			)}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<StatsBox isMini title="Incoming" Icon={PlusIcon} annually={annualIncomingAverage} />
-				<StatsBox isMini title="Outgoing" Icon={MinusIcon} annually={annualOutgoingAverage} />
-				<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
-			</div>
-			<div className="flex gap-4">
-				<AddTransaction {...{ spreadsheetId, setTransactions }} />
-				<Input
-					placeholder="Search..."
-					value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-					onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
-					className="text-sm"
-				/>
-				{spreadsheetId && (
-					<Button
-						variant="outline"
-						onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
-					>
-						<SquareArrowOutUpRightIcon />
-						<span className="hidden md:block">Open in Sheets</span>
-					</Button>
-				)}
-				{spreadsheetId && (
-					<Button
-						variant="outline"
-						onClick={async () => {
-							const spinStart = Date.now();
-							setPullSheetsLoading(true);
-
-							try {
-								await getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then((data) => {
-									if (typeof data !== "string" && data) {
-										const {
-											transactions: spreadsheetTransactions,
-											startDate: spreadsheetStartDate,
-											startAmount: spreadsheetStartValue,
-											malformedTransactions,
-										} = data;
-
-										if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
-										if (spreadsheetStartValue) setStartAmount(spreadsheetStartValue);
-										setTransactions(spreadsheetTransactions);
-
-										toast("✅ Successfully imported Sheets transactions", {
-											// This runs once the success-toast’s duration elapses
-											onAutoClose() {
-												if (malformedTransactions?.length) {
-													toast(`⚠️ Sheet contains ${malformedTransactions.length} malformed transaction(s)`);
-												}
-											},
-										});
-									}
-								});
-							} finally {
-								// how long since we kicked off the spin?
-								const elapsed = (Date.now() - spinStart) % 1000;
-								// wait until the end of that 1 s cycle so the animation completes fully
-								setTimeout(() => setPullSheetsLoading(false), 1000 - elapsed);
-							}
-						}}
-					>
-						<RefreshCcwIcon
-							className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
-						/>
-						<span className="hidden md:block">Pull Sheets Changes</span>
-						<span className="sr-only">Sync from Google Sheets</span>
-					</Button>
-				)}
-				<DropdownMenu>
-					<DropdownMenuTrigger asChild>
-						<Button variant="outline" className="ml-auto">
-							<EyeOffIcon />
-							<span className="sr-only">Toggle transaction table columns</span>
+				{/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+					<StatsBox title="Incoming" Icon={PlusIcon} annually={annualIncomingAverage} />
+					<StatsBox title="Outgoing" Icon={MinusIcon} annually={annualOutgoingAverage} />
+					<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
+				</div> */}
+				<div className="flex gap-4">
+					<AddTransaction {...{ spreadsheetId, setTransactions }} />
+					<Input
+						placeholder="Search..."
+						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+						onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+						className="text-sm"
+					/>
+					{spreadsheetId && (
+						<Button
+							variant="outline"
+							onClick={() => window.open(`https://docs.google.com/spreadsheets/d/${spreadsheetId}`, "_blank")}
+						>
+							<SquareArrowOutUpRightIcon />
+							<span className="hidden md:block">Open in Sheets</span>
 						</Button>
-					</DropdownMenuTrigger>
-					<DropdownMenuContent align="end">
-						{table
-							.getAllColumns()
-							.filter((column) => column.getCanHide())
-							.map((column) => {
-								return (
-									<DropdownMenuCheckboxItem
-										key={column.id}
-										className="capitalize"
-										checked={column.getIsVisible()}
-										onCheckedChange={(value) => column.toggleVisibility(!!value)}
-									>
-										{
-											{
-												disabled: "Toggle",
-												name: "Name",
-												date: "Date",
-												freq: "Recurrence",
-												amount: "Amount",
-												actions: "Delete",
-											}[column.id]
+					)}
+					{spreadsheetId && (
+						<Button
+							variant="outline"
+							onClick={async () => {
+								const spinStart = Date.now();
+								setPullSheetsLoading(true);
+
+								try {
+									await getSheetsData({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then((data) => {
+										if (typeof data !== "string" && data) {
+											const {
+												transactions: spreadsheetTransactions,
+												startDate: spreadsheetStartDate,
+												startAmount: spreadsheetStartValue,
+												malformedTransactions,
+											} = data;
+
+											if (spreadsheetStartDate) setStartDate(spreadsheetStartDate);
+											if (spreadsheetStartValue) setStartAmount(spreadsheetStartValue);
+											setTransactions(spreadsheetTransactions);
+
+											toast("✅ Successfully imported Sheets transactions", {
+												// This runs once the success-toast’s duration elapses
+												onAutoClose() {
+													if (malformedTransactions?.length) {
+														toast(`⚠️ Sheet contains ${malformedTransactions.length} malformed transaction(s)`);
+													}
+												},
+											});
 										}
-									</DropdownMenuCheckboxItem>
-								);
-							})}
-					</DropdownMenuContent>
-				</DropdownMenu>
-			</div>
-			<div className="rounded-xl border bg-card">
-				<Table className="overflow-x-visible overscroll-x-contain">
-					<TableHeader>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<TableRow key={headerGroup.id}>
-								{headerGroup.headers.map((header) => {
+									});
+								} finally {
+									// how long since we kicked off the spin?
+									const elapsed = (Date.now() - spinStart) % 1000;
+									// wait until the end of that 1 s cycle so the animation completes fully
+									setTimeout(() => setPullSheetsLoading(false), 1000 - elapsed);
+								}
+							}}
+						>
+							<RefreshCcwIcon
+								className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
+							/>
+							<span className="hidden md:block">Pull Sheets Changes</span>
+							<span className="sr-only">Sync from Google Sheets</span>
+						</Button>
+					)}
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="outline" className="ml-auto">
+								<EyeOffIcon />
+								<span className="sr-only">Toggle transaction table columns</span>
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							{table
+								.getAllColumns()
+								.filter((column) => column.getCanHide())
+								.map((column) => {
 									return (
-										<TableHead key={header.id}>
-											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-										</TableHead>
+										<DropdownMenuCheckboxItem
+											key={column.id}
+											className="capitalize"
+											checked={column.getIsVisible()}
+											onCheckedChange={(value) => column.toggleVisibility(!!value)}
+										>
+											{
+												{
+													disabled: "Toggle",
+													name: "Name",
+													date: "Date",
+													freq: "Recurrence",
+													amount: "Amount",
+													actions: "Delete",
+												}[column.id]
+											}
+										</DropdownMenuCheckboxItem>
 									);
 								})}
-							</TableRow>
-						))}
-					</TableHeader>
-					<TableBody>
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
-						) : (
-							<TableRow>
-								<TableCell
-									colSpan={columns.length}
-									className="h-24 text-center min-w-[970px]" // cheaphax: match empty table width with the dynamic computed width of the columns so the table doesn't change size when searching
-								>
-									No results.
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
-			<div className="w-full flex items-center justify-between">
-				<span className="flex-1 text-sm text-muted-foreground">
-					Showing {startRow}–{endRow} of {totalRows}
-				</span>
-				<div className="flex items-center space-x-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={() => table.previousPage()}
-						disabled={!table.getCanPreviousPage()}
-					>
-						<ChevronLeftIcon />
-					</Button>
-					<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-						<ChevronRightIcon />
-					</Button>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</div>
+				<div className="rounded-xl border bg-card">
+					<Table className="overflow-x-visible overscroll-x-contain">
+						<TableHeader>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<TableRow key={headerGroup.id}>
+									{headerGroup.headers.map((header) => {
+										return (
+											<TableHead key={header.id}>
+												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+											</TableHead>
+										);
+									})}
+								</TableRow>
+							))}
+						</TableHeader>
+						<TableBody>
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
+							) : (
+								<TableRow>
+									<TableCell
+										colSpan={columns.length}
+										className="h-24 text-center min-w-[970px]" // cheaphax: match empty table width with the dynamic computed width of the columns so the table doesn't change size when searching
+									>
+										No results.
+									</TableCell>
+								</TableRow>
+							)}
+						</TableBody>
+					</Table>
+				</div>
+				<div className="w-full flex items-center justify-between">
+					<span className="flex-1 text-sm text-muted-foreground">
+						Showing {startRow}–{endRow} of {totalRows}
+					</span>
+					<div className="flex items-center space-x-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => table.previousPage()}
+							disabled={!table.getCanPreviousPage()}
+						>
+							<ChevronLeftIcon />
+						</Button>
+						<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+							<ChevronRightIcon />
+						</Button>
+					</div>
+				</div>
+
+				{/* settings cog (night mode toggle/sign out) */}
+				<div className="mt-4 self-end">
+					<Popover>
+						<PopoverTrigger asChild>
+							<Button variant="outline" className="text-muted-foreground">
+								<CogIcon />
+								Settings
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-fit flex flex-col gap-4 justify-center">
+							<ModeSwitcher />
+							<div className="flex flex-col gap-4 mx-auto">
+								{session ? (
+									<>
+										<span className="text-sm text-muted-foreground">Signed in to {session.user?.email}</span>
+										<Button
+											variant="outline"
+											className="w-fit"
+											style={{ alignSelf: "flex-end", color: "#c75757" }}
+											onClick={() => signOut()}
+										>
+											Sign out
+										</Button>
+									</>
+								) : (
+									<>
+										<SetUpWithGoogleSheetsButton />
+									</>
+								)}
+							</div>
+						</PopoverContent>
+					</Popover>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 }
 
@@ -484,32 +578,23 @@ function StatsBox({
 	const monthly = annually / 12;
 	const daily = annually / 365;
 
-	const StatsRow = ({ title, amount }: { title: string; amount: number }) => (
+	const StatsRow = ({ unit, amount }: { unit: string; amount: number }) => (
 		<>
-			<div className="font-bold text-2xl">{title}</div>
-			<div>
-				<div className="font-semibold text-right text-lg">
-					<Money {...{ amount }} />
-				</div>
+			<div className="font-bold text-right text-2xl">
+				<Money {...{ amount }} />
 			</div>
+
+			<div className="text-muted-foreground text-lg">{unit}</div>
 		</>
 	);
 
 	return (
-		<Card>
-			<CardHeader className="pb-2">
-				<CardTitle className="text-xl font-medium">
-					{<Icon size={16} />}
-					{title}
-				</CardTitle>
-			</CardHeader>
-			<CardContent className="py-2">
-				<div className="grid grid-cols-2 grid-rows-3 items-center">
-					<StatsRow title="Daily" amount={daily} />
-					<StatsRow title="Monthly" amount={monthly} />
-					<StatsRow title="Annually" amount={annually} />
-				</div>
-			</CardContent>
-		</Card>
+		<div className="bg-card rounded-xl border">
+			<Icon size={16} />
+			{title}
+
+			<StatsRow unit="/day" amount={daily} />
+			<StatsRow unit="/mo" amount={monthly} />
+		</div>
 	);
 }

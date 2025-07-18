@@ -10,6 +10,7 @@ import { calcProjectedValue, getTransactionsOnDay, Transaction } from "@/app/tra
 import { DAY_MS, formatMoney, GreenColor } from "@/app/utils";
 import { endOfDay, endOfMonth, getDaysInMonth, isSameMonth, isSameYear, startOfDay, startOfMonth } from "date-fns";
 import { partition } from "lodash";
+import Money from "../Money";
 
 function CalendarCustomized({
 	className,
@@ -279,36 +280,21 @@ function StatsColumn({
 			<p className="text-xs md:text-sm font-medium">
 				{/* Desktop */}
 				<span className="hidden md:inline">
-					{label.desktop}:{" "}
-					<span style={{ color: total < 0 ? "red" : GreenColor }}>
-						{total < 0 ? "" : "+"}
-						{formatMoney(total)}
-					</span>
+					{label.desktop}: <Money amount={total} />
 				</span>
 				{/* Mobile - shorter label and omit decimals */}
 				<span className="md:hidden inline">
-					{label.mobile}:{" "}
-					<span style={{ color: total < 0 ? "red" : GreenColor }}>
-						{total < 0 ? "" : "+"}
-						{formatMoney(Math.floor(total)).slice(0, -3)}
-					</span>
+					{label.mobile}: <Money dropDecimals amount={total} />
 				</span>
 			</p>
 			<p className="text-xs">
 				{/* Desktop */}
 				<span className="hidden md:inline">
-					<span style={{ color: dailyAverage < 0 ? "red" : GreenColor }}>
-						{dailyAverage < 0 ? "" : "+"}
-						{formatMoney(dailyAverage)}
-					</span>{" "}
-					per day
+					<Money amount={dailyAverage} /> per day
 				</span>
 				{/* Mobile - shorter label and omit decimals */}
 				<span className="md:hidden inline">
-					<span style={{ color: dailyAverage < 0 ? "red" : GreenColor }}>
-						{dailyAverage < 0 ? "" : "+"}
-						{formatMoney(Math.floor(dailyAverage)).slice(0, -3)}
-					</span>
+					<Money dropDecimals amount={dailyAverage} />
 					/day
 				</span>
 			</p>

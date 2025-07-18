@@ -6,22 +6,18 @@ import { useMemo, useState, useEffect } from "react";
 import { useLocalStorage } from "react-use";
 import useSWRImmutable from "swr/immutable";
 import { toast } from "sonner";
-import { CalendarDaysIcon, CircleDollarSignIcon, CogIcon, Loader2, TrendingUpIcon } from "lucide-react";
+import { CalendarDaysIcon, CircleDollarSignIcon, Loader2, TrendingUpIcon } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import CalendarView from "./CalendarView";
 import ForecastView from "./ForecastView";
 import { columns as columnsData } from "./TransactionsView/tableColumns";
-import { SetUpWithGoogleSheetsButton, TransactionsView } from "./TransactionsView/TransactionsView";
-import { ModeSwitcher } from "@/components/ModeSwitcher";
+import { TransactionsView } from "./TransactionsView/TransactionsView";
 import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
-import { GreenColor } from "./utils";
 
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("@/components/Tour"), { ssr: false });
@@ -108,37 +104,6 @@ export default function Home() {
 		<>
 			{/* Joyride Tour */}
 			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
-
-			{/* settings cog (night mode toggle/sign out) */}
-			<div className="absolute" style={{ right: 3, top: 3 }}>
-				<Popover>
-					<PopoverTrigger>
-						<CogIcon className="text-muted-foreground" />
-					</PopoverTrigger>
-					<PopoverContent className="w-fit flex flex-col gap-4 justify-center">
-						<ModeSwitcher />
-						<div className="flex flex-col gap-4 mx-auto">
-							{session ? (
-								<>
-									<span className="text-sm text-muted-foreground">Signed in to {session.user?.email}</span>
-									<Button
-										variant="outline"
-										className="w-fit"
-										style={{ alignSelf: "flex-end", color: "#c75757" }}
-										onClick={() => signOut()}
-									>
-										Sign out
-									</Button>
-								</>
-							) : (
-								<>
-									<SetUpWithGoogleSheetsButton />
-								</>
-							)}
-						</div>
-					</PopoverContent>
-				</Popover>
-			</div>
 
 			{/* green fading divider */}
 			{/* <div
