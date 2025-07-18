@@ -197,12 +197,14 @@ export function TransactionsView<TData, TValue>({
 					</CardContent>
 				</Card>
 			)}
-			<div className="grid grid-cols-2 gap-4 items-end">
-				<div className="grid grid-rows-2 gap-4">
+			<div className="grid grid-cols-2 md:grid-cols-2 gap-4 items-end md:items-end">
+				<div className="grid grid-rows-2 gap-4 col-span-2 md:col-span-1">
 					<StatsBox isMini title="Incoming" Icon={PlusIcon} annually={annualIncomingAverage} />
 					<StatsBox isMini title="Outgoing" Icon={MinusIcon} annually={annualOutgoingAverage} />
 				</div>
-				<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
+				<div className="col-span-2 md:col-span-1">
+					<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
+				</div>
 			</div>
 			<div className="flex gap-4">
 				<AddTransaction {...{ spreadsheetId, setTransactions }} />
