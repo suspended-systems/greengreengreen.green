@@ -140,22 +140,8 @@ export default function Home() {
 				</Popover>
 			</div>
 
-			{/* banner */}
-			<div
-				className="text-center font-medium"
-				style={{
-					pointerEvents: "none",
-					fontSize: 20,
-					letterSpacing: 1,
-					color: GreenColor,
-					fontFamily: "sans-serif",
-				}}
-			>
-				💸 greengreengreen.green
-			</div>
-
 			{/* green fading divider */}
-			<div
+			{/* <div
 				style={{
 					border: `1px solid ${GreenColor}`,
 					borderLeft: "150px solid transparent",
@@ -164,7 +150,7 @@ export default function Home() {
 					top: 1,
 				}}
 				className="mx-auto"
-			/>
+			/> */}
 
 			{/* tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
@@ -201,13 +187,17 @@ export default function Home() {
         "
 				>
 					{/* Loading spinner - always rendered */}
-					<div className={`absolute inset-0 flex flex-col items-center justify-center text-current transition-opacity duration-200 ${hideLoader ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+					<div
+						className={`absolute inset-0 flex flex-col items-center justify-center text-current transition-opacity duration-200 ${
+							hideLoader ? "opacity-0 pointer-events-none" : "opacity-100"
+						}`}
+					>
 						<Loader2 className="animate-spin" size={64} aria-label="Loading…" />
 						<p>{status === "loading" ? "Loading..." : "Retrieving Sheets transactions..."}</p>
 					</div>
-					
+
 					{/* Main content - always rendered */}
-					<div className={`transition-opacity duration-700 ${showContent ? 'opacity-100' : 'opacity-0'}`}>
+					<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
 						<TabsContent value="calendar">
 							<CalendarView
 								{...{
