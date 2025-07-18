@@ -9,9 +9,11 @@ import {
 	ChevronLeftIcon,
 	ChevronRightIcon,
 	PlusIcon,
-	XIcon,
 	RefreshCcwIcon,
 	SquareArrowOutUpRightIcon,
+	MinusIcon,
+	DiffIcon,
+	LucideProps,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -195,10 +197,10 @@ export function TransactionsView<TData, TValue>({
 					</CardContent>
 				</Card>
 			)}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<StatsBox title="Incoming" annually={annualIncomingAverage} />
-				<StatsBox title="Outgoing" annually={annualOutgoingAverage} />
-				<StatsBox title="Net" annually={annualNetAverage} />
+			<div className="grid grid-cols-3 gap-4 items-end md:items-end">
+				<StatsBox title="Incoming" Icon={PlusIcon} annually={annualIncomingAverage} />
+				<StatsBox title="Outgoing" Icon={MinusIcon} annually={annualOutgoingAverage} />
+				<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
 			</div>
 			<div className="flex gap-4">
 				<AddTransaction {...{ spreadsheetId, setTransactions }} />
@@ -470,31 +472,40 @@ export function SetUpWithGoogleSheetsButton() {
 	);
 }
 
-function StatsBox({ title, annually }: { title: "Incoming" | "Outgoing" | "Net"; annually: number }) {
+function StatsBox({
+	title,
+	Icon,
+	annually,
+}: {
+	title: "Incoming" | "Outgoing" | "Net";
+	Icon: React.ForwardRefExoticComponent<LucideProps>;
+	annually: number;
+}) {
 	const monthly = annually / 12;
 	const daily = annually / 365;
 
+	const StatsRow = ({ title, shortenedUnits, amount }: { title: string; shortenedUnits: string; amount: number }) => (
+		<>
+			<div className="font-bold text-xl">{title}</div>
+			<div className="justify-bottom text-md font-semibold text-right">
+				<Money {...{ amount }} />
+				<span className="text-sm text-muted-foreground">{shortenedUnits}</span>
+			</div>
+		</>
+	);
+
 	return (
-		<Card>
+		<Card className="gap-0">
 			<CardHeader className="pb-2">
-				<CardTitle className="text-sm font-medium">{title}</CardTitle>
+				<CardTitle className="text-sm font-medium">
+					<Icon className="inline" size={16} /> {title}
+				</CardTitle>
 			</CardHeader>
-			<CardContent>
-				<div className="grid grid-cols-2 grid-rows-3">
-					<div className="text-xl font-bold">Daily</div>
-					<div>
-						<div className="font-semibold text-right">
-							<Money amount={daily} />
-						</div>
-					</div>
-					<div className="text-xl font-bold">Monthly</div>
-					<div className="font-semibold text-right">
-						<Money amount={monthly} />
-					</div>
-					<div className="text-xl font-bold">Annually</div>
-					<div className="font-semibold text-right">
-						<Money amount={annually} />
-					</div>
+			<CardContent className="py-2">
+				<div className="grid grid-cols-2 grid-rows-3 gap-0 items-center">
+					<StatsRow title="Daily" amount={daily} shortenedUnits="/day" />
+					<StatsRow title="Monthly" amount={monthly} shortenedUnits="/mo" />
+					<StatsRow title="Annually" amount={annually} shortenedUnits="/yr" />
 				</div>
 			</CardContent>
 		</Card>

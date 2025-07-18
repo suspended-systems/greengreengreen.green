@@ -13,9 +13,10 @@ import { CalendarCustomized } from "@/components/ui/calendar-customized";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import NumericInput from "@/components/NumericInput";
 
-import { calcProjectedValue, getTransactionsOnDay, Transaction, txRRule } from "./transactions";
-import { COLUMNS, DAY_MS, formatDateToSheets, formatMoney, GreenColor } from "./utils";
+import { calcProjectedValue, getTransactionsOnDay, Transaction } from "./transactions";
+import { DAY_MS, formatDateToSheets, formatMoney, GreenColor } from "./utils";
 import { appendSheetsRow, updateSheetsRow, updateStartingDate, updateStartingNumber } from "./sheets";
+import { TRANSACTION_CONFIG, txRRule } from "./transaction-schema";
 
 /**
  * Additional styling exists in `@/components/ui/calendar-customized`
@@ -268,7 +269,7 @@ function ChatWindowPopover({
 							await updateSheetsRow({
 								spreadsheetId,
 								filterValue: tx.id,
-								column: COLUMNS.Enabled,
+								column: TRANSACTION_CONFIG.disabled.sheetsColumnLetter,
 								cellValue: false,
 							});
 						}

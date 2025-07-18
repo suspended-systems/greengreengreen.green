@@ -22,9 +22,10 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import NumericInput from "@/components/NumericInput";
 
-import { formatDateToSheets, frequenciesStrings, GreenColor } from "../utils";
-import { Transaction, txRRule } from "../transactions";
-import { Frequency } from "rrule";
+import { GreenColor } from "../utils";
+import { FREQUENCY_OPTIONS } from "../transaction-schema";
+import { Transaction } from "../transactions";
+import { transactionToSheetsRow } from "../transaction-schema";
 import { appendSheetsRow } from "../sheets";
 
 const FormSchema = z.object({
@@ -38,9 +39,9 @@ const FormSchema = z.object({
 			.refine((s) => Number(s) >= 1, "Interval must be greater than zero."),
 		z.literal(""),
 	]),
-	// Optional string appearing in `frequenciesStrings`
+	// Optional string appearing in `FREQUENCY_OPTIONS`
 	// @ts-ignore: poor zod types
-	recurringFrequency: z.union([...frequenciesStrings.map(z.literal), z.literal("")]),
+	recurringFrequency: z.union([...FREQUENCY_OPTIONS.map((opt) => z.literal(opt.label)), z.literal("")]),
 	// Required nonzero string number
 	amount: z
 		.string()
@@ -80,26 +81,15 @@ export function AddTransactionForm({
 			amount: Number(data.amount),
 			date: data.date.getTime(),
 			...(data.recurringFrequency && {
-				freq: {
-					days: Frequency.DAILY,
-					weeks: Frequency.WEEKLY,
-					months: Frequency.MONTHLY,
-					years: Frequency.YEARLY,
-				}[data.recurringFrequency as "days" | "weeks" | "months" | "years"],
+				freq: FREQUENCY_OPTIONS.find((opt) => opt.label === data.recurringFrequency)?.value,
 				interval: data.recurringInterval ? parseFloat(data.recurringInterval) : 1,
 			}),
 		};
+
 		setTransactions((value) => [transaction, ...value]);
 
 		if (spreadsheetId) {
-			await appendSheetsRow(spreadsheetId, [
-				transaction.name,
-				transaction.amount,
-				formatDateToSheets(new Date(transaction.date)),
-				transaction.freq ? txRRule(transaction).toText() : "",
-				!transaction.disabled,
-				transaction.id,
-			]);
+			await appendSheetsRow(spreadsheetId, transactionToSheetsRow(transaction));
 		}
 
 		form.reset();
@@ -146,12 +136,7 @@ export function AddTransactionForm({
 										</Button>
 									</PopoverTrigger>
 									<PopoverContent className="w-auto p-0" align="start">
-										<Calendar
-											mode="single"
-											selected={field.value}
-											initialFocus
-											onDayClick={field.onChange}
-										/>
+										<Calendar mode="single" selected={field.value} initialFocus onDayClick={field.onChange} />
 									</PopoverContent>
 								</Popover>
 							</FormControl>
@@ -217,12 +202,12 @@ export function AddTransactionForm({
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: 155 }}>
-													{frequenciesStrings.map((item, i) => (
+													{FREQUENCY_OPTIONS.map((option, i) => (
 														<DropdownMenuItem
 															key={`freq-dropdown-item:${i}`}
-															onClick={() => field.onChange(frequenciesStrings[i])}
+															onClick={() => field.onChange(option.label)}
 														>
-															{item}
+															{option.label}
 														</DropdownMenuItem>
 													))}
 												</DropdownMenuContent>

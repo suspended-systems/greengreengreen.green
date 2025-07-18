@@ -42,6 +42,8 @@ export default function Home() {
 			onSuccess: (data) => {
 				if (!data) {
 					// user still needs to complete set up
+					setHideLoader(true);
+					setTimeout(() => setShowContent(true), 200);
 					return;
 				}
 
@@ -54,6 +56,9 @@ export default function Home() {
 				if (data.malformedTransactions.length > 0) {
 					toast(`⚠️ Sheet contains ${data.malformedTransactions.length} malformed transaction(s)`);
 				}
+
+				setHideLoader(true);
+				setTimeout(() => setShowContent(true), 200);
 			},
 		},
 	);
@@ -68,6 +73,8 @@ export default function Home() {
 	const [month, onMonthChange] = useState(new Date());
 	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 } as PaginationState);
 	const [spreadsheetId, setSpreadsheetId] = useState<string | null>(null);
+	const [showContent, setShowContent] = useState(false);
+	const [hideLoader, setHideLoader] = useState(false);
 
 	const columns: ColumnDef<Transaction>[] = useMemo(
 		() => columnsData({ spreadsheetId, setTransactions }),
@@ -86,6 +93,16 @@ export default function Home() {
 			setTourComplete(true);
 		}
 	};
+
+	useEffect(() => {
+		if (status === "authenticated" && !isLoading) {
+			setHideLoader(true);
+			setTimeout(() => setShowContent(true), 200);
+		} else if (status === "unauthenticated") {
+			setHideLoader(true);
+			setTimeout(() => setShowContent(true), 200);
+		}
+	}, [status, isLoading]);
 
 	return (
 		<>
@@ -123,22 +140,8 @@ export default function Home() {
 				</Popover>
 			</div>
 
-			{/* banner */}
-			<div
-				className="text-center font-medium"
-				style={{
-					pointerEvents: "none",
-					fontSize: 20,
-					letterSpacing: 1,
-					color: GreenColor,
-					fontFamily: "sans-serif",
-				}}
-			>
-				💸 greengreengreen.green
-			</div>
-
 			{/* green fading divider */}
-			<div
+			{/* <div
 				style={{
 					border: `1px solid ${GreenColor}`,
 					borderLeft: "150px solid transparent",
@@ -147,7 +150,7 @@ export default function Home() {
 					top: 1,
 				}}
 				className="mx-auto"
-			/>
+			/> */}
 
 			{/* tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
@@ -183,56 +186,60 @@ export default function Home() {
           md:min-h-screen
         "
 				>
-					{(status === "authenticated" && isLoading) || status === "loading" ? (
-						<div className="flex flex-col items-center h-full text-current">
-							<Loader2 className="animate-spin" size={64} aria-label="Loading…" />
-							<p>{status === "loading" ? "Loading..." : "Retrieving Sheets transactions..."}</p>
-						</div>
-					) : (
-						<>
-							<TabsContent value="calendar">
-								<CalendarView
-									{...{
-										month,
-										onMonthChange,
-										startAmount,
-										setStartAmount,
-										startDate,
-										setStartDate,
-										endDate,
-										setEndDate,
-										transactions,
-										setTransactions,
-										spreadsheetId,
-									}}
-								/>
-							</TabsContent>
-							<TabsContent value="forecast">
-								<ForecastView
-									{...{
-										startAmount,
-										startDate,
-										transactions,
-									}}
-								/>
-							</TabsContent>
-							<TabsContent value="transactions">
-								<TransactionsView
-									{...{
-										spreadsheetId,
-										isDemoWarningClosed,
-										columns,
-										setStartDate,
-										setStartAmount,
-										transactions,
-										setTransactions,
-										pagination,
-										setPagination,
-									}}
-								/>
-							</TabsContent>
-						</>
-					)}
+					{/* Loading spinner - always rendered */}
+					<div
+						className={`absolute inset-0 flex flex-col items-center justify-center text-current transition-opacity duration-200 ${
+							hideLoader ? "opacity-0 pointer-events-none" : "opacity-100"
+						}`}
+					>
+						<Loader2 className="animate-spin" size={64} aria-label="Loading…" />
+						<p>{status === "loading" ? "Loading..." : "Retrieving Sheets transactions..."}</p>
+					</div>
+
+					{/* Main content - always rendered */}
+					<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
+						<TabsContent value="calendar">
+							<CalendarView
+								{...{
+									month,
+									onMonthChange,
+									startAmount,
+									setStartAmount,
+									startDate,
+									setStartDate,
+									endDate,
+									setEndDate,
+									transactions,
+									setTransactions,
+									spreadsheetId,
+								}}
+							/>
+						</TabsContent>
+						<TabsContent value="forecast">
+							<ForecastView
+								{...{
+									startAmount,
+									startDate,
+									transactions,
+								}}
+							/>
+						</TabsContent>
+						<TabsContent value="transactions">
+							<TransactionsView
+								{...{
+									spreadsheetId,
+									isDemoWarningClosed,
+									columns,
+									setStartDate,
+									setStartAmount,
+									transactions,
+									setTransactions,
+									pagination,
+									setPagination,
+								}}
+							/>
+						</TabsContent>
+					</div>
 				</div>
 			</Tabs>
 			<Toaster visibleToasts={1} position="bottom-right" />
