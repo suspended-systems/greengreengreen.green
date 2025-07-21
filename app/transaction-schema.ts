@@ -7,7 +7,6 @@ import { formatDateToSheets } from "./utils";
  * Single source of truth for all transaction-related data, UI, and sheets integration
  */
 
-// Core transaction type
 export type Transaction = {
 	id: string;
 	name: string;
