@@ -18,7 +18,6 @@ export type Transaction = {
 	disabled?: boolean;
 };
 
-// Single configuration object that controls everything
 export const TRANSACTION_CONFIG = {
 	name: {
 		sheetsColumnLetter: "A",
