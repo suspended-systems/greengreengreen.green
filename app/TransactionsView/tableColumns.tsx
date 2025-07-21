@@ -330,7 +330,7 @@ function InlineFrequencyEditor({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: tx.id,
-							column: TRANSACTION_FIELDS.interval.sheetsColumnLetter,
+							column: TRANSACTION_FIELDS.freq.sheetsColumnLetter,
 							cellValue: new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: Number(e.target.value) }).toText(),
 						});
 					}

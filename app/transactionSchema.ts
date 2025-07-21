@@ -22,32 +22,21 @@ export const TRANSACTION_FIELDS = {
 		sheetsColumnLetter: "A",
 		sheetsSchema: z.string().nonempty(),
 		header: "Transaction",
-		required: true,
-		label: "Transaction",
-		formPlaceholder: "Enter a transaction name...",
 	},
 	amount: {
 		sheetsColumnLetter: "B",
 		sheetsSchema: z.coerce.number(),
 		header: "Amount",
-		required: true,
-		label: "Amount",
-		formPlaceholder: "0.00",
 	},
 	date: {
 		sheetsColumnLetter: "C",
 		sheetsSchema: z.string(),
 		header: "Date",
-		required: true,
-		label: "Date",
-		formPlaceholder: "Select a start date",
 	},
 	freq: {
 		sheetsColumnLetter: "D",
 		sheetsSchema: z.string(),
 		header: "Recurrence",
-		required: false,
-		label: "Frequency",
 		options: [
 			{ value: Frequency.DAILY, label: "days" },
 			{ value: Frequency.WEEKLY, label: "weeks" },
@@ -55,28 +44,16 @@ export const TRANSACTION_FIELDS = {
 			{ value: Frequency.YEARLY, label: "years" },
 		],
 	},
-	interval: {
-		sheetsColumnLetter: "D", // shares column with freq
-		sheetsSchema: z.string(), // shares column with freq
-		header: "Recurrence",
-		required: false,
-		label: "Interval",
-		formPlaceholder: "1",
-	},
+	// interval: {}, // shares data with `freq`
 	disabled: {
 		sheetsColumnLetter: "E",
 		sheetsSchema: z.union([z.literal("TRUE"), z.literal("FALSE"), z.literal("")]),
 		header: "Enabled",
-		required: false,
-		label: "Disabled",
-		defaultValue: false,
 	},
 	id: {
 		sheetsColumnLetter: "F",
 		sheetsSchema: z.string().uuid(),
 		header: "UUID",
-		required: true,
-		hidden: true,
 	},
 } as const;
 
