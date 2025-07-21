@@ -12,13 +12,13 @@ import {
 	TransactionRowSchema,
 	HEADERS,
 	transactionToSheetsRow,
-	TRANSACTION_CONFIG,
+	TRANSACTION_FIELDS,
 } from "./transactionSchema";
 import { formatDateToSheets, letterToIndex, pMapConfig } from "./utils";
 import { partition } from "lodash";
 import pMap from "p-map";
 
-type ColumnLetter = (typeof TRANSACTION_CONFIG)[keyof typeof TRANSACTION_CONFIG]["sheetsColumnLetter"];
+type ColumnLetter = (typeof TRANSACTION_FIELDS)[keyof typeof TRANSACTION_FIELDS]["sheetsColumnLetter"];
 
 const credentials = {
 	project_id: "green-456901",
@@ -38,7 +38,7 @@ const assignUUID = async ({ spreadsheetId }: { spreadsheetId: string }) => {
 	await updateSheetsRow({
 		spreadsheetId,
 		filterValue: "",
-		column: TRANSACTION_CONFIG.id.sheetsColumnLetter,
+		column: TRANSACTION_FIELDS.id.sheetsColumnLetter,
 		cellValue: id,
 	});
 
@@ -49,9 +49,9 @@ const assignUUID = async ({ spreadsheetId }: { spreadsheetId: string }) => {
 const assignEnabled = async ({ rowUUID, spreadsheetId }: { rowUUID: string; spreadsheetId: string }) => {
 	await updateSheetsRow({
 		spreadsheetId,
-		filterColumn: TRANSACTION_CONFIG.id.sheetsColumnLetter,
+		filterColumn: TRANSACTION_FIELDS.id.sheetsColumnLetter,
 		filterValue: rowUUID,
-		column: TRANSACTION_CONFIG.disabled.sheetsColumnLetter,
+		column: TRANSACTION_FIELDS.disabled.sheetsColumnLetter,
 		// boolean value flipped because in the sheet we store the opposite: "enabled"
 		cellValue: true,
 	});
@@ -485,7 +485,7 @@ async function findSheetRowIndex({
 	filterValue: string | number;
 	filterColumn?: ColumnLetter;
 }) {
-	filterColumn = filterColumn ?? TRANSACTION_CONFIG.id.sheetsColumnLetter;
+	filterColumn = filterColumn ?? TRANSACTION_FIELDS.id.sheetsColumnLetter;
 
 	// find the target row
 	const { sheetId, sheetName } = await getFirstSheet(spreadsheetId);

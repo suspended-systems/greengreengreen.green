@@ -20,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import NumericInput from "@/components/NumericInput";
 
 import { Transaction } from "../transactions";
-import { txRRule, FREQUENCY_OPTIONS, TRANSACTION_CONFIG } from "../transactionSchema";
+import { txRRule, FREQUENCY_OPTIONS, TRANSACTION_FIELDS } from "../transactionSchema";
 import { formatDateToSheets, formatMoney, GreenColor } from "../utils";
 import { deleteSheetsRow, updateSheetsRow } from "../sheets";
 
@@ -54,7 +54,7 @@ export const columns = ({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: row.original.id,
-							column: TRANSACTION_CONFIG.disabled.sheetsColumnLetter,
+							column: TRANSACTION_FIELDS.disabled.sheetsColumnLetter,
 							cellValue: isToggled,
 						});
 					}
@@ -95,7 +95,7 @@ export const columns = ({
 									await updateSheetsRow({
 										spreadsheetId,
 										filterValue: row.original.id,
-										column: TRANSACTION_CONFIG.name.sheetsColumnLetter,
+										column: TRANSACTION_FIELDS.name.sheetsColumnLetter,
 										cellValue: name,
 									});
 								}
@@ -151,7 +151,7 @@ export const columns = ({
 										await updateSheetsRow({
 											spreadsheetId,
 											filterValue: row.original.id,
-											column: TRANSACTION_CONFIG.date.sheetsColumnLetter,
+											column: TRANSACTION_FIELDS.date.sheetsColumnLetter,
 											cellValue: formatDateToSheets(day),
 										});
 									}
@@ -238,7 +238,7 @@ export const columns = ({
 											await updateSheetsRow({
 												spreadsheetId,
 												filterValue: row.original.id,
-												column: TRANSACTION_CONFIG.amount.sheetsColumnLetter,
+												column: TRANSACTION_FIELDS.amount.sheetsColumnLetter,
 												cellValue: amount,
 											});
 										}
@@ -330,7 +330,7 @@ function InlineFrequencyEditor({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: tx.id,
-							column: TRANSACTION_CONFIG.interval.sheetsColumnLetter,
+							column: TRANSACTION_FIELDS.interval.sheetsColumnLetter,
 							cellValue: new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: Number(e.target.value) }).toText(),
 						});
 					}
@@ -369,7 +369,7 @@ function InlineFrequencyEditor({
 									await updateSheetsRow({
 										spreadsheetId,
 										filterValue: tx.id,
-										column: TRANSACTION_CONFIG.freq.sheetsColumnLetter,
+										column: TRANSACTION_FIELDS.freq.sheetsColumnLetter,
 										cellValue: new RRule({ freq: option.value, interval: tx.interval ?? 1 }).toText(),
 									});
 								}
@@ -400,7 +400,7 @@ function InlineFrequencyEditor({
 						await updateSheetsRow({
 							spreadsheetId,
 							filterValue: tx.id,
-							column: TRANSACTION_CONFIG.freq.sheetsColumnLetter,
+							column: TRANSACTION_FIELDS.freq.sheetsColumnLetter,
 							cellValue: "",
 						});
 					}

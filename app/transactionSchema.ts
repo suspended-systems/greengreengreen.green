@@ -17,7 +17,7 @@ export type Transaction = {
 	disabled?: boolean;
 };
 
-export const TRANSACTION_CONFIG = {
+export const TRANSACTION_FIELDS = {
 	name: {
 		sheetsColumnLetter: "A",
 		sheetsSchema: z.string().nonempty(),
@@ -65,6 +65,7 @@ export const TRANSACTION_CONFIG = {
 	},
 	disabled: {
 		sheetsColumnLetter: "E",
+		sheetsSchema: z.union([z.literal("TRUE"), z.literal("FALSE"), z.literal("")]),
 		header: "Enabled",
 		required: false,
 		label: "Disabled",
@@ -72,37 +73,43 @@ export const TRANSACTION_CONFIG = {
 	},
 	id: {
 		sheetsColumnLetter: "F",
+		sheetsSchema: z.string().uuid(),
 		header: "UUID",
 		required: true,
 		hidden: true,
 	},
 } as const;
 
-export const HEADERS = Object.values(TRANSACTION_CONFIG).map((config) => config.header);
+export const HEADERS = Object.values(TRANSACTION_FIELDS).map((config) => config.header);
 
-export const FREQUENCY_OPTIONS = TRANSACTION_CONFIG.freq.options;
+export const FREQUENCY_OPTIONS = TRANSACTION_FIELDS.freq.options;
 
 /**
  * Special Zod Schema to handle case where any of Recurrence, Enabled, and/or UUID are missing in the row.
  * This can cause the Row/Tuple from Sheets API to vary in length which `z.tuple` doesn't play well with.
  * So we use this custom type to cover all valid possibilities.
  */
-const NameAmountDate: [z.ZodString, z.ZodNumber, z.ZodString] = [z.string().nonempty(), z.coerce.number(), z.string()];
-const Recurrence = z.string();
-const Enabled = z.union([z.literal("TRUE"), z.literal("FALSE"), z.literal("")]);
-const UUID = z.string().uuid();
-
+const NameAmountDate: [z.ZodString, z.ZodNumber, z.ZodString] = [
+	TRANSACTION_FIELDS.name.sheetsSchema,
+	TRANSACTION_FIELDS.amount.sheetsSchema,
+	TRANSACTION_FIELDS.date.sheetsSchema,
+];
 export const TransactionRowSchema = z.union([
 	z.tuple(NameAmountDate),
-	z.tuple([...NameAmountDate, Recurrence] as const),
-	z.tuple([...NameAmountDate, Recurrence, Enabled] as const),
-	z.tuple([...NameAmountDate, Recurrence, Enabled, UUID] as const),
+	z.tuple([...NameAmountDate, TRANSACTION_FIELDS.freq.sheetsSchema] as const),
+	z.tuple([...NameAmountDate, TRANSACTION_FIELDS.freq.sheetsSchema, TRANSACTION_FIELDS.disabled.sheetsSchema] as const),
+	z.tuple([
+		...NameAmountDate,
+		TRANSACTION_FIELDS.freq.sheetsSchema,
+		TRANSACTION_FIELDS.disabled.sheetsSchema,
+		TRANSACTION_FIELDS.id.sheetsSchema,
+	] as const),
 ]);
 
 export type SheetsRow = [string, number, string, string, boolean, string];
 
 export const getColumnLetter = (field: keyof Transaction): string => {
-	return TRANSACTION_CONFIG[field]?.sheetsColumnLetter || TRANSACTION_CONFIG.name.sheetsColumnLetter;
+	return TRANSACTION_FIELDS[field]?.sheetsColumnLetter || TRANSACTION_FIELDS.name.sheetsColumnLetter;
 };
 
 // Helper to create RRule for transaction
