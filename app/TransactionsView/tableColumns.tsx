@@ -20,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import NumericInput from "@/components/NumericInput";
 
 import { Transaction } from "../transactions";
-import { txRRule, FREQUENCY_OPTIONS, TRANSACTION_FIELDS } from "../transactionSchema";
+import { txRRule, TRANSACTION_FIELDS } from "../transactionSchema";
 import { formatDateToSheets, formatMoney, GreenColor } from "../utils";
 import { deleteSheetsRow, updateSheetsRow } from "../sheets";
 
@@ -345,12 +345,12 @@ function InlineFrequencyEditor({
 						style={{ width: 90 }}
 					>
 						<span style={{ width: "100%", textAlign: tx.freq == null ? "center" : "left" }}>
-							{tx.freq != null ? FREQUENCY_OPTIONS.find((opt) => opt.value === tx.freq)?.label : "Select"}
+							{tx.freq != null ? TRANSACTION_FIELDS.freq.options.find((opt) => opt.value === tx.freq)?.label : "Select"}
 						</span>
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: "fit-content" }}>
-					{FREQUENCY_OPTIONS.map((option, i) => (
+					{TRANSACTION_FIELDS.freq.options.map((option, i) => (
 						<DropdownMenuItem
 							key={`freq-dropdown-item:${i}`}
 							onClick={async () => {

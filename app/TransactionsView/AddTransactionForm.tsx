@@ -23,7 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import NumericInput from "@/components/NumericInput";
 
 import { GreenColor } from "../utils";
-import { FREQUENCY_OPTIONS } from "../transactionSchema";
+import { TRANSACTION_FIELDS } from "../transactionSchema";
 import { Transaction } from "../transactions";
 import { transactionToSheetsRow } from "../transactionSchema";
 import { appendSheetsRow } from "../sheets";
@@ -39,9 +39,9 @@ const FormSchema = z.object({
 			.refine((s) => Number(s) >= 1, "Interval must be greater than zero."),
 		z.literal(""),
 	]),
-	// Optional string appearing in `FREQUENCY_OPTIONS`
+	// 'days', 'months', etc
 	// @ts-ignore: poor zod types
-	recurringFrequency: z.union([...FREQUENCY_OPTIONS.map((opt) => z.literal(opt.label)), z.literal("")]),
+	recurringFrequency: z.union([...TRANSACTION_FIELDS.freq.options.map((opt) => z.literal(opt.label)), z.literal("")]),
 	// Required nonzero string number
 	amount: z
 		.string()
@@ -81,7 +81,7 @@ export function AddTransactionForm({
 			amount: Number(data.amount),
 			date: data.date.getTime(),
 			...(data.recurringFrequency && {
-				freq: FREQUENCY_OPTIONS.find((opt) => opt.label === data.recurringFrequency)?.value,
+				freq: TRANSACTION_FIELDS.freq.options.find((opt) => opt.label === data.recurringFrequency)?.value,
 				interval: data.recurringInterval ? parseFloat(data.recurringInterval) : 1,
 			}),
 		};
@@ -202,7 +202,7 @@ export function AddTransactionForm({
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: 155 }}>
-													{FREQUENCY_OPTIONS.map((option, i) => (
+													{TRANSACTION_FIELDS.freq.options.map((option, i) => (
 														<DropdownMenuItem
 															key={`freq-dropdown-item:${i}`}
 															onClick={() => field.onChange(option.label)}

@@ -80,10 +80,6 @@ export const TRANSACTION_FIELDS = {
 	},
 } as const;
 
-export const HEADERS = Object.values(TRANSACTION_FIELDS).map((config) => config.header);
-
-export const FREQUENCY_OPTIONS = TRANSACTION_FIELDS.freq.options;
-
 /**
  * Special Zod Schema to handle case where any of Recurrence, Enabled, and/or UUID are missing in the row.
  * This can cause the Row/Tuple from Sheets API to vary in length which `z.tuple` doesn't play well with.
@@ -107,10 +103,6 @@ export const TransactionRowSchema = z.union([
 ]);
 
 export type SheetsRow = [string, number, string, string, boolean, string];
-
-export const getColumnLetter = (field: keyof Transaction): string => {
-	return TRANSACTION_FIELDS[field]?.sheetsColumnLetter || TRANSACTION_FIELDS.name.sheetsColumnLetter;
-};
 
 // Helper to create RRule for transaction
 export const txRRule = (tx: Transaction) =>

@@ -1,4 +1,5 @@
 "use server";
+
 import { google } from "googleapis";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
@@ -7,13 +8,7 @@ import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 import { parse } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
-import {
-	SheetsRow,
-	TransactionRowSchema,
-	HEADERS,
-	transactionToSheetsRow,
-	TRANSACTION_FIELDS,
-} from "./transactionSchema";
+import { SheetsRow, TransactionRowSchema, transactionToSheetsRow, TRANSACTION_FIELDS } from "./transactionSchema";
 import { formatDateToSheets, letterToIndex, pMapConfig } from "./utils";
 import { partition } from "lodash";
 import pMap from "p-map";
@@ -279,7 +274,10 @@ async function initSheet(spreadsheetId: string) {
 			range: `${TRANSACTIONS_SHEET_NAME}!A1`,
 			valueInputOption: "USER_ENTERED",
 			requestBody: {
-				values: [HEADERS, ...defaultTransactions.map(transactionToSheetsRow)],
+				values: [
+					Object.values(TRANSACTION_FIELDS).map((c) => c.header),
+					...defaultTransactions.map(transactionToSheetsRow),
+				],
 			},
 		});
 	}
