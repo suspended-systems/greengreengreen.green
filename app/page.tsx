@@ -105,18 +105,6 @@ export default function Home() {
 			{/* Joyride Tour */}
 			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
 
-			{/* green fading divider */}
-			{/* <div
-				style={{
-					border: `1px solid ${GreenColor}`,
-					borderLeft: "150px solid transparent",
-					borderRight: "150px solid transparent",
-					position: "relative",
-					top: 1,
-				}}
-				className="mx-auto"
-			/> */}
-
 			{/* tabs */}
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
 				<TabsList
