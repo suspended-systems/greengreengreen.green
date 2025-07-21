@@ -140,7 +140,7 @@ export default function Home() {
           md:min-h-screen
         "
 				>
-					{/* Loading spinner - always rendered */}
+					{/* Loading spinner */}
 					<div
 						className={`absolute inset-0 flex flex-col items-center justify-center text-current transition-opacity duration-200 ${
 							hideLoader ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -150,7 +150,7 @@ export default function Home() {
 						<p>{status === "loading" ? "Loading..." : "Retrieving Sheets transactions..."}</p>
 					</div>
 
-					{/* Main content - always rendered */}
+					{/* Main content */}
 					<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
 						<TabsContent value="calendar">
 							<CalendarView
