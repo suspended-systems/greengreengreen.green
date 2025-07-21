@@ -127,13 +127,13 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 							<PlusIcon className="mt-1" size={16} />
 							<span className="hidden md:inline">Incoming</span>
 						</div>
-						<div className="font-semibold text-right text-xs md:text-base">
+						<div className="self-center font-semibold text-right text-xs md:text-base">
 							<Money amount={annualIncomingAverage / 365} />
 						</div>
-						<div className="font-semibold text-right text-xs md:text-base">
+						<div className="self-center font-semibold text-right text-xs md:text-base">
 							<Money amount={annualIncomingAverage / 12} />
 						</div>
-						<div className="font-semibold text-right text-xs md:text-base">
+						<div className="self-center font-semibold text-right text-xs md:text-base">
 							<Money amount={annualIncomingAverage} />
 						</div>
 
@@ -141,13 +141,13 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 							<MinusIcon className="mt-1" size={16} />
 							<span className="hidden md:inline">Outgoing</span>
 						</div>
-						<div className="font-semibold text-right text-xs md:text-base">
+						<div className="self-center font-semibold text-right text-xs md:text-base">
 							<Money amount={annualOutgoingAverage / 365} />
 						</div>
-						<div className="font-semibold text-right text-xs md:text-base">
+						<div className="self-center font-semibold text-right text-xs md:text-base">
 							<Money amount={annualOutgoingAverage / 12} />
 						</div>
-						<div className="font-semibold text-right text-xs md:text-base">
+						<div className="self-center font-semibold text-right text-xs md:text-base">
 							<Money amount={annualOutgoingAverage} />
 						</div>
 
@@ -167,41 +167,6 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 					</div>
 				</CardContent>
 			</Card>
-
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected Balance Today</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold" style={{ color: stats.current < 0 ? "red" : GreenColor }}>
-							{formatMoney(stats.current)}
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected 90-Day Change</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className={`text-2xl font-bold`}>
-							<Money amount={stats.change} />
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected Balance in 90 Days</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className={`text-2xl font-bold`}>
-							<Money hidePlus amount={stats.projected} />
-						</div>
-					</CardContent>
-				</Card>
-			</div>
 
 			{/* Timeline Chart */}
 			<Card>
@@ -259,6 +224,41 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 					</ChartContainer>
 				</CardContent>
 			</Card>
+
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle className="text-sm font-medium whitespace-nowrap">Today's Projected Balance</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="text-2xl font-bold" style={{ color: stats.current < 0 ? "red" : GreenColor }}>
+							{formatMoney(stats.current)}
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected 90-Day Change</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className={`text-2xl font-bold`}>
+							<Money amount={stats.change} />
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected 90-Day Balance</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className={`text-2xl font-bold`}>
+							<Money hidePlus amount={stats.projected} />
+						</div>
+					</CardContent>
+				</Card>
+			</div>
 		</div>
 	);
 }
