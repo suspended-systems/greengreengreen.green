@@ -126,6 +126,7 @@ export default function Home() {
        order-1 md:order-0             /* bottom on mobile, top on md+ */
        h-18 md:h-9                    /* mobile: 4.5rem, desktop: 2.25rem */
        pb-[env(safe-area-inset-bottom)] /* iOS safe-area inset */
+	   md:rounded-t-none
      "
 				>
 					<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
