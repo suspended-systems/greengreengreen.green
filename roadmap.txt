@@ -1,7 +1,6 @@
 future roadmap:
 - favicon
-- forecast graph tab
-- gsap tab bar scroll stop on desktop
+- gsap tab bar scroll stop
 - sheets integration column value updating debouncing
 - use supabase fdw + dreambase using gviz and supabase blog post tutorial
 - use chat to generate transactions to add. Talk to green!
