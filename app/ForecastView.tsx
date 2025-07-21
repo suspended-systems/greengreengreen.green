@@ -108,7 +108,7 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 	const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
 
 	return (
-		<div className="flex flex-col gap-4 pb-4 w-full mx-auto px-2 md:px-4">
+		<div className="flex flex-col gap-4 pb-4 w-full max-w-5xl mx-auto px-2 md:px-4">
 			<Card>
 				<CardHeader>
 					<CardTitle className="text-sm font-medium">Average Change</CardTitle>
