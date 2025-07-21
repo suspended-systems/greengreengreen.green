@@ -23,9 +23,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import NumericInput from "@/components/NumericInput";
 
 import { GreenColor } from "../utils";
-import { FREQUENCY_OPTIONS } from "../transaction-schema";
+import { FREQUENCY_OPTIONS } from "../transactionSchema";
 import { Transaction } from "../transactions";
-import { transactionToSheetsRow } from "../transaction-schema";
+import { transactionToSheetsRow } from "../transactionSchema";
 import { appendSheetsRow } from "../sheets";
 
 const FormSchema = z.object({

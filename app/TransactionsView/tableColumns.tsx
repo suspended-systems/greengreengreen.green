@@ -20,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import NumericInput from "@/components/NumericInput";
 
 import { Transaction } from "../transactions";
-import { txRRule, FREQUENCY_OPTIONS, TRANSACTION_CONFIG } from "../transaction-schema";
+import { txRRule, FREQUENCY_OPTIONS, TRANSACTION_CONFIG } from "../transactionSchema";
 import { formatDateToSheets, formatMoney, GreenColor } from "../utils";
 import { deleteSheetsRow, updateSheetsRow } from "../sheets";
 

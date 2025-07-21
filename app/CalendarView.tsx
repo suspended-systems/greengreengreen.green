@@ -16,7 +16,7 @@ import NumericInput from "@/components/NumericInput";
 import { calcProjectedValue, getTransactionsOnDay, Transaction } from "./transactions";
 import { DAY_MS, formatDateToSheets, formatMoney, GreenColor } from "./utils";
 import { appendSheetsRow, updateSheetsRow, updateStartingDate, updateStartingNumber } from "./sheets";
-import { TRANSACTION_CONFIG, txRRule } from "./transaction-schema";
+import { TRANSACTION_CONFIG, txRRule } from "./transactionSchema";
 
 /**
  * Additional styling exists in `@/components/ui/calendar-customized`

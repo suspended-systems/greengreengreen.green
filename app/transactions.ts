@@ -2,7 +2,7 @@ import { partition } from "lodash";
 import { Frequency } from "rrule";
 import { v4 as uuid } from "uuid";
 import { DAY_MS } from "./utils";
-import { txRRule } from "./transaction-schema";
+import { txRRule } from "./transactionSchema";
 
 export type Transaction = {
 	id: string;

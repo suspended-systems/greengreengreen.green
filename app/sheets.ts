@@ -13,7 +13,7 @@ import {
 	HEADERS,
 	transactionToSheetsRow,
 	TRANSACTION_CONFIG,
-} from "./transaction-schema";
+} from "./transactionSchema";
 import { formatDateToSheets, letterToIndex, pMapConfig } from "./utils";
 import { partition } from "lodash";
 import pMap from "p-map";
