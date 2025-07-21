@@ -11,8 +11,6 @@ import {
 	PlusIcon,
 	RefreshCcwIcon,
 	SquareArrowOutUpRightIcon,
-	MinusIcon,
-	DiffIcon,
 	LucideProps,
 	CogIcon,
 } from "lucide-react";
@@ -31,7 +29,6 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { partition } from "lodash";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -50,7 +47,7 @@ import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { AddTransactionForm } from "./AddTransactionForm";
-import { calcProjectedValue, Transaction } from "../transactions";
+import { Transaction } from "../transactions";
 import getSheetsData from "../sheets";
 
 export function TransactionsView<TData, TValue>({
@@ -105,30 +102,6 @@ export function TransactionsView<TData, TValue>({
 	const totalRows = table.getFilteredRowModel().rows.length;
 	const startRow = pageIndex * pageSize + 1;
 	const endRow = pageIndex * pageSize + table.getRowModel().rows.length;
-
-	/**
-	 * Stats
-	 */
-
-	const [incomingTxs, outgoingTxs] = partition((transactions as Transaction[]) ?? [], (tx) => tx.amount >= 0);
-	const startOfYearUTC = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1, 0, 0, 0, 0));
-	const endOfYearUTC = new Date(Date.UTC(new Date().getUTCFullYear(), 11, 31, 23, 59, 59, 999));
-
-	const annualIncomingAverage = calcProjectedValue({
-		startValue: 0,
-		startDate: startOfYearUTC,
-		endDate: endOfYearUTC,
-		transactions: incomingTxs ?? [],
-	});
-
-	const annualOutgoingAverage = calcProjectedValue({
-		startValue: 0,
-		startDate: startOfYearUTC,
-		endDate: endOfYearUTC,
-		transactions: outgoingTxs ?? [],
-	});
-
-	const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
 
 	return (
 		<>
@@ -201,66 +174,6 @@ export function TransactionsView<TData, TValue>({
 						</CardContent>
 					</Card>
 				)}
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-sm font-medium">Average Stats</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="grid grid-cols-4 grid-rows-3">
-							<div></div>
-							<div className="font-semibold text-right">Daily</div>
-							<div className="font-semibold text-right">Monthly</div>
-							<div className="font-semibold text-right">Annually</div>
-
-							<div className="font-semibold">
-								<PlusIcon className="inline" size={16} />
-								Incoming
-							</div>
-							<div className="font-semibold text-right">
-								<Money amount={annualIncomingAverage / 365} />
-							</div>
-							<div className="font-semibold text-right">
-								<Money amount={annualIncomingAverage / 12} />
-							</div>
-							<div className="font-semibold text-right">
-								<Money amount={annualIncomingAverage} />
-							</div>
-
-							<div className="font-semibold">
-								<MinusIcon className="inline" size={16} />
-								Outgoing
-							</div>
-							<div className="font-semibold text-right">
-								<Money amount={annualOutgoingAverage / 365} />
-							</div>
-							<div className="font-semibold text-right">
-								<Money amount={annualOutgoingAverage / 12} />
-							</div>
-							<div className="font-semibold text-right">
-								<Money amount={annualOutgoingAverage} />
-							</div>
-
-							<div className="font-semibold">
-								<DiffIcon className="inline" size={16} />
-								Net
-							</div>
-							<div className="font-bold text-right text-2xl">
-								<Money amount={annualNetAverage / 365} />
-							</div>
-							<div className="font-bold text-right text-2xl">
-								<Money amount={annualNetAverage / 12} />
-							</div>
-							<div className="font-bold text-right text-2xl">
-								<Money amount={annualNetAverage} />
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-				{/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<StatsBox title="Incoming" Icon={PlusIcon} annually={annualIncomingAverage} />
-					<StatsBox title="Outgoing" Icon={MinusIcon} annually={annualOutgoingAverage} />
-					<StatsBox title="Net" Icon={DiffIcon} annually={annualNetAverage} />
-				</div> */}
 				<div className="flex gap-4">
 					<AddTransaction {...{ spreadsheetId, setTransactions }} />
 					<Input
@@ -415,7 +328,7 @@ export function TransactionsView<TData, TValue>({
 						<PopoverTrigger asChild>
 							<Button variant="outline" className="text-muted-foreground">
 								<CogIcon />
-								Settings
+								App Settings
 							</Button>
 						</PopoverTrigger>
 						<PopoverContent className="w-fit flex flex-col gap-4 justify-center">
