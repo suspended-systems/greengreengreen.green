@@ -133,7 +133,7 @@ export default function Home() {
 
 				<div
 					className="
-          flex-1 overflow-y-auto tab-content w-full
+          flex-1 overflow-auto! tab-content w-full
           pt-4
           pb-[env(safe-area-inset-bottom)] /* plus safe-area inset */
           min-h-screen

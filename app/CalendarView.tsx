@@ -54,7 +54,7 @@ export default function CalendarView({
 
 	return (
 		<div className="w-full">
-			<div className="flex flex-col md:flex-row md:gap-8 mx-auto w-fit max-w-full overflow-x-auto px-2 md:px-4 pb-4">
+			<div className="flex flex-col md:flex-row md:gap-8 mx-auto w-fit max-w-full overflow-auto! px-2 md:px-4 pb-4">
 				{/* left panel */}
 				<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
 					<div className="tour-starting w-full mx-auto flex gap-2 items-center text-sm">
