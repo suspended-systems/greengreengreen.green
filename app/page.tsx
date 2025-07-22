@@ -109,8 +109,9 @@ export default function Home() {
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
 				<TabsList
 					className="
+		bg-background border-b
        sticky bottom-0 z-10           /* stick to viewport bottom */
-       grid grid-cols-3 w-full        /* three columns, full width */
+       w-full        /* three columns, full width */
        order-1 md:order-0             /* bottom on mobile, top on md+ */
        h-18 md:h-9                    /* mobile: 4.5rem, desktop: 2.25rem */
        pb-[env(safe-area-inset-bottom)] /* iOS safe-area inset */
@@ -133,7 +134,7 @@ export default function Home() {
 
 				<div
 					className="
-          flex-1 overflow-auto! tab-content w-full
+          flex-1 overflow-auto! w-full
           pt-4
           pb-[env(safe-area-inset-bottom)] /* plus safe-area inset */
           min-h-screen
