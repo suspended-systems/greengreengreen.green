@@ -195,7 +195,7 @@ export default function CalendarView({
 				mode="single"
 				selected={endDate}
 				onSelect={setEndDate}
-				className="tour-calendar rounded-xl w-fit border mt-4 md:mt-0 bg-card"
+				className="tour-calendar rounded-xl border mt-4 md:mt-0 bg-card"
 			/>
 		</div>
 	);
