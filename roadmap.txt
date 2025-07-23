@@ -1,6 +1,8 @@
 future roadmap:
 - favicon
 - gsap tab bar scroll stop
+- average change should default to next 12months, and dropdown to see calendar year (as it is now)
+- starting values inputs width fit-content. container needs to match calendar width for mobile stacking maybe or just adjust numeric input width
 - sheets integration column value updating debouncing
 - use supabase fdw + dreambase using gviz and supabase blog post tutorial
 - use chat to generate transactions to add. Talk to green!

@@ -105,7 +105,7 @@ export function TransactionsView<TData, TValue>({
 
 	return (
 		<>
-			<div className="flex flex-col gap-4 pb-4 max-w-5xl mx-auto px-2 md:px-4">
+			<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">
 				{/* Sheets setup / demo warning info banner */}
 				{!spreadsheetId && !isDemoWarningClosed && (
 					<Card>
@@ -273,7 +273,7 @@ export function TransactionsView<TData, TValue>({
 					</DropdownMenu>
 				</div>
 				<div className="rounded-xl border bg-card">
-					<Table className="overflow-x-visible overscroll-x-contain">
+					<Table>
 						<TableHeader>
 							{table.getHeaderGroups().map((headerGroup) => (
 								<TableRow key={headerGroup.id}>

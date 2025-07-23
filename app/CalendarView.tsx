@@ -53,152 +53,150 @@ export default function CalendarView({
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
-		<div className="w-full">
-			<div className="flex flex-col md:flex-row md:gap-8 mx-auto w-fit max-w-full overflow-auto! px-2 md:px-4 pb-4">
-				{/* left panel */}
-				<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
-					<div className="tour-starting w-full mx-auto flex gap-2 items-center text-sm">
-						{/* starting values */}
-						<span style={{ whiteSpace: "nowrap" }}>Starting on</span>
-						<Popover>
-							<PopoverTrigger asChild>
-								<Button
-									variant="outline"
-									className={cn("justify-start text-left font-normal", !startDate && "text-muted-foreground")}
-									style={{ width: 120 }}
-								>
-									<CalendarIcon />
-									{startDate ? startDateIsToday ? "Today" : startDate.toLocaleDateString() : <span>Select</span>}
-								</Button>
-							</PopoverTrigger>
-							<PopoverContent className="w-auto p-0" align="start">
-								<Calendar
-									mode="single"
-									selected={startDate}
-									onSelect={async (day) => {
-										setStartDate(day);
+		<div className="flex flex-col md:flex-row md:gap-8 mx-auto w-fit max-w-full pt-4 px-2 md:px-4 pb-4">
+			{/* left panel */}
+			<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
+				<div className="tour-starting w-full mx-auto flex gap-2 items-center text-sm">
+					{/* starting values */}
+					<span style={{ whiteSpace: "nowrap" }}>Starting on</span>
+					<Popover>
+						<PopoverTrigger asChild>
+							<Button
+								variant="outline"
+								className={cn("justify-start text-left font-normal", !startDate && "text-muted-foreground")}
+								style={{ width: 120 }}
+							>
+								<CalendarIcon />
+								{startDate ? startDateIsToday ? "Today" : startDate.toLocaleDateString() : <span>Select</span>}
+							</Button>
+						</PopoverTrigger>
+						<PopoverContent className="w-auto p-0" align="start">
+							<Calendar
+								mode="single"
+								selected={startDate}
+								onSelect={async (day) => {
+									setStartDate(day);
 
-										if (day && spreadsheetId) {
-											await updateStartingDate(spreadsheetId, new Date(day.setHours(0, 0, 0, 0)));
-										}
-									}}
-									initialFocus
-								/>
-							</PopoverContent>
-						</Popover>
-						with
-						<span className="input-symbol">
-							<NumericInput
-								style={{
-									color: startAmount > 0 ? GreenColor : startAmount < 0 ? "red" : "inherit",
-								}}
-								onValidatedChange={async (amount) => {
-									if (amount !== 0) {
-										setStartAmount(amount);
-
-										if (spreadsheetId) {
-											await updateStartingNumber(spreadsheetId, amount);
-										}
+									if (day && spreadsheetId) {
+										await updateStartingDate(spreadsheetId, new Date(day.setHours(0, 0, 0, 0)));
 									}
 								}}
-								value={startAmount.toFixed(2)}
-								className="text-sm w-[120px]"
+								initialFocus
 							/>
-						</span>
-					</div>
-					{/* selected day transactions */}
-					<div className="flex flex-col justify-center items-center py-4 order-3 md:order-2">
-						{endDate ? (
-							dayTransactions && dayTransactions.length > 0 ? (
-								<>
-									<div className="font-medium text-sm">
-										{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
-											month: "long",
-											weekday: "long",
-											day: "numeric",
-										})}
-									</div>
-									{startAmount && startDate && transactions && (
-										<div className="block md:hidden text-sm">
-											{formatMoney(
-												calcProjectedValue({
-													startValue: startAmount,
-													startDate,
-													endDate: new Date(endDate.getTime() + DAY_MS - 1),
-													transactions,
-												}),
-											)}
-										</div>
-									)}
-									<table className="border border-transparent" style={{ borderCollapse: "separate", borderSpacing: 8 }}>
-										<tbody>
-											{dayTransactions
-												.sort((a, b) =>
-													// both negative, reverse order so bigger expense first
-													a.amount < 0 && b.amount < 0
-														? // ascending
-														  a.amount - b.amount
-														: // descending
-														  b.amount - a.amount,
-												)
-												.map((tx, i) => (
-													<tr key={`tx:${i}`}>
-														<td
-															className="text-right"
-															style={{ color: tx.amount > 0 ? GreenColor : "red", fontWeight: "bold" }}
-														>
-															{tx.amount > 0 ? "+" : ""}
-															{formatMoney(tx.amount)}
-														</td>
-														<td className="flex font-medium">
-															{tx.name}
-															{tx.amount < 0 && tx.freq != null && (
-																<ChatWindowPopover {...{ tx, setTransactions, spreadsheetId }} />
-															)}
-														</td>
-													</tr>
-												))}
-										</tbody>
-									</table>
-								</>
-							) : (
-								<>
-									<p className="text-sm opacity-50">
-										No transactions on{" "}
-										{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
-											month: "long",
-											weekday: "long",
-											day: "numeric",
-										})}
-									</p>
-									{startAmount && startDate && transactions && (
-										<div className="block md:hidden text-sm opacity-50">
-											{formatMoney(
-												calcProjectedValue({
-													startValue: startAmount,
-													startDate,
-													endDate: new Date(endDate.getTime() + DAY_MS - 1),
-													transactions,
-												}),
-											)}
-										</div>
-									)}
-								</>
-							)
-						) : (
-							<p className="italic text-sm opacity-50">Select a date to view its transactions</p>
-						)}
-					</div>
+						</PopoverContent>
+					</Popover>
+					with
+					<span className="input-symbol">
+						<NumericInput
+							style={{
+								color: startAmount > 0 ? GreenColor : startAmount < 0 ? "red" : "inherit",
+							}}
+							onValidatedChange={async (amount) => {
+								if (amount !== 0) {
+									setStartAmount(amount);
+
+									if (spreadsheetId) {
+										await updateStartingNumber(spreadsheetId, amount);
+									}
+								}
+							}}
+							value={startAmount.toFixed(2)}
+							className="text-sm w-[120px]"
+						/>
+					</span>
 				</div>
-				{/* right panel */}
-				<CalendarCustomized
-					{...{ month, onMonthChange, startAmount, startDate, endDate, transactions: enabledTransactions }}
-					mode="single"
-					selected={endDate}
-					onSelect={setEndDate}
-					className="tour-calendar rounded-xl w-fit border mt-4 md:mt-0 bg-card"
-				/>
+				{/* selected day transactions */}
+				<div className="flex flex-col justify-center items-center py-4 order-3 md:order-2">
+					{endDate ? (
+						dayTransactions && dayTransactions.length > 0 ? (
+							<>
+								<div className="font-medium text-sm">
+									{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
+										month: "long",
+										weekday: "long",
+										day: "numeric",
+									})}
+								</div>
+								{startAmount && startDate && transactions && (
+									<div className="block md:hidden text-sm">
+										{formatMoney(
+											calcProjectedValue({
+												startValue: startAmount,
+												startDate,
+												endDate: new Date(endDate.getTime() + DAY_MS - 1),
+												transactions,
+											}),
+										)}
+									</div>
+								)}
+								<table className="border border-transparent" style={{ borderCollapse: "separate", borderSpacing: 8 }}>
+									<tbody>
+										{dayTransactions
+											.sort((a, b) =>
+												// both negative, reverse order so bigger expense first
+												a.amount < 0 && b.amount < 0
+													? // ascending
+													  a.amount - b.amount
+													: // descending
+													  b.amount - a.amount,
+											)
+											.map((tx, i) => (
+												<tr key={`tx:${i}`}>
+													<td
+														className="text-right"
+														style={{ color: tx.amount > 0 ? GreenColor : "red", fontWeight: "bold" }}
+													>
+														{tx.amount > 0 ? "+" : ""}
+														{formatMoney(tx.amount)}
+													</td>
+													<td className="flex font-medium">
+														{tx.name}
+														{tx.amount < 0 && tx.freq != null && (
+															<ChatWindowPopover {...{ tx, setTransactions, spreadsheetId }} />
+														)}
+													</td>
+												</tr>
+											))}
+									</tbody>
+								</table>
+							</>
+						) : (
+							<>
+								<p className="text-sm opacity-50">
+									No transactions on{" "}
+									{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
+										month: "long",
+										weekday: "long",
+										day: "numeric",
+									})}
+								</p>
+								{startAmount && startDate && transactions && (
+									<div className="block md:hidden text-sm opacity-50">
+										{formatMoney(
+											calcProjectedValue({
+												startValue: startAmount,
+												startDate,
+												endDate: new Date(endDate.getTime() + DAY_MS - 1),
+												transactions,
+											}),
+										)}
+									</div>
+								)}
+							</>
+						)
+					) : (
+						<p className="italic text-sm opacity-50">Select a date to view its transactions</p>
+					)}
+				</div>
 			</div>
+			{/* right panel */}
+			<CalendarCustomized
+				{...{ month, onMonthChange, startAmount, startDate, endDate, transactions: enabledTransactions }}
+				mode="single"
+				selected={endDate}
+				onSelect={setEndDate}
+				className="tour-calendar rounded-xl w-fit border mt-4 md:mt-0 bg-card"
+			/>
 		</div>
 	);
 }

@@ -276,26 +276,37 @@ function StatsColumn({
 	dailyAverage: number;
 }) {
 	return (
-		<div>
+		<div className="grid grid-rows-2 space-x-1" style={{ gridTemplateColumns: "auto 1fr" }}>
 			<p className="text-xs md:text-sm font-medium">
 				{/* Desktop */}
+				<span className="hidden md:inline">{label.desktop}:</span>
+				{/* Mobile - shorter label and omit decimals */}
+				<span className="md:hidden inline">{label.mobile}:</span>
+			</p>
+
+			<p className="text-xs md:text-sm font-bold">
+				{/* Desktop */}
 				<span className="hidden md:inline">
-					{label.desktop}: <Money amount={total} />
+					<Money amount={total} />
 				</span>
 				{/* Mobile - shorter label and omit decimals */}
 				<span className="md:hidden inline">
-					{label.mobile}: <Money dropDecimals amount={total} />
+					<Money dropDecimals amount={total} />
 				</span>
 			</p>
+
+			<p>{/* empty cell */}</p>
+
 			<p className="text-xs">
 				{/* Desktop */}
 				<span className="hidden md:inline">
-					<Money amount={dailyAverage} /> per day
+					<Money amount={dailyAverage} />
+					<span className="text-[10px]"> per day</span>
 				</span>
 				{/* Mobile - shorter label and omit decimals */}
 				<span className="md:hidden inline">
 					<Money dropDecimals amount={dailyAverage} />
-					/day
+					<span className="text-[10px]">/day</span>
 				</span>
 			</p>
 		</div>

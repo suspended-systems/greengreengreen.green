@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { signOut, useSession } from "next-auth/react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useLocalStorage } from "react-use";
 import useSWRImmutable from "swr/immutable";
 import { toast } from "sonner";
@@ -72,6 +72,11 @@ export default function Home() {
 	const [showContent, setShowContent] = useState(false);
 	const [hideLoader, setHideLoader] = useState(false);
 
+	// holds last scrollTop for each tab
+	const scrollPositions = useRef<Record<string, number>>({});
+	// refs to each panel's scrollable div
+	const contentRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
 	const columns: ColumnDef<Transaction>[] = useMemo(
 		() => columnsData({ spreadsheetId, setTransactions }),
 		[spreadsheetId, setTransactions],
@@ -100,59 +105,66 @@ export default function Home() {
 		}
 	}, [status, isLoading]);
 
+	// when activeTab changes, restore its scroll
+	useEffect(() => {
+		const el = contentRefs.current[activeTab];
+		if (el) {
+			// wait until it's rendered
+			requestAnimationFrame(() => {
+				el.scrollTop = scrollPositions.current[activeTab] ?? 0;
+			});
+		}
+	}, [activeTab]);
+
 	return (
 		<>
 			{/* Joyride Tour */}
 			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
 
-			{/* tabs */}
-			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col gap-0">
+			{/* Tabs */}
+			<Tabs
+				value={activeTab}
+				onValueChange={setActiveTab}
+				className="gap-0 /* we add a padding top to the tab content instead so we get layout spacing and overflow rendering */"
+			>
 				<TabsList
 					className="
-		bg-background border-b
-       sticky bottom-0 z-10           /* stick to viewport bottom */
-       w-full        /* three columns, full width */
-       order-1 md:order-0             /* bottom on mobile, top on md+ */
-       h-18 md:h-9                    /* mobile: 4.5rem, desktop: 2.25rem */
-       pb-[env(safe-area-inset-bottom)] /* iOS safe-area inset */
-	   md:rounded-t-none
+		border
+       	w-full        					
+       	bottom-0 md:top-0 order-1 md:order-0	/* bottom on mobile, top on md+ */
+       	h-18 md:h-9          			 		/* mobile: 4.5rem, desktop: 2.25rem */
+       	pb-[env(safe-area-inset-bottom)] 		/* iOS safe-area inset */
+	   	rounded-t-lg rounded-b-none md:rounded-t-none md:rounded-b-lg
      "
 				>
 					<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
 						<CalendarDaysIcon className="size-8 md:size-4" />
-						Calendar
+						<span className="hidden md:block">Calendar</span>
 					</TabsTrigger>
 					<TabsTrigger value="forecast" className="flex flex-col md:flex-row text-xs md:text-sm">
 						<TrendingUpIcon className="size-8 md:size-4" />
-						Forecast
+						<span className="hidden md:block">Forecast</span>
 					</TabsTrigger>
 					<TabsTrigger value="transactions" className="tour-transactions flex flex-col md:flex-row text-xs md:text-sm">
 						<CircleDollarSignIcon className="size-8 md:size-4" />
-						Transactions
+						<span className="hidden md:block">Transactions</span>
 					</TabsTrigger>
 				</TabsList>
 
+				{/* Loading spinner */}
 				<div
-					className="
-          flex-1 overflow-auto! w-full
-          pt-4
-          pb-[env(safe-area-inset-bottom)] /* plus safe-area inset */
-          min-h-screen
-        "
+					className={`absolute inset-0 flex flex-col items-center justify-center text-current transition-opacity duration-200 ${
+						hideLoader ? "opacity-0 pointer-events-none" : "opacity-100"
+					}`}
 				>
-					{/* Loading spinner */}
-					<div
-						className={`absolute inset-0 flex flex-col items-center justify-center text-current transition-opacity duration-200 ${
-							hideLoader ? "opacity-0 pointer-events-none" : "opacity-100"
-						}`}
-					>
-						<Loader2 className="animate-spin" size={64} aria-label="Loading…" />
-						<p>{status === "loading" ? "Loading..." : "Retrieving Sheets transactions..."}</p>
-					</div>
+					<Loader2 className="animate-spin" size={64} aria-label="Loading…" />
+					<p>{status === "loading" ? "Loading..." : "Retrieving Sheets transactions..."}</p>
+				</div>
 
-					{/* Main content */}
-					<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
-						<TabsContent value="calendar">
+				{/* Content */}
+				<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
+					<TabsContent value="calendar">
+						<PanelScroll tabValue="calendar" scrollPositions={scrollPositions}>
 							<CalendarView
 								{...{
 									month,
@@ -168,8 +180,10 @@ export default function Home() {
 									spreadsheetId,
 								}}
 							/>
-						</TabsContent>
-						<TabsContent value="forecast">
+						</PanelScroll>
+					</TabsContent>
+					<TabsContent value="forecast">
+						<PanelScroll tabValue="forecast" scrollPositions={scrollPositions}>
 							<ForecastView
 								{...{
 									startAmount,
@@ -177,8 +191,10 @@ export default function Home() {
 									transactions,
 								}}
 							/>
-						</TabsContent>
-						<TabsContent value="transactions">
+						</PanelScroll>
+					</TabsContent>
+					<TabsContent value="transactions">
+						<PanelScroll tabValue="transactions" scrollPositions={scrollPositions}>
 							<TransactionsView
 								{...{
 									spreadsheetId,
@@ -192,11 +208,46 @@ export default function Home() {
 									setPagination,
 								}}
 							/>
-						</TabsContent>
-					</div>
+						</PanelScroll>
+					</TabsContent>
 				</div>
 			</Tabs>
-			<Toaster visibleToasts={1} position="bottom-right" />
+			<Toaster visibleToasts={1} position="bottom-center" />
 		</>
+	);
+}
+
+function PanelScroll({
+	tabValue,
+	scrollPositions,
+	children,
+}: {
+	tabValue: string;
+	scrollPositions: React.RefObject<Record<string, number>>;
+	children: React.ReactNode;
+}) {
+	const ref = useRef<HTMLDivElement>(null);
+
+	// on mount (i.e. when this tab becomes active), restore scroll
+	useEffect(() => {
+		const el = ref.current;
+		if (el) {
+			el.scrollTop = scrollPositions.current[tabValue] ?? 0;
+		}
+	}, [tabValue]);
+
+	return (
+		<div
+			ref={ref}
+			// todo: get rid of height calc hardcode
+			// -72px mobile tab bar height
+			// -36px desktop tab bar height
+			className="overflow-auto overscroll-none h-[calc(100dvh-72px)] md:h-[calc(100dvh-36px)] w-full"
+			onScroll={(e) => {
+				scrollPositions.current[tabValue] = e.currentTarget.scrollTop;
+			}}
+		>
+			{children}
+		</div>
 	);
 }
