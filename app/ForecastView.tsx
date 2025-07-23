@@ -205,7 +205,8 @@ export default function ForecastView({
 
 			<Card>
 				<CardHeader>
-					<CardTitle className="text-sm font-medium">Projected Change During {new Date().getFullYear()}</CardTitle>
+					<CardTitle>Projected Change During {new Date().getFullYear()}</CardTitle>
+					<CardDescription>Average stats for this calendar year</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div
@@ -213,8 +214,8 @@ export default function ForecastView({
 						style={{ gridTemplateColumns: "auto minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)" }}
 					>
 						<div>{/* empty first table cell */}</div>
-						<div className="font-semibold text-right text-xs md:text-base">Each Day</div>
-						<div className="font-semibold text-right text-xs md:text-base">Each Month</div>
+						<div className="font-semibold text-right text-xs md:text-base">Daily</div>
+						<div className="font-semibold text-right text-xs md:text-base">Monthly</div>
 						<div className="font-semibold text-right text-xs md:text-base">Calendar Year</div>
 
 						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
