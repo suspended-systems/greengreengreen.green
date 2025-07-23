@@ -1,5 +1,6 @@
 future roadmap:
 - favicon
+- make joyride load in with tab contents
 - styling of month stats selected calendar day's transactions so text doesn't reposition as much
 - gsap tab bar scroll stop
 - average change should default to next 12months, and dropdown to see calendar year (as it is now)
