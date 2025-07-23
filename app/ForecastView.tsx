@@ -9,13 +9,9 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import Money from "@/components/Money";
 
 import { Transaction, calcProjectedValue } from "./transactions";
-import { GreenColor } from "./utils";
-
-type ForecastViewProps = {
-	startAmount: number;
-	startDate?: Date;
-	transactions: Transaction[];
-};
+import { formatMoney, GreenColor } from "./utils";
+import { partition } from "lodash";
+import { PlusIcon, MinusIcon, DiffIcon } from "lucide-react";
 
 const chartConfig = {
 	positiveBalance: {
@@ -28,7 +24,15 @@ const chartConfig = {
 	},
 };
 
-export default function ForecastView({ startAmount, startDate, transactions }: ForecastViewProps) {
+export default function ForecastView({
+	startAmount,
+	startDate,
+	transactions,
+}: {
+	startAmount: number;
+	startDate?: Date;
+	transactions: Transaction[];
+}) {
 	const forecastData = useMemo(() => {
 		if (!startDate) return [];
 
@@ -81,38 +85,62 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 		);
 	}
 
+	/**
+	 * Stats
+	 */
+
+	const [incomingTxs, outgoingTxs] = partition((transactions as Transaction[]) ?? [], (tx) => tx.amount >= 0);
+	const startOfYear = new Date(Date.UTC(new Date().getFullYear(), 0, 1, 0, 0, 0, 0));
+	const endOfYear = new Date(Date.UTC(new Date().getFullYear(), 11, 31, 23, 59, 59, 999));
+
+	const annualIncomingAverage = calcProjectedValue({
+		startValue: 0,
+		startDate: startOfYear,
+		endDate: endOfYear,
+		transactions: incomingTxs ?? [],
+	});
+
+	const annualOutgoingAverage = calcProjectedValue({
+		startValue: 0,
+		startDate: startOfYear,
+		endDate: endOfYear,
+		transactions: outgoingTxs ?? [],
+	});
+
+	const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
+
 	return (
-		<div className="flex flex-col gap-4 pb-4 w-full mx-auto px-2 md:px-4">
+		<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Current Balance</CardTitle>
+						<CardTitle className="text-sm font-medium whitespace-nowrap">Today's Projected Balance</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold" style={{ color: stats.current < 0 ? "red" : GreenColor }}>
-							${stats.current.toLocaleString()}
+							{formatMoney(stats.current)}
 						</div>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">90-Day Projection</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							<Money amount={stats.projected} />
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium">Net Change</CardTitle>
+						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected 90-Day Change</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className={`text-2xl font-bold`}>
 							<Money amount={stats.change} />
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader className="pb-2">
+						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected 90-Day Balance</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className={`text-2xl font-bold`}>
+							<Money hidePlus amount={stats.projected} />
 						</div>
 					</CardContent>
 				</Card>
@@ -147,7 +175,7 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 								content={
 									<ChartTooltipContent
 										labelFormatter={(label, payload) => payload?.[0]?.payload?.formattedDate || label}
-										formatter={(value) => [`$${Number(value).toLocaleString()}`, "Balance"].join(" ")}
+										formatter={(value) => `${formatMoney(Number(value))} Balance`}
 									/>
 								}
 							/>
@@ -172,6 +200,66 @@ export default function ForecastView({ startAmount, startDate, transactions }: F
 							/>
 						</AreaChart>
 					</ChartContainer>
+				</CardContent>
+			</Card>
+
+			<Card>
+				<CardHeader>
+					<CardTitle>Projected Change During {new Date().getFullYear()}</CardTitle>
+					<CardDescription>Average stats for this calendar year</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<div
+						className="grid grid-rows-3"
+						style={{ gridTemplateColumns: "auto minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)" }}
+					>
+						<div>{/* empty first table cell */}</div>
+						<div className="font-semibold text-right text-xs md:text-base">Daily</div>
+						<div className="font-semibold text-right text-xs md:text-base">Monthly</div>
+						<div className="font-semibold text-right text-xs md:text-base">Calendar Year</div>
+
+						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+							<PlusIcon className="mt-1" size={16} />
+							<span className="hidden md:inline">Incoming</span>
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualIncomingAverage / 365} />
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualIncomingAverage / 12} />
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualIncomingAverage} />
+						</div>
+
+						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+							<MinusIcon className="mt-1" size={16} />
+							<span className="hidden md:inline">Outgoing</span>
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualOutgoingAverage / 365} />
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualOutgoingAverage / 12} />
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualOutgoingAverage} />
+						</div>
+
+						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+							<DiffIcon className="mt-1" size={16} />
+							<span className="hidden md:inline">Net</span>
+						</div>
+						<div className="font-bold text-right md:text-2xl">
+							<Money amount={annualNetAverage / 365} />
+						</div>
+						<div className="font-bold text-right md:text-2xl">
+							<Money amount={annualNetAverage / 12} />
+						</div>
+						<div className="font-bold text-right md:text-2xl">
+							<Money amount={annualNetAverage} />
+						</div>
+					</div>
 				</CardContent>
 			</Card>
 		</div>

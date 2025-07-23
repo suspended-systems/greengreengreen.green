@@ -10,6 +10,7 @@ import { calcProjectedValue, getTransactionsOnDay, Transaction } from "@/app/tra
 import { DAY_MS, formatMoney, GreenColor } from "@/app/utils";
 import { endOfDay, endOfMonth, getDaysInMonth, isSameMonth, isSameYear, startOfDay, startOfMonth } from "date-fns";
 import { partition } from "lodash";
+import Money from "../Money";
 
 function CalendarCustomized({
 	className,
@@ -130,7 +131,7 @@ function CalendarCustomized({
 								)}
 							</div>
 							{/* Stats */}
-							<div className="flex gap-4" style={{ marginTop: "20px", marginBottom: "10px" }}>
+							<div className="flex gap-4 mt-1">
 								<StatsColumn
 									label={{ desktop: "Incoming", mobile: "In" }}
 									total={totalIncoming}
@@ -275,41 +276,37 @@ function StatsColumn({
 	dailyAverage: number;
 }) {
 	return (
-		<div>
+		<div className="grid grid-rows-2 space-x-1" style={{ gridTemplateColumns: "auto 1fr" }}>
 			<p className="text-xs md:text-sm font-medium">
 				{/* Desktop */}
+				<span className="hidden md:inline">{label.desktop}:</span>
+				{/* Mobile - shorter label and omit decimals */}
+				<span className="md:hidden inline">{label.mobile}:</span>
+			</p>
+
+			<p className="text-xs md:text-sm font-bold">
+				{/* Desktop */}
 				<span className="hidden md:inline">
-					{label.desktop}:{" "}
-					<span style={{ color: total < 0 ? "red" : GreenColor }}>
-						{total < 0 ? "" : "+"}
-						{formatMoney(total)}
-					</span>
+					<Money amount={total} />
 				</span>
 				{/* Mobile - shorter label and omit decimals */}
 				<span className="md:hidden inline">
-					{label.mobile}:{" "}
-					<span style={{ color: total < 0 ? "red" : GreenColor }}>
-						{total < 0 ? "" : "+"}
-						{formatMoney(Math.floor(total)).slice(0, -3)}
-					</span>
+					<Money dropDecimals amount={total} />
 				</span>
 			</p>
+
+			<p>{/* empty cell */}</p>
+
 			<p className="text-xs">
 				{/* Desktop */}
 				<span className="hidden md:inline">
-					<span style={{ color: dailyAverage < 0 ? "red" : GreenColor }}>
-						{dailyAverage < 0 ? "" : "+"}
-						{formatMoney(dailyAverage)}
-					</span>{" "}
-					per day
+					<Money amount={dailyAverage} />
+					<span className="text-[10px]"> per day</span>
 				</span>
 				{/* Mobile - shorter label and omit decimals */}
 				<span className="md:hidden inline">
-					<span style={{ color: dailyAverage < 0 ? "red" : GreenColor }}>
-						{dailyAverage < 0 ? "" : "+"}
-						{formatMoney(Math.floor(dailyAverage)).slice(0, -3)}
-					</span>
-					/day
+					<Money dropDecimals amount={dailyAverage} />
+					<span className="text-[10px]">/day</span>
 				</span>
 			</p>
 		</div>

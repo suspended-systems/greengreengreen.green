@@ -13,9 +13,10 @@ import { CalendarCustomized } from "@/components/ui/calendar-customized";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import NumericInput from "@/components/NumericInput";
 
-import { calcProjectedValue, getTransactionsOnDay, Transaction, txRRule } from "./transactions";
-import { COLUMNS, DAY_MS, formatDateToSheets, formatMoney, GreenColor } from "./utils";
+import { calcProjectedValue, getTransactionsOnDay, Transaction } from "./transactions";
+import { DAY_MS, formatDateToSheets, formatMoney, GreenColor } from "./utils";
 import { appendSheetsRow, updateSheetsRow, updateStartingDate, updateStartingNumber } from "./sheets";
+import { TRANSACTION_FIELDS, txRRule } from "./transactionSchema";
 
 /**
  * Additional styling exists in `@/components/ui/calendar-customized`
@@ -52,14 +53,12 @@ export default function CalendarView({
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
-		<div className="flex flex-col md:flex-row md:gap-8 w-fit mx-auto overscroll-x-auto px-2 md:px-4 pb-4">
+		<div className="flex flex-col md:flex-row md:gap-8 mx-auto w-fit max-w-full pt-4 px-2 md:px-4 pb-4">
 			{/* left panel */}
 			<div className="tour-calendar-selected-day-details contents md:flex flex-col gap-4 items-center order-last md:order-first">
-				<div className="tour-starting w-full mx-auto flex gap-2 items-center text-sm justify-between">
+				<div className="tour-starting w-full mx-auto flex gap-2 items-center text-sm">
 					{/* starting values */}
-					<span className="hidden md:inline" style={{ whiteSpace: "nowrap" }}>
-						Starting on
-					</span>
+					<span style={{ whiteSpace: "nowrap" }}>Starting on</span>
 					<Popover>
 						<PopoverTrigger asChild>
 							<Button
@@ -268,7 +267,7 @@ function ChatWindowPopover({
 							await updateSheetsRow({
 								spreadsheetId,
 								filterValue: tx.id,
-								column: COLUMNS.Enabled,
+								column: TRANSACTION_FIELDS.disabled.sheetsColumnLetter,
 								cellValue: false,
 							});
 						}

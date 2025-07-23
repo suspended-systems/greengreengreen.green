@@ -1,7 +1,8 @@
 import { partition } from "lodash";
-import { Frequency, RRule } from "rrule";
+import { Frequency } from "rrule";
 import { v4 as uuid } from "uuid";
 import { DAY_MS } from "./utils";
+import { txRRule } from "./transactionSchema";
 
 export type Transaction = {
 	id: string;
@@ -12,9 +13,6 @@ export type Transaction = {
 	interval?: number;
 	disabled?: boolean;
 };
-
-export const txRRule = (tx: Transaction) =>
-	new RRule({ freq: tx.freq, interval: tx.interval ?? 1, dtstart: new Date(tx.date) });
 
 /**
  * Get all transactions (both one‐time and recurring) that happen on a specific day.
@@ -32,7 +30,7 @@ export const txRRule = (tx: Transaction) =>
  * 4. For `recurring`, we build an RRule via `txRRule(tx)` and ask `.between(startOfDay, endOfDay, inclusive=true)`.
  *    If there is at least one occurrence in that 24-hour span, we include it.
  */
-export function getTransactionsOnDay(date: Date, transactions: Transaction[]) {
+export function getTransactionsOnDay(date: Date, transactions: Transaction[]): Transaction[] {
 	// Zero out hours/minutes/seconds/millis for our target day.
 	const targetDay = date.setHours(0, 0, 0, 0);
 
@@ -117,7 +115,7 @@ export const defaultTransactions: Transaction[] = [
 	{
 		id: uuid(),
 		name: "Paycheck",
-		date: new Date().setDate(1),
+		date: new Date().setDate(4),
 		amount: 2000,
 		freq: Frequency.WEEKLY,
 		interval: 2,
@@ -146,8 +144,8 @@ export const defaultTransactions: Transaction[] = [
 	{
 		id: uuid(),
 		name: "Investments cash out",
-		date: new Date().setDate(4),
-		amount: 2000,
+		date: new Date().setDate(17),
+		amount: 1300,
 	},
 	{
 		id: uuid(),

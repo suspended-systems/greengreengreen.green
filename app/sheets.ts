@@ -1,18 +1,19 @@
 "use server";
+
 import { google } from "googleapis";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction, txRRule } from "./transactions";
+import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
-import { z } from "zod";
 import { parse } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
-import { COLUMNS, formatDateToSheets, letterToIndex, pMapConfig } from "./utils";
+import { SheetsRow, TransactionRowSchema, transactionToSheetsRow, TRANSACTION_FIELDS } from "./transactionSchema";
+import { formatDateToSheets, letterToIndex, pMapConfig } from "./utils";
 import { partition } from "lodash";
 import pMap from "p-map";
 
-type SheetsRow = [string, number, string, string, boolean, string];
+type ColumnLetter = (typeof TRANSACTION_FIELDS)[keyof typeof TRANSACTION_FIELDS]["sheetsColumnLetter"];
 
 const credentials = {
 	project_id: "green-456901",
@@ -23,21 +24,6 @@ const credentials = {
 const TRANSACTIONS_SHEET_NAME = "Transactions";
 const STARTING_VALUES_SHEET_NAME = "Starting Values";
 
-/**
- * Special Zod Schema to handle case where any of Recurrence, Enabled, and/or UUID are missing in the row.
- * This can cause the Row/Tuple from Sheets API to vary in length which `z.tuple` doesn't play well with.
- * So we use this custom type to cover all valid possibilities.
- */
-const NameAmountDate: [z.ZodString, z.ZodNumber, z.ZodString] = [z.string().nonempty(), z.coerce.number(), z.string()];
-const Recurrence = z.string();
-const Enabled = z.union([z.literal("TRUE"), z.literal("FALSE"), z.literal("")]);
-const TransactionRowSchema = z.union([
-	z.tuple(NameAmountDate),
-	z.tuple([...NameAmountDate, Recurrence] as const),
-	z.tuple([...NameAmountDate, Recurrence, Enabled] as const),
-	z.tuple([...NameAmountDate, Recurrence, Enabled, z.string().uuid()] as const),
-]);
-
 const parseDate = (dateString: string, tz: string) => fromZonedTime(parse(dateString, "M/d/yyyy", new Date()), tz);
 
 // Generate a UUID if one doesn't exist and then push it to the first sheets row which has an empty uuid field (an assumption we're forced to make)
@@ -47,7 +33,7 @@ const assignUUID = async ({ spreadsheetId }: { spreadsheetId: string }) => {
 	await updateSheetsRow({
 		spreadsheetId,
 		filterValue: "",
-		column: COLUMNS.UUID,
+		column: TRANSACTION_FIELDS.id.sheetsColumnLetter,
 		cellValue: id,
 	});
 
@@ -58,9 +44,9 @@ const assignUUID = async ({ spreadsheetId }: { spreadsheetId: string }) => {
 const assignEnabled = async ({ rowUUID, spreadsheetId }: { rowUUID: string; spreadsheetId: string }) => {
 	await updateSheetsRow({
 		spreadsheetId,
-		filterColumn: COLUMNS.UUID,
+		filterColumn: TRANSACTION_FIELDS.id.sheetsColumnLetter,
 		filterValue: rowUUID,
-		column: COLUMNS.Enabled,
+		column: TRANSACTION_FIELDS.disabled.sheetsColumnLetter,
 		// boolean value flipped because in the sheet we store the opposite: "enabled"
 		cellValue: true,
 	});
@@ -289,18 +275,8 @@ async function initSheet(spreadsheetId: string) {
 			valueInputOption: "USER_ENTERED",
 			requestBody: {
 				values: [
-					["Transaction", "Amount", "Date", "Recurrence", "Enabled", "UUID"],
-					...defaultTransactions.map(
-						(tx) =>
-							[
-								tx.name,
-								tx.amount,
-								formatDateToSheets(new Date(tx.date)),
-								tx.freq ? txRRule(tx).toText() : "",
-								!tx.disabled,
-								tx.id,
-							] as SheetsRow,
-					),
+					Object.values(TRANSACTION_FIELDS).map((c) => c.header),
+					...defaultTransactions.map(transactionToSheetsRow),
 				],
 			},
 		});
@@ -429,9 +405,9 @@ async function getFirstSheet(spreadsheetId: string) {
 
 export async function updateSheetsRow(input: {
 	spreadsheetId: string;
-	filterColumn?: (typeof COLUMNS)[keyof typeof COLUMNS];
+	filterColumn?: ColumnLetter;
 	filterValue: string | number;
-	column: string;
+	column: ColumnLetter;
 	cellValue: string | number | boolean;
 }) {
 	const { spreadsheetId, filterColumn, filterValue, column, cellValue } = input;
@@ -471,7 +447,7 @@ export async function deleteSheetsRow({
 }: {
 	spreadsheetId: string;
 	filterValue: string | number;
-	filterColumn?: string;
+	filterColumn?: ColumnLetter;
 }) {
 	const { sheetId, targetRowIndex } = await findSheetRowIndex({
 		filterValue,
@@ -505,9 +481,9 @@ async function findSheetRowIndex({
 }: {
 	spreadsheetId: string;
 	filterValue: string | number;
-	filterColumn?: string;
+	filterColumn?: ColumnLetter;
 }) {
-	filterColumn = filterColumn ?? COLUMNS.UUID;
+	filterColumn = filterColumn ?? TRANSACTION_FIELDS.id.sheetsColumnLetter;
 
 	// find the target row
 	const { sheetId, sheetName } = await getFirstSheet(spreadsheetId);
