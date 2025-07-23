@@ -111,65 +111,6 @@ export default function ForecastView({
 
 	return (
 		<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-sm font-medium">Projected Change During {new Date().getFullYear()}</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div
-						className="grid grid-rows-3"
-						style={{ gridTemplateColumns: "auto minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)" }}
-					>
-						<div>{/* empty first table cell */}</div>
-						<div className="font-semibold text-right text-xs md:text-base">Each Day</div>
-						<div className="font-semibold text-right text-xs md:text-base">Each Month</div>
-						<div className="font-semibold text-right text-xs md:text-base">Calendar Year</div>
-
-						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
-							<PlusIcon className="mt-1" size={16} />
-							<span className="hidden md:inline">Incoming</span>
-						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
-							<Money amount={annualIncomingAverage / 365} />
-						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
-							<Money amount={annualIncomingAverage / 12} />
-						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
-							<Money amount={annualIncomingAverage} />
-						</div>
-
-						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
-							<MinusIcon className="mt-1" size={16} />
-							<span className="hidden md:inline">Outgoing</span>
-						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
-							<Money amount={annualOutgoingAverage / 365} />
-						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
-							<Money amount={annualOutgoingAverage / 12} />
-						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
-							<Money amount={annualOutgoingAverage} />
-						</div>
-
-						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
-							<DiffIcon className="mt-1" size={16} />
-							<span className="hidden md:inline">Net</span>
-						</div>
-						<div className="font-bold text-right md:text-2xl">
-							<Money amount={annualNetAverage / 365} />
-						</div>
-						<div className="font-bold text-right md:text-2xl">
-							<Money amount={annualNetAverage / 12} />
-						</div>
-						<div className="font-bold text-right md:text-2xl">
-							<Money amount={annualNetAverage} />
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card>
 					<CardHeader className="pb-2">
@@ -259,6 +200,65 @@ export default function ForecastView({
 							/>
 						</AreaChart>
 					</ChartContainer>
+				</CardContent>
+			</Card>
+
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-sm font-medium">Projected Change During {new Date().getFullYear()}</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div
+						className="grid grid-rows-3"
+						style={{ gridTemplateColumns: "auto minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)" }}
+					>
+						<div>{/* empty first table cell */}</div>
+						<div className="font-semibold text-right text-xs md:text-base">Each Day</div>
+						<div className="font-semibold text-right text-xs md:text-base">Each Month</div>
+						<div className="font-semibold text-right text-xs md:text-base">Calendar Year</div>
+
+						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+							<PlusIcon className="mt-1" size={16} />
+							<span className="hidden md:inline">Incoming</span>
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualIncomingAverage / 365} />
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualIncomingAverage / 12} />
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualIncomingAverage} />
+						</div>
+
+						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+							<MinusIcon className="mt-1" size={16} />
+							<span className="hidden md:inline">Outgoing</span>
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualOutgoingAverage / 365} />
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualOutgoingAverage / 12} />
+						</div>
+						<div className="self-center font-semibold text-right text-xs md:text-base">
+							<Money amount={annualOutgoingAverage} />
+						</div>
+
+						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+							<DiffIcon className="mt-1" size={16} />
+							<span className="hidden md:inline">Net</span>
+						</div>
+						<div className="font-bold text-right md:text-2xl">
+							<Money amount={annualNetAverage / 365} />
+						</div>
+						<div className="font-bold text-right md:text-2xl">
+							<Money amount={annualNetAverage / 12} />
+						</div>
+						<div className="font-bold text-right md:text-2xl">
+							<Money amount={annualNetAverage} />
+						</div>
+					</div>
 				</CardContent>
 			</Card>
 		</div>
