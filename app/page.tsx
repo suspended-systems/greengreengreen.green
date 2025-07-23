@@ -242,7 +242,7 @@ function PanelScroll({
 			// todo: get rid of height calc hardcode
 			// -72px mobile tab bar height
 			// -36px desktop tab bar height
-			className="overflow-auto overscroll-none h-[calc(100dvh-72px)] md:h-[calc(100dvh-36px)] w-full"
+			className="overflow-auto! overscroll-none h-[calc(100dvh-72px)] md:h-[calc(100dvh-36px)]"
 			onScroll={(e) => {
 				scrollPositions.current[tabValue] = e.currentTarget.scrollTop;
 			}}
