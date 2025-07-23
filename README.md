@@ -10,7 +10,7 @@ Chat → [chat.ts](pages/api/chat.ts)
 
 Experimental Chat v2 → [ReplacementRecommender.ts](lib/ReplacementRecommender.ts)
 
-The React code is still pending a lot of cleanup, not my best 😅
+The React code has been left a little messy as I am still finalizing styling and fleshing out tab contents.
 
 ---
 
