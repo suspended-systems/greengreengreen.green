@@ -131,7 +131,7 @@ function CalendarCustomized({
 								)}
 							</div>
 							{/* Stats */}
-							<div className="flex gap-4" style={{ marginTop: "20px", marginBottom: "10px" }}>
+							<div className="flex gap-4 mt-1">
 								<StatsColumn
 									label={{ desktop: "Incoming", mobile: "In" }}
 									total={totalIncoming}
