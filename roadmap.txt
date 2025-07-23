@@ -1,5 +1,6 @@
 future roadmap:
 - favicon
+- styling of month stats selected calendar day's transactions so text doesn't reposition as much
 - gsap tab bar scroll stop
 - average change should default to next 12months, and dropdown to see calendar year (as it is now)
 - starting values inputs width fit-content. container needs to match calendar width for mobile stacking maybe or just adjust numeric input width
