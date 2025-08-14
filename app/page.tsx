@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useLocalStorage } from "react-use";
 import useSWRImmutable from "swr/immutable";
@@ -17,7 +17,8 @@ import CalendarView from "./CalendarView";
 import ForecastView from "./ForecastView";
 import { columns as columnsData } from "./TransactionsView/tableColumns";
 import { TransactionsView } from "./TransactionsView/TransactionsView";
-import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
+import { Transaction } from "./transactions";
+import { AppProvider, useApp } from "./AppContext";
 
 import { CallBackProps } from "react-joyride";
 const Tour = dynamic(() => import("@/components/Tour"), { ssr: false });
@@ -25,7 +26,16 @@ const Tour = dynamic(() => import("@/components/Tour"), { ssr: false });
 import getSheetsData from "./sheets";
 
 export default function Home() {
+	return (
+		<AppProvider>
+			<HomeContent />
+		</AppProvider>
+	);
+}
+
+function HomeContent() {
 	const { data: session, status } = useSession();
+	const { spreadsheetId, setTransactions, setSpreadsheetId, setStartDate, setStartAmount } = useApp();
 
 	/**
 	 * Load Sheets data
@@ -62,13 +72,8 @@ export default function Home() {
 	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
 	const [isTourComplete, setTourComplete] = useLocalStorage(`isGreenTourComplete`, false);
 	const [activeTab, setActiveTab] = useState("calendar");
-	const [startAmount, setStartAmount] = useState(defaultStartingValue);
-	const [startDate, setStartDate] = useState<Date | undefined>(defaultStartingDate);
-	const [endDate, setEndDate] = useState<Date | undefined>();
-	const [transactions, setTransactions] = useState(defaultTransactions);
 	const [month, onMonthChange] = useState(new Date());
 	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 } as PaginationState);
-	const [spreadsheetId, setSpreadsheetId] = useState<string | null>(null);
 	const [showContent, setShowContent] = useState(false);
 	const [hideLoader, setHideLoader] = useState(false);
 
@@ -165,48 +170,21 @@ export default function Home() {
 				<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
 					<TabsContent value="calendar">
 						<PanelScroll tabValue="calendar" scrollPositions={scrollPositions}>
-							<CalendarView
-								{...{
-									month,
-									onMonthChange,
-									startAmount,
-									setStartAmount,
-									startDate,
-									setStartDate,
-									endDate,
-									setEndDate,
-									transactions,
-									setTransactions,
-									spreadsheetId,
-								}}
-							/>
+							<CalendarView month={month} onMonthChange={onMonthChange} />
 						</PanelScroll>
 					</TabsContent>
 					<TabsContent value="forecast">
 						<PanelScroll tabValue="forecast" scrollPositions={scrollPositions}>
-							<ForecastView
-								{...{
-									startAmount,
-									startDate,
-									transactions,
-								}}
-							/>
+							<ForecastView />
 						</PanelScroll>
 					</TabsContent>
 					<TabsContent value="transactions">
 						<PanelScroll tabValue="transactions" scrollPositions={scrollPositions}>
 							<TransactionsView
-								{...{
-									spreadsheetId,
-									isDemoWarningClosed,
-									columns,
-									setStartDate,
-									setStartAmount,
-									transactions,
-									setTransactions,
-									pagination,
-									setPagination,
-								}}
+								isDemoWarningClosed={isDemoWarningClosed}
+								columns={columns}
+								pagination={pagination}
+								setPagination={setPagination}
 							/>
 						</PanelScroll>
 					</TabsContent>

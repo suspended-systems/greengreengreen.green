@@ -5,6 +5,8 @@ import { BotMessageSquareIcon, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
+import { useApp } from "./AppContext";
+
 import { cn } from "@/lib/utils";
 import ChatWindow from "@/components/ChatWindow";
 import { Button } from "@/components/ui/button";
@@ -24,28 +26,11 @@ import { TRANSACTION_FIELDS, txRRule } from "./transactionSchema";
 export default function CalendarView({
 	month,
 	onMonthChange,
-	transactions,
-	setTransactions,
-	startAmount,
-	setStartAmount,
-	startDate,
-	setStartDate,
-	endDate,
-	setEndDate,
-	spreadsheetId,
 }: {
 	month: Date;
 	onMonthChange: Dispatch<SetStateAction<Date>>;
-	transactions: Transaction[];
-	setTransactions: Dispatch<SetStateAction<Transaction[]>>;
-	startAmount: number;
-	setStartAmount: Dispatch<SetStateAction<number>>;
-	startDate: Date | undefined;
-	setStartDate: Dispatch<SetStateAction<Date | undefined>>;
-	endDate: Date | undefined;
-	setEndDate: Dispatch<SetStateAction<Date | undefined>>;
-	spreadsheetId: string | null;
 }) {
+	const { transactions, setTransactions, startAmount, setStartAmount, startDate, setStartDate, endDate, setEndDate, spreadsheetId } = useApp();
 	const enabledTransactions = transactions.filter((tx) => !tx.disabled);
 
 	const dayTransactions = endDate && getTransactionsOnDay(endDate, enabledTransactions);
@@ -152,7 +137,7 @@ export default function CalendarView({
 													<td className="flex font-medium">
 														{tx.name}
 														{tx.amount < 0 && tx.freq != null && (
-															<ChatWindowPopover {...{ tx, setTransactions, spreadsheetId }} />
+															<ChatWindowPopover tx={tx} />
 														)}
 													</td>
 												</tr>
@@ -201,15 +186,8 @@ export default function CalendarView({
 	);
 }
 
-function ChatWindowPopover({
-	tx,
-	setTransactions,
-	spreadsheetId,
-}: {
-	tx: Transaction;
-	setTransactions: Dispatch<SetStateAction<Transaction[]>>;
-	spreadsheetId: string | null;
-}) {
+function ChatWindowPopover({ tx }: { tx: Transaction }) {
+	const { setTransactions, spreadsheetId } = useApp();
 	const [isPopoverOpen, setPopoverOpen] = useState(false);
 
 	return (

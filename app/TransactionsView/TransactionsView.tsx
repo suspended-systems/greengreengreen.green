@@ -49,28 +49,20 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { AddTransactionForm } from "./AddTransactionForm";
 import { Transaction } from "../transactions";
 import getSheetsData from "../sheets";
+import { useApp } from "../AppContext";
 
-export function TransactionsView<TData, TValue>({
-	spreadsheetId,
+export function TransactionsView({
 	isDemoWarningClosed,
 	columns,
-	setStartDate,
-	setStartAmount,
-	transactions,
-	setTransactions,
 	pagination,
 	setPagination,
 }: {
-	spreadsheetId: string | null;
 	isDemoWarningClosed: boolean;
-	columns: ColumnDef<TData, TValue>[];
-	setStartDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
-	setStartAmount: React.Dispatch<React.SetStateAction<number>>;
-	transactions: TData[];
-	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+	columns: ColumnDef<Transaction, any>[];
 	pagination: PaginationState;
 	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
 }) {
+	const { spreadsheetId, transactions, setTransactions, setStartDate, setStartAmount } = useApp();
 	const [pullSheetsLoading, setPullSheetsLoading] = React.useState(false);
 
 	const { data: session } = useSession();
@@ -175,7 +167,7 @@ export function TransactionsView<TData, TValue>({
 					</Card>
 				)}
 				<div className="flex gap-4">
-					<AddTransaction {...{ spreadsheetId, setTransactions }} />
+					<AddTransaction />
 					<Input
 						placeholder="Search..."
 						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -360,13 +352,8 @@ export function TransactionsView<TData, TValue>({
 	);
 }
 
-function AddTransaction({
-	spreadsheetId,
-	setTransactions,
-}: {
-	spreadsheetId: string | null;
-	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-}) {
+function AddTransaction() {
+	const { spreadsheetId, setTransactions } = useApp();
 	return (
 		<Dialog modal>
 			<DialogTrigger asChild>
@@ -380,13 +367,13 @@ function AddTransaction({
 				<DialogHeader>
 					<DialogTitle>Add transaction</DialogTitle>
 				</DialogHeader>
-				<AddTransactionForm {...{ spreadsheetId, setTransactions }} />
+				<AddTransactionForm spreadsheetId={spreadsheetId} setTransactions={setTransactions} />
 			</DialogContent>
 		</Dialog>
 	);
 }
 
-function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number }) {
+function HoverableRow({ row, index }: { row: Row<Transaction>; index: number }) {
 	// Keep pointer event in state to detect hovering
 	// When hovering, the inline editing UI is shown
 	const [isRowHovered, setIsRowHovered] = React.useState(false);

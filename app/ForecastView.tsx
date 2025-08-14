@@ -12,6 +12,7 @@ import { Transaction, calcProjectedValue } from "./transactions";
 import { formatMoney, GreenColor } from "./utils";
 import { partition } from "lodash";
 import { PlusIcon, MinusIcon, DiffIcon } from "lucide-react";
+import { useApp } from "./AppContext";
 
 const chartConfig = {
 	positiveBalance: {
@@ -24,15 +25,8 @@ const chartConfig = {
 	},
 };
 
-export default function ForecastView({
-	startAmount,
-	startDate,
-	transactions,
-}: {
-	startAmount: number;
-	startDate?: Date;
-	transactions: Transaction[];
-}) {
+export default function ForecastView() {
+	const { startAmount, startDate, transactions } = useApp();
 	const forecastData = useMemo(() => {
 		if (!startDate) return [];
 
