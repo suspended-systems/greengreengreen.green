@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { signOut, useSession } from "next-auth/react";
-import Image from "next/image";
 
 import {
 	EyeOffIcon,
@@ -40,11 +39,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CopyableInput } from "@/components/CopyableInput";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Money from "@/components/Money";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import SheetsSetupBanner from "@/components/SheetsSetupBanner";
 
 import { AddTransactionForm } from "./AddTransactionForm";
 import { Transaction } from "../transactions";
@@ -99,73 +98,7 @@ export function TransactionsView({
 		<>
 			<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">
 				{/* Sheets setup / demo warning info banner */}
-				{!spreadsheetId && !isDemoWarningClosed && (
-					<Card>
-						<CardHeader>
-							<CardTitle className="text-sm font-medium">{session ? "Google Sheets setup" : "Demo Mode"}</CardTitle>
-						</CardHeader>
-
-						<CardContent>
-							<div className="prose flex flex-col items-center gap-4">
-								{!session ? (
-									<>
-										<p className="text-center">
-											You are in demo mode. <span className="font-bold">Data will not save.</span>
-										</p>
-										<p className="text-center">Set up with Google Sheets to store your transactions:</p>
-										<SetUpWithGoogleSheetsButton />
-									</>
-								) : (
-									<>
-										<p className="text-muted-foreground">⚠️ Data will not save until setup is complete.</p>
-										<p className="text-muted-foreground">
-											❗️ Make sure you are signed in to the same Google Account across green and Sheets.
-										</p>
-										<div className="prose">
-											<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
-												<li>
-													Copy the email to share with:
-													<code className="text-muted-foreground">
-														<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
-													</code>
-												</li>
-												<li>
-													<a
-														href="https://docs.google.com/spreadsheets/create"
-														target="_blank"
-														rel="noopener"
-														className="inline-flex items-baseline"
-													>
-														<SquareArrowOutUpRightIcon size={18} className="self-center" />
-														<span className="pl-1">Create a Sheet (and name it)</span>
-													</a>
-												</li>
-												<li>
-													Share it
-													<div className="flex flex-col items-center">
-														<Image
-															src="/assets/sheets-setup-step-1.png"
-															alt="Sheets Setup Step 1"
-															width={600}
-															height={600}
-														/>
-														<Image
-															src="/assets/sheets-setup-step-2.png"
-															alt="Sheets Setup Step 2"
-															width={300}
-															height={300}
-														/>
-													</div>
-												</li>
-												<li>Refresh this page 🎉</li>
-											</ol>
-										</div>
-									</>
-								)}
-							</div>
-						</CardContent>
-					</Card>
-				)}
+				<SheetsSetupBanner isDemoWarningClosed={isDemoWarningClosed} />
 				<div className="flex gap-4">
 					<AddTransaction />
 					<Input

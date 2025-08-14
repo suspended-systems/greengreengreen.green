@@ -7,6 +7,7 @@ import { format, addDays, startOfDay } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import Money from "@/components/Money";
+import ForecastStatsCards from "@/components/ForecastStatsCards";
 
 import { Transaction, calcProjectedValue } from "./transactions";
 import { formatMoney, GreenColor } from "./utils";
@@ -105,40 +106,7 @@ export default function ForecastView() {
 
 	return (
 		<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium whitespace-nowrap">Today's Projected Balance</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold" style={{ color: stats.current < 0 ? "red" : GreenColor }}>
-							{formatMoney(stats.current)}
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected 90-Day Change</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className={`text-2xl font-bold`}>
-							<Money amount={stats.change} />
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected 90-Day Balance</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className={`text-2xl font-bold`}>
-							<Money hidePlus amount={stats.projected} />
-						</div>
-					</CardContent>
-				</Card>
-			</div>
+			<ForecastStatsCards stats={stats} />
 
 			{/* Timeline Chart */}
 			<Card>

@@ -6,12 +6,13 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { useLocalStorage } from "react-use";
 import useSWRImmutable from "swr/immutable";
 import { toast } from "sonner";
-import { CalendarDaysIcon, CircleDollarSignIcon, Loader2, TrendingUpIcon } from "lucide-react";
+import { CalendarDaysIcon, CircleDollarSignIcon, TrendingUpIcon } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 import CalendarView from "./CalendarView";
 import ForecastView from "./ForecastView";
@@ -157,14 +158,7 @@ function HomeContent() {
 				</TabsList>
 
 				{/* Loading spinner */}
-				<div
-					className={`absolute inset-0 flex flex-col items-center justify-center text-current transition-opacity duration-200 ${
-						hideLoader ? "opacity-0 pointer-events-none" : "opacity-100"
-					}`}
-				>
-					<Loader2 className="animate-spin" size={64} aria-label="Loading…" />
-					<p>{status === "loading" ? "Loading..." : "Retrieving Sheets transactions..."}</p>
-				</div>
+				<LoadingSpinner hideLoader={hideLoader} status={status} />
 
 				{/* Content */}
 				<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
