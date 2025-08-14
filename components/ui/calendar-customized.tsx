@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight, HomeIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, HomeIcon, Undo2Icon } from "lucide-react";
 import { DayPicker, useDayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
@@ -125,7 +125,7 @@ function CalendarCustomized({
 							<div className="absolute" style={{ top: -24 }}>
 								{(!isSameMonth(props.displayMonth, new Date()) || !isSameYear(props.displayMonth, new Date())) && (
 									<Button variant="secondary" onClick={backToToday} className="text-xs" style={{ height: 20 }}>
-										<HomeIcon />
+										<Undo2Icon />
 										Back to today
 									</Button>
 								)}
