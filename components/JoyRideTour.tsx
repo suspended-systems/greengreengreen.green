@@ -42,7 +42,7 @@ const TOUR_STEPS = [
 	},
 ];
 
-export default function Tour({ isTourComplete, callback }: { isTourComplete?: boolean; callback: Callback }) {
+export default function JoyRideTour({ isTourComplete, callback }: { isTourComplete?: boolean; callback: Callback }) {
 	return (
 		!isTourComplete && (
 			<JoyRide

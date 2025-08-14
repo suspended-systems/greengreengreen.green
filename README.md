@@ -33,7 +33,7 @@ pnpm i
 Run dev
 
 ```sh
-npm run dev
+pnpm dev
 ```
 
 Test desktop view using Safari and/or Chrome.

@@ -13,7 +13,7 @@ import { formatDateToSheets, letterToIndex, pMapConfig } from "./utils";
 import { partition } from "lodash";
 import pMap from "p-map";
 
-type ColumnLetter = (typeof TRANSACTION_FIELDS)[keyof typeof TRANSACTION_FIELDS]["sheetsColumnLetter"];
+export type ColumnLetter = (typeof TRANSACTION_FIELDS)[keyof typeof TRANSACTION_FIELDS]["sheetsColumnLetter"];
 
 const credentials = {
 	project_id: "green-456901",
@@ -275,7 +275,9 @@ async function initSheet(spreadsheetId: string) {
 			valueInputOption: "USER_ENTERED",
 			requestBody: {
 				values: [
-					Object.values(TRANSACTION_FIELDS).map((c) => c.header),
+					Object.values(TRANSACTION_FIELDS)
+						.filter((field) => "header" in field)
+						.map((field) => field.header),
 					...defaultTransactions.map(transactionToSheetsRow),
 				],
 			},

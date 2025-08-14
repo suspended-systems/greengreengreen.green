@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Money from "@/components/Money";
 
@@ -11,7 +12,7 @@ interface ForecastStatsCardsProps {
 	};
 }
 
-export default function ForecastStatsCards({ stats }: ForecastStatsCardsProps) {
+const ForecastStatsCards = React.memo(({ stats }: ForecastStatsCardsProps) => {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 			<Card>
@@ -48,4 +49,6 @@ export default function ForecastStatsCards({ stats }: ForecastStatsCardsProps) {
 			</Card>
 		</div>
 	);
-}
+});
+
+export default ForecastStatsCards;

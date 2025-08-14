@@ -7,11 +7,12 @@ import ChatWindow from "@/components/ChatWindow";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-import { useApp } from "@/app/AppContext";
+import { useApp } from "@/contexts/AppContext";
 import { calcProjectedValue, getTransactionsOnDay, Transaction } from "@/app/transactions";
-import { DAY_MS, formatDateToSheets, formatMoney, GreenColor } from "@/app/utils";
-import { appendSheetsRow, updateSheetsRow } from "@/app/sheets";
+import { DAY_MS, formatMoney, GreenColor } from "@/app/utils";
+import { updateSheetsRow } from "@/app/sheets";
 import { TRANSACTION_FIELDS, txRRule } from "@/app/transactionSchema";
+import { useTransactionActions } from "@/hooks/useTransactionActions";
 
 export default function SelectedDayDetails() {
 	const { transactions, setTransactions, startAmount, startDate, endDate } = useApp();
@@ -53,8 +54,8 @@ export default function SelectedDayDetails() {
 											: // descending
 											  b.amount - a.amount,
 									)
-									.map((tx, i) => (
-										<tr key={`tx:${i}`}>
+									.map((tx) => (
+										<tr key={`tx:${tx.id}`}>
 											<td
 												className="text-right"
 												style={{ color: tx.amount > 0 ? GreenColor : "red", fontWeight: "bold" }}
@@ -64,9 +65,7 @@ export default function SelectedDayDetails() {
 											</td>
 											<td className="flex font-medium">
 												{tx.name}
-												{tx.amount < 0 && tx.freq != null && (
-													<ChatWindowPopover tx={tx} />
-												)}
+												{tx.amount < 0 && tx.freq != null && <ChatWindowPopover tx={tx} />}
 											</td>
 										</tr>
 									))}
@@ -106,6 +105,7 @@ export default function SelectedDayDetails() {
 
 function ChatWindowPopover({ tx }: { tx: Transaction }) {
 	const { setTransactions, spreadsheetId } = useApp();
+	const { addTransaction } = useTransactionActions();
 	const [isPopoverOpen, setPopoverOpen] = useState(false);
 
 	return (
@@ -141,18 +141,7 @@ function ChatWindowPopover({ tx }: { tx: Transaction }) {
 						/**
 						 * Add the new transaction
 						 */
-						setTransactions((value) => [transaction, ...value]);
-
-						if (spreadsheetId) {
-							await appendSheetsRow(spreadsheetId, [
-								transaction.name,
-								transaction.amount,
-								formatDateToSheets(new Date(transaction.date)),
-								transaction.freq ? txRRule(transaction).toText() : "",
-								!transaction.disabled,
-								transaction.id,
-							]);
-						}
+						addTransaction(transaction);
 
 						/**
 						 * Disable the one we're replacing

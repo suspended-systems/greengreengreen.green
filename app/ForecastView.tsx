@@ -9,11 +9,11 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import Money from "@/components/Money";
 import ForecastStatsCards from "@/components/ForecastStatsCards";
 
-import { Transaction, calcProjectedValue } from "./transactions";
+import { calcProjectedValue } from "./transactions";
 import { formatMoney, GreenColor } from "./utils";
 import { partition } from "lodash";
 import { PlusIcon, MinusIcon, DiffIcon } from "lucide-react";
-import { useApp } from "./AppContext";
+import { useApp } from "@/contexts/AppContext";
 
 const chartConfig = {
 	positiveBalance: {
@@ -81,28 +81,35 @@ export default function ForecastView() {
 	}
 
 	/**
-	 * Stats
+	 * Stats - Memoized for performance
 	 */
+	const { annualIncomingAverage, annualOutgoingAverage, annualNetAverage } = useMemo(() => {
+		const [incomingTxs, outgoingTxs] = partition(transactions ?? [], (tx) => tx.amount >= 0);
+		const startOfYear = new Date(Date.UTC(new Date().getFullYear(), 0, 1, 0, 0, 0, 0));
+		const endOfYear = new Date(Date.UTC(new Date().getFullYear(), 11, 31, 23, 59, 59, 999));
 
-	const [incomingTxs, outgoingTxs] = partition((transactions as Transaction[]) ?? [], (tx) => tx.amount >= 0);
-	const startOfYear = new Date(Date.UTC(new Date().getFullYear(), 0, 1, 0, 0, 0, 0));
-	const endOfYear = new Date(Date.UTC(new Date().getFullYear(), 11, 31, 23, 59, 59, 999));
+		const annualIncomingAverage = calcProjectedValue({
+			startValue: 0,
+			startDate: startOfYear,
+			endDate: endOfYear,
+			transactions: incomingTxs,
+		});
 
-	const annualIncomingAverage = calcProjectedValue({
-		startValue: 0,
-		startDate: startOfYear,
-		endDate: endOfYear,
-		transactions: incomingTxs ?? [],
-	});
+		const annualOutgoingAverage = calcProjectedValue({
+			startValue: 0,
+			startDate: startOfYear,
+			endDate: endOfYear,
+			transactions: outgoingTxs,
+		});
 
-	const annualOutgoingAverage = calcProjectedValue({
-		startValue: 0,
-		startDate: startOfYear,
-		endDate: endOfYear,
-		transactions: outgoingTxs ?? [],
-	});
+		const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
 
-	const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
+		return {
+			annualIncomingAverage,
+			annualOutgoingAverage,
+			annualNetAverage,
+		};
+	}, [transactions]);
 
 	return (
 		<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">

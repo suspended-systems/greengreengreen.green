@@ -163,8 +163,8 @@ const ChatWindow = ({
 													<div className="text-xs mt-1 text-gray-800 dark:text-gray-200">
 														<div className="font-semibold">Tradeoffs:</div>
 														<ul className="list-disc list-inside text-xs">
-															{alt.cons.map((con, i) => (
-																<li key={i}>{con}</li>
+															{alt.cons.map((con) => (
+																<li key={`con:${con}`}>{con}</li>
 															))}
 														</ul>
 													</div>

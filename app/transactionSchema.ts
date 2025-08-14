@@ -2,11 +2,6 @@ import { z } from "zod";
 import { Frequency, RRule } from "rrule";
 import { formatDateToSheets } from "./utils";
 
-/**
- * Unified Transaction Schema and Configuration
- * Single source of truth for all transaction-related data, UI, and sheets integration
- */
-
 export type Transaction = {
 	id: string;
 	name: string;
@@ -31,11 +26,14 @@ export const TRANSACTION_FIELDS = {
 	date: {
 		sheetsColumnLetter: "C",
 		sheetsSchema: z.string(),
+		toSheets: (day: number) => formatDateToSheets(new Date(day)),
 		header: "Date",
 	},
 	freq: {
 		sheetsColumnLetter: "D",
 		sheetsSchema: z.string(),
+		toSheets: (value: Frequency | null, tx: Transaction) =>
+			value == null ? "" : new RRule({ freq: value, interval: tx.interval ?? 1 }).toText(),
 		header: "Recurrence",
 		options: [
 			{ value: Frequency.DAILY, label: "days" },
@@ -44,10 +42,15 @@ export const TRANSACTION_FIELDS = {
 			{ value: Frequency.YEARLY, label: "years" },
 		],
 	},
-	// interval: {}, // shares data with `freq`
+	interval: {
+		sheetsColumnLetter: "D", // shared with freq
+		toSheets: (value: number | null, tx: Transaction) =>
+			value == null ? "" : new RRule({ freq: tx.freq ?? Frequency.DAILY, interval: value }).toText(),
+	},
 	disabled: {
 		sheetsColumnLetter: "E",
 		sheetsSchema: z.union([z.literal("TRUE"), z.literal("FALSE"), z.literal("")]),
+		toSheets: (isToggled: boolean) => !isToggled,
 		header: "Enabled",
 	},
 	id: {

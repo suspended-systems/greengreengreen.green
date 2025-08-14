@@ -10,7 +10,6 @@ import {
 	PlusIcon,
 	RefreshCcwIcon,
 	SquareArrowOutUpRightIcon,
-	LucideProps,
 	CogIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -39,8 +38,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Money from "@/components/Money";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import SheetsSetupBanner from "@/components/SheetsSetupBanner";
@@ -48,7 +45,7 @@ import SheetsSetupBanner from "@/components/SheetsSetupBanner";
 import { AddTransactionForm } from "./AddTransactionForm";
 import { Transaction } from "../transactions";
 import getSheetsData from "../sheets";
-import { useApp } from "../AppContext";
+import { useApp } from "@/contexts/AppContext";
 
 export function TransactionsView({
 	isDemoWarningClosed,
@@ -214,7 +211,9 @@ export function TransactionsView({
 						</TableHeader>
 						<TableBody>
 							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
+								table
+									.getRowModel()
+									.rows.map((row, i) => <HoverableRow key={`row:${row.original.id}`} {...{ row, index: i }} />)
 							) : (
 								<TableRow>
 									<TableCell
@@ -238,10 +237,17 @@ export function TransactionsView({
 							size="sm"
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
+							aria-label="Go to previous page"
 						>
 							<ChevronLeftIcon />
 						</Button>
-						<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => table.nextPage()}
+							disabled={!table.getCanNextPage()}
+							aria-label="Go to next page"
+						>
 							<ChevronRightIcon />
 						</Button>
 					</div>
@@ -285,26 +291,23 @@ export function TransactionsView({
 	);
 }
 
-function AddTransaction() {
-	const { spreadsheetId, setTransactions } = useApp();
-	return (
-		<Dialog modal>
-			<DialogTrigger asChild>
-				<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
-					<PlusIcon />
-					<span className="hidden md:block">Add transaction</span>
-					<span className="sr-only">Add transaction</span>
-				</Button>
-			</DialogTrigger>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Add transaction</DialogTitle>
-				</DialogHeader>
-				<AddTransactionForm spreadsheetId={spreadsheetId} setTransactions={setTransactions} />
-			</DialogContent>
-		</Dialog>
-	);
-}
+const AddTransaction = () => (
+	<Dialog modal>
+		<DialogTrigger asChild>
+			<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
+				<PlusIcon />
+				<span className="hidden md:block">Add transaction</span>
+				<span className="sr-only">Add transaction</span>
+			</Button>
+		</DialogTrigger>
+		<DialogContent>
+			<DialogHeader>
+				<DialogTitle>Add transaction</DialogTitle>
+			</DialogHeader>
+			<AddTransactionForm />
+		</DialogContent>
+	</Dialog>
+);
 
 function HoverableRow({ row, index }: { row: Row<Transaction>; index: number }) {
 	// Keep pointer event in state to detect hovering
@@ -395,39 +398,6 @@ export function SetUpWithGoogleSheetsButton() {
 				</div>
 				<span className="pl-1">Sign in with Google</span>
 			</Button>
-		</div>
-	);
-}
-
-function StatsBox({
-	title,
-	Icon,
-	annually,
-}: {
-	title: "Incoming" | "Outgoing" | "Net";
-	Icon: React.ForwardRefExoticComponent<LucideProps>;
-	annually: number;
-}) {
-	const monthly = annually / 12;
-	const daily = annually / 365;
-
-	const StatsRow = ({ unit, amount }: { unit: string; amount: number }) => (
-		<>
-			<div className="font-bold text-right text-2xl">
-				<Money {...{ amount }} />
-			</div>
-
-			<div className="text-muted-foreground text-lg">{unit}</div>
-		</>
-	);
-
-	return (
-		<div className="bg-card rounded-xl border">
-			<Icon size={16} />
-			{title}
-
-			<StatsRow unit="/day" amount={daily} />
-			<StatsRow unit="/mo" amount={monthly} />
 		</div>
 	);
 }

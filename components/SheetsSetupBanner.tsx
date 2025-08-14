@@ -5,7 +5,7 @@ import { SquareArrowOutUpRightIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CopyableInput } from "@/components/CopyableInput";
 
-import { useApp } from "@/app/AppContext";
+import { useApp } from "@/contexts/AppContext";
 import { SetUpWithGoogleSheetsButton } from "@/app/TransactionsView/TransactionsView";
 
 interface SheetsSetupBannerProps {
@@ -64,18 +64,8 @@ export default function SheetsSetupBanner({ isDemoWarningClosed }: SheetsSetupBa
 									<li>
 										Share it
 										<div className="flex flex-col items-center">
-											<Image
-												src="/assets/sheets-setup-step-1.png"
-												alt="Sheets Setup Step 1"
-												width={600}
-												height={600}
-											/>
-											<Image
-												src="/assets/sheets-setup-step-2.png"
-												alt="Sheets Setup Step 2"
-												width={300}
-												height={300}
-											/>
+											<Image src="/assets/sheets-setup-step-1.png" alt="Sheets Setup Step 1" width={600} height={600} />
+											<Image src="/assets/sheets-setup-step-2.png" alt="Sheets Setup Step 2" width={300} height={300} />
 										</div>
 									</li>
 									<li>Refresh this page 🎉</li>

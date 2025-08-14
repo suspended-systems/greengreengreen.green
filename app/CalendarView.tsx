@@ -2,12 +2,11 @@
 
 import { Dispatch, SetStateAction } from "react";
 
-import { useApp } from "./AppContext";
+import { useApp } from "@/contexts/AppContext";
 
 import { CalendarCustomized } from "@/components/ui/calendar-customized";
 import StartingValuesPanel from "@/components/StartingValuesPanel";
 import SelectedDayDetails from "@/components/SelectedDayDetails";
-
 
 /**
  * Additional styling exists in `@/components/ui/calendar-customized`
@@ -21,7 +20,6 @@ export default function CalendarView({
 }) {
 	const { transactions, startAmount, startDate, endDate, setEndDate } = useApp();
 	const enabledTransactions = transactions.filter((tx) => !tx.disabled);
-
 
 	return (
 		<div className="flex flex-col md:flex-row md:gap-8 mx-auto w-fit max-w-full pt-4 px-2 md:px-4 pb-4">
@@ -42,4 +40,3 @@ export default function CalendarView({
 		</div>
 	);
 }
-

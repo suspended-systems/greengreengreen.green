@@ -25,8 +25,7 @@ import NumericInput from "@/components/NumericInput";
 import { GreenColor } from "../utils";
 import { TRANSACTION_FIELDS } from "../transactionSchema";
 import { Transaction } from "../transactions";
-import { transactionToSheetsRow } from "../transactionSchema";
-import { appendSheetsRow } from "../sheets";
+import { useTransactionActions } from "@/hooks/useTransactionActions";
 
 const FormSchema = z.object({
 	txname: z.string().nonempty("Name can't be empty."),
@@ -51,17 +50,13 @@ const FormSchema = z.object({
 		}),
 });
 
-export function AddTransactionForm({
-	spreadsheetId,
-	setTransactions,
-}: {
-	spreadsheetId: string | null;
-	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-}) {
+export function AddTransactionForm() {
 	// This flag toggles whenever you reset the form.
 	// Used to key an input for resetting the form fully.
 	const [resetCounter, setResetCounter] = useState(0);
 	const [isRecurring, setIsRecurring] = useState(false);
+
+	const { addTransaction } = useTransactionActions();
 
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
@@ -86,11 +81,7 @@ export function AddTransactionForm({
 			}),
 		};
 
-		setTransactions((value) => [transaction, ...value]);
-
-		if (spreadsheetId) {
-			await appendSheetsRow(spreadsheetId, transactionToSheetsRow(transaction));
-		}
+		await addTransaction(transaction);
 
 		form.reset();
 
@@ -202,9 +193,9 @@ export function AddTransactionForm({
 													</Button>
 												</DropdownMenuTrigger>
 												<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: 155 }}>
-													{TRANSACTION_FIELDS.freq.options.map((option, i) => (
+													{TRANSACTION_FIELDS.freq.options.map((option) => (
 														<DropdownMenuItem
-															key={`freq-dropdown-item:${i}`}
+															key={`freq-dropdown-item:${option.label}`}
 															onClick={() => field.onChange(option.label)}
 														>
 															{option.label}

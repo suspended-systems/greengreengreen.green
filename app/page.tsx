@@ -2,27 +2,24 @@
 
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useLocalStorage } from "react-use";
 import useSWRImmutable from "swr/immutable";
 import { toast } from "sonner";
-import { CalendarDaysIcon, CircleDollarSignIcon, TrendingUpIcon } from "lucide-react";
 
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 
 import { Toaster } from "@/components/ui/sonner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import AppTabs from "@/components/AppTabs";
 
-import CalendarView from "./CalendarView";
-import ForecastView from "./ForecastView";
 import { columns as columnsData } from "./TransactionsView/tableColumns";
-import { TransactionsView } from "./TransactionsView/TransactionsView";
 import { Transaction } from "./transactions";
-import { AppProvider, useApp } from "./AppContext";
+import { AppProvider, useApp } from "@/contexts/AppContext";
+import { useTransactionActions } from "@/hooks/useTransactionActions";
 
 import { CallBackProps } from "react-joyride";
-const Tour = dynamic(() => import("@/components/Tour"), { ssr: false });
+const JoyRideTour = dynamic(() => import("@/components/JoyRideTour"), { ssr: false });
 
 import getSheetsData from "./sheets";
 
@@ -36,7 +33,7 @@ export default function Home() {
 
 function HomeContent() {
 	const { data: session, status } = useSession();
-	const { spreadsheetId, setTransactions, setSpreadsheetId, setStartDate, setStartAmount } = useApp();
+	const { setActiveTab, setTransactions, setSpreadsheetId, setStartDate, setStartAmount } = useApp();
 
 	/**
 	 * Load Sheets data
@@ -72,20 +69,16 @@ function HomeContent() {
 
 	const [isDemoWarningClosed, setIsDemoWarningClosed] = useState(false);
 	const [isTourComplete, setTourComplete] = useLocalStorage(`isGreenTourComplete`, false);
-	const [activeTab, setActiveTab] = useState("calendar");
 	const [month, onMonthChange] = useState(new Date());
 	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 } as PaginationState);
 	const [showContent, setShowContent] = useState(false);
 	const [hideLoader, setHideLoader] = useState(false);
 
-	// holds last scrollTop for each tab
-	const scrollPositions = useRef<Record<string, number>>({});
-	// refs to each panel's scrollable div
-	const contentRefs = useRef<Record<string, HTMLDivElement | null>>({});
+	const { updateTransaction, deleteTransaction } = useTransactionActions();
 
 	const columns: ColumnDef<Transaction>[] = useMemo(
-		() => columnsData({ spreadsheetId, setTransactions }),
-		[spreadsheetId, setTransactions],
+		() => columnsData({ updateTransaction, deleteTransaction }),
+		[updateTransaction, deleteTransaction],
 	);
 
 	const handleJoyrideCallback = ({ index, action }: CallBackProps) => {
@@ -111,115 +104,26 @@ function HomeContent() {
 		}
 	}, [status, isLoading]);
 
-	// when activeTab changes, restore its scroll
-	useEffect(() => {
-		const el = contentRefs.current[activeTab];
-		if (el) {
-			// wait until it's rendered
-			requestAnimationFrame(() => {
-				el.scrollTop = scrollPositions.current[activeTab] ?? 0;
-			});
-		}
-	}, [activeTab]);
-
 	return (
 		<>
 			{/* Joyride Tour */}
-			<Tour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
+			<JoyRideTour isTourComplete={isTourComplete} callback={handleJoyrideCallback} />
 
-			{/* Tabs */}
-			<Tabs
-				value={activeTab}
-				onValueChange={setActiveTab}
-				className="gap-0 /* we add a padding top to the tab content instead so we get layout spacing and overflow rendering */"
-			>
-				<TabsList
-					className="
-		border
-       	w-full        					
-       	bottom-0 md:top-0 order-1 md:order-0	/* bottom on mobile, top on md+ */
-       	h-18 md:h-9          			 		/* mobile: 4.5rem, desktop: 2.25rem */
-       	pb-[env(safe-area-inset-bottom)] 		/* iOS safe-area inset */
-	   	rounded-t-lg rounded-b-none md:rounded-t-none md:rounded-b-lg
-     "
-				>
-					<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
-						<CalendarDaysIcon className="size-8 md:size-4" />
-						<span className="hidden md:block">Calendar</span>
-					</TabsTrigger>
-					<TabsTrigger value="forecast" className="flex flex-col md:flex-row text-xs md:text-sm">
-						<TrendingUpIcon className="size-8 md:size-4" />
-						<span className="hidden md:block">Forecast</span>
-					</TabsTrigger>
-					<TabsTrigger value="transactions" className="tour-transactions flex flex-col md:flex-row text-xs md:text-sm">
-						<CircleDollarSignIcon className="size-8 md:size-4" />
-						<span className="hidden md:block">Transactions</span>
-					</TabsTrigger>
-				</TabsList>
+			{/* Loading spinner */}
+			<LoadingSpinner hideLoader={hideLoader} status={status} />
 
-				{/* Loading spinner */}
-				<LoadingSpinner hideLoader={hideLoader} status={status} />
-
-				{/* Content */}
-				<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
-					<TabsContent value="calendar">
-						<PanelScroll tabValue="calendar" scrollPositions={scrollPositions}>
-							<CalendarView month={month} onMonthChange={onMonthChange} />
-						</PanelScroll>
-					</TabsContent>
-					<TabsContent value="forecast">
-						<PanelScroll tabValue="forecast" scrollPositions={scrollPositions}>
-							<ForecastView />
-						</PanelScroll>
-					</TabsContent>
-					<TabsContent value="transactions">
-						<PanelScroll tabValue="transactions" scrollPositions={scrollPositions}>
-							<TransactionsView
-								isDemoWarningClosed={isDemoWarningClosed}
-								columns={columns}
-								pagination={pagination}
-								setPagination={setPagination}
-							/>
-						</PanelScroll>
-					</TabsContent>
-				</div>
-			</Tabs>
+			{/* Content */}
+			<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
+				<AppTabs
+					month={month}
+					onMonthChange={onMonthChange}
+					isDemoWarningClosed={isDemoWarningClosed}
+					columns={columns}
+					pagination={pagination}
+					setPagination={setPagination}
+				/>
+			</div>
 			<Toaster visibleToasts={1} position="bottom-center" />
 		</>
-	);
-}
-
-function PanelScroll({
-	tabValue,
-	scrollPositions,
-	children,
-}: {
-	tabValue: string;
-	scrollPositions: React.RefObject<Record<string, number>>;
-	children: React.ReactNode;
-}) {
-	const ref = useRef<HTMLDivElement>(null);
-
-	// on mount (i.e. when this tab becomes active), restore scroll
-	useEffect(() => {
-		const el = ref.current;
-		if (el) {
-			el.scrollTop = scrollPositions.current[tabValue] ?? 0;
-		}
-	}, [tabValue]);
-
-	return (
-		<div
-			ref={ref}
-			// todo: get rid of height calc hardcode
-			// -72px mobile tab bar height
-			// -36px desktop tab bar height
-			className="overflow-auto! overscroll-none h-[calc(100dvh-72px)] md:h-[calc(100dvh-36px)]"
-			onScroll={(e) => {
-				scrollPositions.current[tabValue] = e.currentTarget.scrollTop;
-			}}
-		>
-			{children}
-		</div>
 	);
 }

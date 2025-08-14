@@ -1,9 +1,11 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction } from "react";
-import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
+import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "@/app/transactions";
 
 interface AppContext {
+	activeTab: string;
+	setActiveTab: Dispatch<SetStateAction<string>>;
 	startAmount: number;
 	setStartAmount: Dispatch<SetStateAction<number>>;
 	startDate: Date | undefined;
@@ -19,6 +21,7 @@ interface AppContext {
 const context = createContext<AppContext | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
+	const [activeTab, setActiveTab] = useState("calendar");
 	const [startAmount, setStartAmount] = useState(defaultStartingValue);
 	const [startDate, setStartDate] = useState<Date | undefined>(defaultStartingDate);
 	const [endDate, setEndDate] = useState<Date | undefined>();
@@ -26,6 +29,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 	const [spreadsheetId, setSpreadsheetId] = useState<string | null>(null);
 
 	const value: AppContext = {
+		activeTab,
+		setActiveTab,
 		startAmount,
 		setStartAmount,
 		startDate,

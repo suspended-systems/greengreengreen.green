@@ -6,7 +6,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import NumericInput from "@/components/NumericInput";
 
-import { useApp } from "@/app/AppContext";
+import { useApp } from "@/contexts/AppContext";
 import { GreenColor } from "@/app/utils";
 import { updateStartingDate, updateStartingNumber } from "@/app/sheets";
 
@@ -33,6 +33,7 @@ export default function StartingValuesPanel() {
 					<Calendar
 						mode="single"
 						selected={startDate}
+						defaultMonth={startDate}
 						onSelect={async (day) => {
 							setStartDate(day);
 

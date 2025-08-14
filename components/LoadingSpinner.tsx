@@ -1,3 +1,4 @@
+import React from "react";
 import { Loader2 } from "lucide-react";
 
 interface LoadingSpinnerProps {
@@ -5,7 +6,7 @@ interface LoadingSpinnerProps {
 	status: string;
 }
 
-export default function LoadingSpinner({ hideLoader, status }: LoadingSpinnerProps) {
+const LoadingSpinner = React.memo(({ hideLoader, status }: LoadingSpinnerProps) => {
 	return (
 		<div
 			className={`absolute inset-0 flex flex-col items-center justify-center text-current transition-opacity duration-200 ${
@@ -16,4 +17,6 @@ export default function LoadingSpinner({ hideLoader, status }: LoadingSpinnerPro
 			<p>{status === "loading" ? "Loading..." : "Retrieving Sheets transactions..."}</p>
 		</div>
 	);
-}
+});
+
+export default LoadingSpinner;
