@@ -39,7 +39,8 @@ export default function AppTabs({
 		<Tabs
 			value={activeTab}
 			onValueChange={setActiveTab}
-			className="/* we add a padding top to the tab content instead so we get layout spacing and overflow rendering */ gap-0"
+			/* we add a padding top to the tab content instead so we get layout spacing and overflow rendering */
+			className="gap-0"
 		>
 			<TabsList
 				className={cn(

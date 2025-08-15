@@ -92,7 +92,7 @@ const ChatWindow = ({
 
 	return (
 		<div className="flex h-120 w-80 flex-col bg-white shadow-lg dark:bg-[#1A1E1B]">
-			<div className="flex-1 p-2 overflow-x-hidden overflow-y-auto">
+			<div className="flex-1 overflow-x-hidden overflow-y-auto p-2">
 				{messages
 					.filter((m) => m.role !== "system")
 					.map((m, i, arr) => {
@@ -113,7 +113,7 @@ const ChatWindow = ({
 												isUser
 													? "ml-auto bg-[#519c6b] text-white"
 													: "mr-auto bg-gray-100 text-gray-900 dark:bg-[#202A22] dark:text-gray-100"
-											} /* tail */ /* colored tail */ container before:absolute before:bottom-0 before:h-[25px] before:w-[20px] before:content-[''] after:absolute after:bottom-0 after:h-[25px] after:w-[26px] after:content-[''] ${
+											} container before:absolute before:bottom-0 before:h-[25px] before:w-[20px] before:content-[''] after:absolute after:bottom-0 after:h-[25px] after:w-[26px] after:content-[''] ${
 												!noTail &&
 												(isUser
 													? "before:right-[-7px] before:[border-bottom-left-radius:16px_14px] before:bg-[#519c6b]"
@@ -147,7 +147,7 @@ const ChatWindow = ({
 													</button>
 													<div className="mt-1 text-xs text-gray-800 dark:text-gray-200">
 														<div className="font-semibold">Tradeoffs:</div>
-														<ul className="text-xs list-disc list-inside">
+														<ul className="list-inside list-disc text-xs">
 															{alt.cons.map((con) => (
 																<li key={`con:${con}`}>{con}</li>
 															))}
@@ -161,7 +161,7 @@ const ChatWindow = ({
 							</div>
 						);
 					})}
-				{loading && <div className="text-sm text-center text-gray-500 dark:text-gray-400">Assistant is typing...</div>}
+				{loading && <div className="text-center text-sm text-gray-500 dark:text-gray-400">Assistant is typing...</div>}
 			</div>
 
 			<div className="flex border-t border-gray-200 p-2 dark:border-[#519c6b]/40">
@@ -184,7 +184,7 @@ const ChatWindow = ({
 					<ArrowUpIcon />
 				</button>
 			</div>
-			<p className="inline-flex items-center p-2 text-sm pointer-events-none text-muted-foreground gap-1">
+			<p className="text-muted-foreground pointer-events-none inline-flex items-center gap-1 p-2 text-sm">
 				<TriangleAlertIcon size={14} />
 				Chat recommendations are in beta
 			</p>
