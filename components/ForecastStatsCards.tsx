@@ -14,7 +14,7 @@ interface ForecastStatsCardsProps {
 
 const ForecastStatsCards = React.memo(({ stats }: ForecastStatsCardsProps) => {
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+		<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 			<Card>
 				<CardHeader className="pb-2">
 					<CardTitle className="text-sm font-medium whitespace-nowrap">Today's Projected Balance</CardTitle>

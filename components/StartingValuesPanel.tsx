@@ -15,7 +15,7 @@ export default function StartingValuesPanel() {
 	const startDateIsToday = startDate && startDate.setHours(0, 0, 0, 0) === new Date().setHours(0, 0, 0, 0);
 
 	return (
-		<div className="tour-starting w-full mx-auto flex gap-2 items-center text-sm">
+		<div className="tour-starting mx-auto flex w-full items-center gap-2 text-sm">
 			{/* starting values */}
 			<span style={{ whiteSpace: "nowrap" }}>Starting on</span>
 			<Popover>
@@ -61,7 +61,7 @@ export default function StartingValuesPanel() {
 						}
 					}}
 					value={startAmount.toFixed(2)}
-					className="text-sm w-[120px]"
+					className="w-[120px] text-sm"
 				/>
 			</span>
 		</div>

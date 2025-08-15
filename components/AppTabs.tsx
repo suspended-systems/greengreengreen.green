@@ -1,11 +1,15 @@
 import React, { useRef, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalendarDaysIcon, CircleDollarSignIcon, TrendingUpIcon } from "lucide-react";
+import { cva } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 import CalendarView from "@/app/CalendarView";
 import ForecastView from "@/app/ForecastView";
 import { TransactionsView } from "@/app/TransactionsView/TransactionsView";
 import { useApp } from "@/contexts/AppContext";
+
+const tabTriggerVariants = cva("flex flex-col text-xs md:flex-row md:text-sm");
 
 interface AppTabsProps {
 	month: Date;
@@ -35,27 +39,26 @@ export default function AppTabs({
 		<Tabs
 			value={activeTab}
 			onValueChange={setActiveTab}
-			className="gap-0 /* we add a padding top to the tab content instead so we get layout spacing and overflow rendering */"
+			className="/* we add a padding top to the tab content instead so we get layout spacing and overflow rendering */ gap-0"
 		>
 			<TabsList
-				className="
-					border
-					w-full        					
-					bottom-0 md:top-0 order-1 md:order-0	/* bottom on mobile, top on md+ */
-					h-18 md:h-9          			 		/* mobile: 4.5rem, desktop: 2.25rem */
-					pb-[env(safe-area-inset-bottom)] 		/* iOS safe-area inset */
-					rounded-t-lg rounded-b-none md:rounded-t-none md:rounded-b-lg
-				"
+				className={cn(
+					"w-full border",
+					"bottom-0 order-1 md:top-0 md:order-0",
+					"h-18 md:h-9",
+					"pb-[env(safe-area-inset-bottom)]",
+					"rounded-t-lg rounded-b-none md:rounded-t-none md:rounded-b-lg",
+				)}
 			>
-				<TabsTrigger value="calendar" className="flex flex-col md:flex-row text-xs md:text-sm">
+				<TabsTrigger value="calendar" className={tabTriggerVariants()}>
 					<CalendarDaysIcon className="size-8 md:size-4" />
 					<span className="hidden md:block">Calendar</span>
 				</TabsTrigger>
-				<TabsTrigger value="forecast" className="flex flex-col md:flex-row text-xs md:text-sm">
+				<TabsTrigger value="forecast" className={tabTriggerVariants()}>
 					<TrendingUpIcon className="size-8 md:size-4" />
 					<span className="hidden md:block">Forecast</span>
 				</TabsTrigger>
-				<TabsTrigger value="transactions" className="tour-transactions flex flex-col md:flex-row text-xs md:text-sm">
+				<TabsTrigger value="transactions" className={cn(tabTriggerVariants(), "tour-transactions")}>
 					<CircleDollarSignIcon className="size-8 md:size-4" />
 					<span className="hidden md:block">Transactions</span>
 				</TabsTrigger>
@@ -113,7 +116,7 @@ function ScrollablePanel({ tabValue, scrollPositions, contentRefs, children }: S
 	return (
 		<div
 			ref={ref}
-			className="overflow-auto! overscroll-none h-[calc(100dvh-72px)] md:h-[calc(100dvh-36px)]"
+			className="h-[calc(100dvh-72px)] overflow-auto! overscroll-none md:h-[calc(100dvh-36px)]"
 			onScroll={(e) => {
 				if (scrollPositions.current) {
 					scrollPositions.current[tabValue] = e.currentTarget.scrollTop;

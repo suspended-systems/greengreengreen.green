@@ -91,8 +91,8 @@ const ChatWindow = ({
 	};
 
 	return (
-		<div className="w-80 h-120 bg-white dark:bg-[#1A1E1B] shadow-lg flex flex-col">
-			<div className="flex-1 overflow-y-auto overflow-x-hidden p-2">
+		<div className="flex h-120 w-80 flex-col bg-white shadow-lg dark:bg-[#1A1E1B]">
+			<div className="flex-1 overflow-x-hidden overflow-y-auto p-2">
 				{messages
 					.filter((m) => m.role !== "system")
 					.map((m, i, arr) => {
@@ -109,36 +109,21 @@ const ChatWindow = ({
 								<div>
 									{m.content && (
 										<div
-											className={`
-										  relative inline-block max-w-[255px]
-										  ${noTail ? "mb-0.5" : "mb-4"}
-										  px-5 py-2.5 leading-6 break-words rounded-[25px]
-										  ${
+											className={`relative inline-block max-w-[255px] ${noTail ? "mb-0.5" : "mb-4"} rounded-[25px] px-5 py-2.5 leading-6 break-words ${
 												isUser
-													? "bg-[#519c6b] text-white ml-auto"
-													: "bg-gray-100 dark:bg-[#202A22] text-gray-900 dark:text-gray-100 mr-auto"
-											}
-								
-										  /* tail container */
-										  before:absolute before:bottom-0 before:h-[25px] before:w-[20px] before:content-['']
-										  after:absolute  after:bottom-0 after:h-[25px] after:w-[26px] after:content-['']
-								
-										  /* colored tail */
-										  ${
+													? "ml-auto bg-[#519c6b] text-white"
+													: "mr-auto bg-gray-100 text-gray-900 dark:bg-[#202A22] dark:text-gray-100"
+											} /* tail */ /* colored tail */ container before:absolute before:bottom-0 before:h-[25px] before:w-[20px] before:content-[''] after:absolute after:bottom-0 after:h-[25px] after:w-[26px] after:content-[''] ${
 												!noTail &&
 												(isUser
-													? "before:right-[-7px] before:bg-[#519c6b] before:[border-bottom-left-radius:16px_14px]"
-													: "before:left-[-7px] before:bg-gray-100 dark:before:bg-[#202A22] before:[border-bottom-right-radius:16px_14px]")
-											}
-								
-										  /* cut-out to mask the tail */
-										  ${
+													? "before:right-[-7px] before:[border-bottom-left-radius:16px_14px] before:bg-[#519c6b]"
+													: "before:left-[-7px] before:[border-bottom-right-radius:16px_14px] before:bg-gray-100 dark:before:bg-[#202A22]")
+											} /* cut-out to mask the tail */ ${
 												!noTail &&
 												(isUser
-													? "after:right-[-26px] after:bg-white dark:after:bg-[#1A1E1B] after:rounded-bl-[10px]"
-													: "after:left-[-26px]  after:bg-white dark:after:bg-[#1A1E1B] after:rounded-br-[10px]")
-											}
-										`}
+													? "after:right-[-26px] after:rounded-bl-[10px] after:bg-white dark:after:bg-[#1A1E1B]"
+													: "after:left-[-26px] after:rounded-br-[10px] after:bg-white dark:after:bg-[#1A1E1B]")
+											} `}
 										>
 											{m.content}
 										</div>
@@ -147,9 +132,9 @@ const ChatWindow = ({
 										<>
 											<div className="mt-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Options:</div>
 											{m.alternatives.slice(0, 5).map((alt) => (
-												<div key={alt.id} className="p-2 border border-gray-300 dark:border-[#519c6b]/40 rounded mb-2">
+												<div key={alt.id} className="mb-2 rounded border border-gray-300 p-2 dark:border-[#519c6b]/40">
 													<button
-														className="w-full font-medium cursor-pointer bg-[#519c6b] text-white px-2 py-1 rounded"
+														className="w-full cursor-pointer rounded bg-[#519c6b] px-2 py-1 font-medium text-white"
 														onClick={() => onSelectAlternative(alt)}
 														disabled={loading}
 													>
@@ -160,9 +145,9 @@ const ChatWindow = ({
 																100,
 														)}%)`}</p>
 													</button>
-													<div className="text-xs mt-1 text-gray-800 dark:text-gray-200">
+													<div className="mt-1 text-xs text-gray-800 dark:text-gray-200">
 														<div className="font-semibold">Tradeoffs:</div>
-														<ul className="list-disc list-inside text-xs">
+														<ul className="list-inside list-disc text-xs">
 															{alt.cons.map((con) => (
 																<li key={`con:${con}`}>{con}</li>
 															))}
@@ -179,10 +164,10 @@ const ChatWindow = ({
 				{loading && <div className="text-center text-sm text-gray-500 dark:text-gray-400">Assistant is typing...</div>}
 			</div>
 
-			<div className="p-2 border-t border-gray-200 dark:border-[#519c6b]/40 flex">
+			<div className="flex border-t border-gray-200 p-2 dark:border-[#519c6b]/40">
 				<textarea
 					rows={3}
-					className="flex-1 px-2 py-1 border border-gray-300 dark:border-[#519c6b]/40 rounded resize-none bg-white dark:bg-[#519c6b]/10 text-gray-900 dark:text-gray-100"
+					className="flex-1 resize-none rounded border border-gray-300 bg-white px-2 py-1 text-gray-900 dark:border-[#519c6b]/40 dark:bg-[#519c6b]/10 dark:text-gray-100"
 					value={input}
 					disabled={loading}
 					onChange={(e) => setInput(e.target.value)}
@@ -192,14 +177,14 @@ const ChatWindow = ({
 					placeholder="Type your message…"
 				/>
 				<button
-					className="ml-2 px-3 py-1 bg-[#519c6b] text-white rounded disabled:opacity-50 cursor-pointer"
+					className="ml-2 cursor-pointer rounded bg-[#519c6b] px-3 py-1 text-white disabled:opacity-50"
 					disabled={!input.trim() || loading}
 					onClick={() => sendMessage(input.trim())}
 				>
 					<ArrowUpIcon />
 				</button>
 			</div>
-			<p className="pointer-events-none inline-flex gap-1 items-center p-2 text-muted-foreground text-sm">
+			<p className="text-muted-foreground pointer-events-none inline-flex items-center gap-1 p-2 text-sm">
 				<TriangleAlertIcon size={14} />
 				Chat recommendations are in beta
 			</p>

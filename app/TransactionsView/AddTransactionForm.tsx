@@ -92,7 +92,7 @@ export function AddTransactionForm() {
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex flex-col">
+			<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-6">
 				<FormField
 					control={form.control}
 					name="txname"
@@ -118,7 +118,7 @@ export function AddTransactionForm() {
 										<Button
 											variant="outline"
 											className={cn(
-												"justify-start text-left font-normal text-md md:text-sm",
+												"text-md justify-start text-left font-normal md:text-sm",
 												!field.value && "text-muted-foreground",
 											)}
 										>
@@ -182,7 +182,7 @@ export function AddTransactionForm() {
 													<Button
 														variant="outline"
 														className={cn(
-															"justify-start font-normal text-md md:text-sm",
+															"text-md justify-start font-normal md:text-sm",
 															!field.value && "text-muted-foreground",
 														)}
 														style={{ width: 90 }}
@@ -237,11 +237,11 @@ export function AddTransactionForm() {
 													Number(field.value.replaceAll(",", "")) > 0
 														? GreenColor
 														: Number(field.value.replaceAll(",", "")) < 0
-														? "red"
-														: "inherit",
+															? "red"
+															: "inherit",
 											}}
 											placeholder="-80"
-											className="justify-start text-left font-normal !w-[210px] md:!w-[260px]" // width to line up with others and not expand the modal width
+											className="!w-[210px] justify-start text-left font-normal md:!w-[260px]" // width to line up with others and not expand the modal width
 											onValidatedChange={(amount) => field.onChange({ target: { value: String(amount) } })}
 											{...field}
 										/>

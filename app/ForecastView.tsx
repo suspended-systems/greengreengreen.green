@@ -74,7 +74,7 @@ export default function ForecastView() {
 
 	if (!startDate) {
 		return (
-			<div className="flex flex-col items-center justify-center h-64 text-center">
+			<div className="flex h-64 flex-col items-center justify-center text-center">
 				<p className="text-muted-foreground">Set a starting date to view forecast</p>
 			</div>
 		);
@@ -112,7 +112,7 @@ export default function ForecastView() {
 	}, [transactions]);
 
 	return (
-		<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">
+		<div className="mx-auto flex max-w-5xl flex-col gap-4 px-2 pt-4 pb-4 md:px-4">
 			<ForecastStatsCards stats={stats} />
 
 			{/* Timeline Chart */}
@@ -183,49 +183,49 @@ export default function ForecastView() {
 						style={{ gridTemplateColumns: "auto minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)" }}
 					>
 						<div>{/* empty first table cell */}</div>
-						<div className="font-semibold text-right text-xs md:text-base">Daily</div>
-						<div className="font-semibold text-right text-xs md:text-base">Monthly</div>
-						<div className="font-semibold text-right text-xs md:text-base">Calendar Year</div>
+						<div className="text-right text-xs font-semibold md:text-base">Daily</div>
+						<div className="text-right text-xs font-semibold md:text-base">Monthly</div>
+						<div className="text-right text-xs font-semibold md:text-base">Calendar Year</div>
 
-						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+						<div className="flex items-start gap-1 font-semibold whitespace-nowrap">
 							<PlusIcon className="mt-1" size={16} />
 							<span className="hidden md:inline">Incoming</span>
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-right text-xs font-semibold md:text-base">
 							<Money amount={annualIncomingAverage / 365} />
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-right text-xs font-semibold md:text-base">
 							<Money amount={annualIncomingAverage / 12} />
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-right text-xs font-semibold md:text-base">
 							<Money amount={annualIncomingAverage} />
 						</div>
 
-						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+						<div className="flex items-start gap-1 font-semibold whitespace-nowrap">
 							<MinusIcon className="mt-1" size={16} />
 							<span className="hidden md:inline">Outgoing</span>
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-right text-xs font-semibold md:text-base">
 							<Money amount={annualOutgoingAverage / 365} />
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-right text-xs font-semibold md:text-base">
 							<Money amount={annualOutgoingAverage / 12} />
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-right text-xs font-semibold md:text-base">
 							<Money amount={annualOutgoingAverage} />
 						</div>
 
-						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+						<div className="flex items-start gap-1 font-semibold whitespace-nowrap">
 							<DiffIcon className="mt-1" size={16} />
 							<span className="hidden md:inline">Net</span>
 						</div>
-						<div className="font-bold text-right md:text-2xl">
+						<div className="text-right font-bold md:text-2xl">
 							<Money amount={annualNetAverage / 365} />
 						</div>
-						<div className="font-bold text-right md:text-2xl">
+						<div className="text-right font-bold md:text-2xl">
 							<Money amount={annualNetAverage / 12} />
 						</div>
-						<div className="font-bold text-right md:text-2xl">
+						<div className="text-right font-bold md:text-2xl">
 							<Money amount={annualNetAverage} />
 						</div>
 					</div>

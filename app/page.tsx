@@ -17,6 +17,7 @@ import { columns as columnsData } from "./TransactionsView/tableColumns";
 import { Transaction } from "./transactions";
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import { useTransactionActions } from "@/hooks/useTransactionActions";
+import { cn } from "@/lib/utils";
 
 import { CallBackProps } from "react-joyride";
 const JoyRideTour = dynamic(() => import("@/components/JoyRideTour"), { ssr: false });
@@ -113,7 +114,7 @@ function HomeContent() {
 			<LoadingSpinner hideLoader={hideLoader} status={status} />
 
 			{/* Content */}
-			<div className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}>
+			<div className={cn("transition-opacity duration-700", showContent ? "opacity-100" : "opacity-0")}>
 				<AppTabs
 					month={month}
 					onMonthChange={onMonthChange}

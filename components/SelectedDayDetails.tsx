@@ -20,11 +20,11 @@ export default function SelectedDayDetails() {
 	const dayTransactions = endDate && getTransactionsOnDay(endDate, enabledTransactions);
 
 	return (
-		<div className="flex flex-col justify-center items-center py-4 order-3 md:order-2">
+		<div className="order-3 flex flex-col items-center justify-center py-4 md:order-2">
 			{endDate ? (
 				dayTransactions && dayTransactions.length > 0 ? (
 					<>
-						<div className="font-medium text-sm">
+						<div className="text-sm font-medium">
 							{endDate.toLocaleDateString(Intl.getCanonicalLocales(), {
 								month: "long",
 								weekday: "long",
@@ -32,7 +32,7 @@ export default function SelectedDayDetails() {
 							})}
 						</div>
 						{startAmount && startDate && transactions && (
-							<div className="block md:hidden text-sm">
+							<div className="block text-sm md:hidden">
 								{formatMoney(
 									calcProjectedValue({
 										startValue: startAmount,
@@ -50,9 +50,9 @@ export default function SelectedDayDetails() {
 										// both negative, reverse order so bigger expense first
 										a.amount < 0 && b.amount < 0
 											? // ascending
-											  a.amount - b.amount
+												a.amount - b.amount
 											: // descending
-											  b.amount - a.amount,
+												b.amount - a.amount,
 									)
 									.map((tx) => (
 										<tr key={`tx:${tx.id}`}>
@@ -83,7 +83,7 @@ export default function SelectedDayDetails() {
 							})}
 						</p>
 						{startAmount && startDate && transactions && (
-							<div className="block md:hidden text-sm opacity-50">
+							<div className="block text-sm opacity-50 md:hidden">
 								{formatMoney(
 									calcProjectedValue({
 										startValue: startAmount,
@@ -97,7 +97,7 @@ export default function SelectedDayDetails() {
 					</>
 				)
 			) : (
-				<p className="italic text-sm opacity-50">Select a date to view its transactions</p>
+				<p className="text-sm italic opacity-50">Select a date to view its transactions</p>
 			)}
 		</div>
 	);
@@ -113,7 +113,7 @@ function ChatWindowPopover({ tx }: { tx: Transaction }) {
 			<PopoverTrigger asChild>
 				<Button
 					variant="ghost"
-					className="relative justify-start text-xs text-left font-normal h-6"
+					className="relative h-6 justify-start text-left text-xs font-normal"
 					style={{ paddingInline: 4, marginLeft: 3, bottom: 3 }}
 				>
 					<BotMessageSquareIcon />

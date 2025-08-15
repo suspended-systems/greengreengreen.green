@@ -43,7 +43,7 @@ export default function SheetsSetupBanner({ isDemoWarningClosed }: SheetsSetupBa
 								❗️ Make sure you are signed in to the same Google Account across green and Sheets.
 							</p>
 							<div className="prose">
-								<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
+								<ol className="marker:text-muted-foreground list-inside list-decimal space-y-4">
 									<li>
 										Copy the email to share with:
 										<code className="text-muted-foreground">

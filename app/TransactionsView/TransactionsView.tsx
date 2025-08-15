@@ -46,6 +46,7 @@ import { AddTransactionForm } from "./AddTransactionForm";
 import { Transaction } from "../transactions";
 import getSheetsData from "../sheets";
 import { useApp } from "@/contexts/AppContext";
+import { cn } from "@/lib/utils";
 
 export function TransactionsView({
 	isDemoWarningClosed,
@@ -93,7 +94,7 @@ export function TransactionsView({
 
 	return (
 		<>
-			<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">
+			<div className="mx-auto flex max-w-5xl flex-col gap-4 px-2 pt-4 pb-4 md:px-4">
 				{/* Sheets setup / demo warning info banner */}
 				<SheetsSetupBanner isDemoWarningClosed={isDemoWarningClosed} />
 				<div className="flex gap-4">
@@ -153,7 +154,7 @@ export function TransactionsView({
 							}}
 						>
 							<RefreshCcwIcon
-								className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
+								className={cn("transition-transform duration-200", pullSheetsLoading && "animate-spin")}
 							/>
 							<span className="hidden md:block">Pull Sheets Changes</span>
 							<span className="sr-only">Sync from Google Sheets</span>
@@ -194,7 +195,7 @@ export function TransactionsView({
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
-				<div className="rounded-xl border bg-card">
+				<div className="bg-card rounded-xl border">
 					<Table>
 						<TableHeader>
 							{table.getHeaderGroups().map((headerGroup) => (
@@ -218,7 +219,7 @@ export function TransactionsView({
 								<TableRow>
 									<TableCell
 										colSpan={columns.length}
-										className="h-24 text-center min-w-[970px]" // cheaphax: match empty table width with the dynamic computed width of the columns so the table doesn't change size when searching
+										className="h-24 min-w-[970px] text-center" // cheaphax: match empty table width with the dynamic computed width of the columns so the table doesn't change size when searching
 									>
 										No results.
 									</TableCell>
@@ -227,8 +228,8 @@ export function TransactionsView({
 						</TableBody>
 					</Table>
 				</div>
-				<div className="w-full flex items-center justify-between">
-					<span className="flex-1 text-sm text-muted-foreground">
+				<div className="flex w-full items-center justify-between">
+					<span className="text-muted-foreground flex-1 text-sm">
 						Showing {startRow}–{endRow} of {totalRows}
 					</span>
 					<div className="flex items-center space-x-2">
@@ -262,12 +263,12 @@ export function TransactionsView({
 								App Settings
 							</Button>
 						</PopoverTrigger>
-						<PopoverContent className="w-fit flex flex-col gap-4 justify-center">
+						<PopoverContent className="flex w-fit flex-col justify-center gap-4">
 							<ModeSwitcher />
-							<div className="flex flex-col gap-4 mx-auto">
+							<div className="mx-auto flex flex-col gap-4">
 								{session ? (
 									<>
-										<span className="text-sm text-muted-foreground">Signed in to {session.user?.email}</span>
+										<span className="text-muted-foreground text-sm">Signed in to {session.user?.email}</span>
 										<Button
 											variant="outline"
 											className="w-fit"

@@ -143,7 +143,7 @@ export const columns = ({
 			const recurrenceText =
 				row.original.freq != null
 					? // capitalize the first letter in "every"
-					  "E" + txRRule(row.original).toText().slice(1)
+						"E" + txRRule(row.original).toText().slice(1)
 					: "";
 
 			return (
@@ -205,7 +205,7 @@ export const columns = ({
 									}
 								}}
 								value={numberAmount.toFixed(2)}
-								className="text-sm !min-w-[144px] md:!w-[144px]"
+								className="!min-w-[144px] text-sm md:!w-[144px]"
 								style={{
 									color: numberAmount > 0 ? GreenColor : numberAmount < 0 ? "red" : "inherit",
 									textAlign: "right",
