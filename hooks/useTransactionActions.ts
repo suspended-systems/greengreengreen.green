@@ -1,4 +1,5 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import { debounce } from "lodash";
 import { useApp } from "@/contexts/AppContext";
 import { Transaction } from "@/app/transactions";
 import { updateSheetsRow, appendSheetsRow, deleteSheetsRow } from "@/app/sheets";
@@ -8,13 +9,9 @@ import { toast } from "sonner";
 export const useTransactionActions = () => {
 	const { setTransactions, spreadsheetId } = useApp();
 
-	const updateTransaction = useCallback(
-		async (transaction: Transaction, updates: Partial<Transaction>) => {
-			setTransactions((txs) =>
-				txs.map((existing) => (existing.id === transaction.id ? { ...existing, ...updates } : existing)),
-			);
-
-			if (spreadsheetId) {
+	const debouncedSheetsUpdate = useMemo(
+		() =>
+			debounce(async (spreadsheetId: string, transaction: Transaction, updates: Partial<Transaction>) => {
 				try {
 					// we expect an object containing a single key-value pair
 					let [[field, value]] = Object.entries(updates) as [
@@ -43,9 +40,21 @@ export const useTransactionActions = () => {
 				} catch (error) {
 					toast("Failed to update transaction in Sheets. Please refresh and try again.");
 				}
+			}, 500),
+		[],
+	);
+
+	const updateTransaction = useCallback(
+		async (transaction: Transaction, updates: Partial<Transaction>) => {
+			setTransactions((txs) =>
+				txs.map((existing) => (existing.id === transaction.id ? { ...existing, ...updates } : existing)),
+			);
+
+			if (spreadsheetId) {
+				debouncedSheetsUpdate(spreadsheetId, transaction, updates);
 			}
 		},
-		[spreadsheetId, setTransactions],
+		[spreadsheetId, setTransactions, debouncedSheetsUpdate],
 	);
 
 	const addTransaction = useCallback(
