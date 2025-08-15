@@ -74,7 +74,7 @@ export const useTransactionActions = () => {
 						filterColumn: TRANSACTION_FIELDS.id.sheetsColumnLetter,
 					});
 				} catch (error) {
-					toast("Failed to delete transaction from Sheets. Please refresh and try again.");
+					toast("Failed to delete transaction from Sheets. It already did not exist.");
 				}
 			}
 		},

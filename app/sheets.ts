@@ -4,12 +4,17 @@ import { google } from "googleapis";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { defaultStartingDate, defaultStartingValue, defaultTransactions, Transaction } from "./transactions";
-import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
-import { parse } from "date-fns";
-import { fromZonedTime } from "date-fns-tz";
-import { SheetsRow, TransactionRowSchema, transactionToSheetsRow, TRANSACTION_FIELDS } from "./transactionSchema";
-import { formatDateToSheets, letterToIndex, pMapConfig } from "./utils";
+import {
+	SheetsRow,
+	TransactionRowSchema,
+	transactionToSheetsRow,
+	TRANSACTION_FIELDS,
+	parseSheetsDate,
+	formatDateToSheets,
+	sheetsRowToTransaction,
+} from "./transactionSchema";
+import { letterToIndex, pMapConfig } from "./utils";
 import { partition } from "lodash";
 import pMap from "p-map";
 
@@ -23,8 +28,6 @@ const credentials = {
 
 const TRANSACTIONS_SHEET_NAME = "Transactions";
 const STARTING_VALUES_SHEET_NAME = "Starting Values";
-
-const parseDate = (dateString: string, tz: string) => fromZonedTime(parse(dateString, "M/d/yyyy", new Date()), tz);
 
 // Generate a UUID if one doesn't exist and then push it to the first sheets row which has an empty uuid field (an assumption we're forced to make)
 const assignUUID = async ({ spreadsheetId }: { spreadsheetId: string }) => {
@@ -51,8 +54,7 @@ const assignEnabled = async ({ rowUUID, spreadsheetId }: { rowUUID: string; spre
 		cellValue: true,
 	});
 
-	// in the app we store "disabled"
-	return false;
+	return "true";
 };
 
 // todo ratelimiting backoff retry
@@ -127,7 +129,7 @@ export default async function getSheetsData({ tz }: { tz: string }) {
 			})
 		).data.values
 			// skip headers
-			?.slice(1) as Array<[string, string, string, string, string, string]>) ?? [];
+			?.slice(1) as Array<SheetsRow>) ?? [];
 
 	const [validatedRows, malformedRows] = partition(rawRows, (row) => {
 		try {
@@ -139,28 +141,29 @@ export default async function getSheetsData({ tz }: { tz: string }) {
 		}
 	});
 
-	// Map the rows to our app's data structure and reconcile missing UUID/toggle state
+	// Map the rows to our app's data structure and reconcile missing attributes
 	const transactions: Transaction[] = await pMap(
 		validatedRows,
-		async ([name, amount, date, recurrence, enabled, id]) => {
-			const assignedId = id || (await assignUUID({ spreadsheetId: sheetFile.id! }));
+		async (row) => {
+			const indexOfCol = (targetHeader: string) =>
+				Object.values(TRANSACTION_FIELDS)
+					.filter((schema) => "header" in schema)
+					.findIndex((schema) => schema.header === targetHeader);
 
-			const isDisabled = enabled
-				? enabled.toLowerCase() !== "true"
-				: await assignEnabled({ rowUUID: assignedId, spreadsheetId: sheetFile.id! });
+			const uuidIndex = indexOfCol(TRANSACTION_FIELDS.id.header);
+			const enabledIndex = indexOfCol(TRANSACTION_FIELDS.disabled.header);
 
-			return {
-				name,
-				id: assignedId,
-				disabled: isDisabled,
-				amount: Number(amount),
-				date: parseDate(date, tz).getTime(),
-				...(recurrence &&
-					RRule.fromText(recurrence) && {
-						freq: RRule.fromText(recurrence).options.freq,
-						interval: RRule.fromText(recurrence).options.interval,
-					}),
-			};
+			// Reconcile missing UUID
+			if (!row[uuidIndex]) {
+				row[uuidIndex] = await assignUUID({ spreadsheetId: sheetFile.id! });
+			}
+
+			// Reconcile missing toggle state
+			if (!row[enabledIndex]) {
+				row[enabledIndex] = await assignEnabled({ rowUUID: row[uuidIndex] as string, spreadsheetId: sheetFile.id! });
+			}
+
+			return sheetsRowToTransaction(row);
 		},
 		pMapConfig,
 	);
@@ -365,7 +368,7 @@ async function getStartingValues(
 			})
 		).data.values?.[0] ?? [];
 
-	const startDate = typeof startingDate === "string" ? parseDate(startingDate, tz) : null;
+	const startDate = typeof startingDate === "string" ? parseSheetsDate(startingDate, tz) : null;
 
 	const startAmount = startingAmount != null ? Number(startingAmount) : null;
 
