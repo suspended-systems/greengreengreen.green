@@ -2,16 +2,7 @@ import { parse } from "date-fns";
 import { fromZonedTime } from "date-fns-tz";
 import { z } from "zod";
 import { Frequency, RRule } from "rrule";
-
-export type Transaction = {
-	id: string;
-	name: string;
-	date: number;
-	amount: number;
-	freq?: Frequency;
-	interval?: number;
-	disabled?: boolean;
-};
+import { Transaction } from "./transactions";
 
 export const TRANSACTION_FIELDS = {
 	name: {
