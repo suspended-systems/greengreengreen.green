@@ -95,10 +95,6 @@ export const TransactionRowSchema = z.union([
 
 export type SheetsRow = [string, string, string, string, string, string];
 
-// Helper to create RRule for transaction
-export const txRRule = (tx: Transaction) =>
-	new RRule({ freq: tx.freq, interval: tx.interval ?? 1, dtstart: new Date(tx.date) });
-
 export const transactionToSheetsRow = (tx: Transaction) =>
 	Object.entries(TRANSACTION_FIELDS)
 		.filter(([field, schema]) => "header" in schema) // headers only
@@ -144,3 +140,12 @@ export const formatDateToSheets = (date: Date) =>
 
 export const parseSheetsDate = (dateString: string, tz: string) =>
 	fromZonedTime(parse(dateString, "M/d/yyyy", new Date()), tz);
+
+// Helper to create RRule for transaction
+export const txRRule = (tx: Transaction) =>
+	new RRule({ freq: tx.freq, interval: tx.interval ?? 1, dtstart: new Date(tx.date) });
+
+export const indexOfHeader = (targetHeader: string) =>
+	Object.values(TRANSACTION_FIELDS)
+		.filter((schema) => "header" in schema)
+		.findIndex((schema) => schema.header === targetHeader);

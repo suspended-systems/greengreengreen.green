@@ -13,6 +13,7 @@ import {
 	parseSheetsDate,
 	formatDateToSheets,
 	sheetsRowToTransaction,
+	indexOfHeader,
 } from "./transactionSchema";
 import { letterToIndex, pMapConfig } from "./utils";
 import { partition } from "lodash";
@@ -145,20 +146,14 @@ export default async function getSheetsData({ tz }: { tz: string }) {
 	const transactions: Transaction[] = await pMap(
 		validatedRows,
 		async (row) => {
-			const indexOfCol = (targetHeader: string) =>
-				Object.values(TRANSACTION_FIELDS)
-					.filter((schema) => "header" in schema)
-					.findIndex((schema) => schema.header === targetHeader);
-
-			const uuidIndex = indexOfCol(TRANSACTION_FIELDS.id.header);
-			const enabledIndex = indexOfCol(TRANSACTION_FIELDS.disabled.header);
-
 			// Reconcile missing UUID
+			const uuidIndex = indexOfHeader(TRANSACTION_FIELDS.id.header);
 			if (!row[uuidIndex]) {
 				row[uuidIndex] = await assignUUID({ spreadsheetId: sheetFile.id! });
 			}
 
 			// Reconcile missing toggle state
+			const enabledIndex = indexOfHeader(TRANSACTION_FIELDS.disabled.header);
 			if (!row[enabledIndex]) {
 				row[enabledIndex] = await assignEnabled({ rowUUID: row[uuidIndex] as string, spreadsheetId: sheetFile.id! });
 			}
@@ -172,7 +167,7 @@ export default async function getSheetsData({ tz }: { tz: string }) {
 		sheet: { id: sheetFile.id },
 		transactions,
 		malformedTransactions: malformedRows,
-		...(sheetFile?.id && (await getStartingValues(sheetFile?.id, tz))),
+		...(await getStartingValues(sheetFile.id, tz)),
 	};
 }
 
