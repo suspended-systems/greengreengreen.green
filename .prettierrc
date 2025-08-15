@@ -1,0 +1,10 @@
+{
+	"plugins": ["prettier-plugin-tailwindcss"],
+	"tailwindConfig": "./postcss.config.mjs",
+	"printWidth": 120,
+	"useTabs": true,
+	"semi": true,
+	"singleQuote": false,
+	"quoteProps": "as-needed",
+	"trailingComma": "all"
+}

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { signOut, useSession } from "next-auth/react";
-import Image from "next/image";
 
 import {
 	EyeOffIcon,
@@ -11,7 +10,6 @@ import {
 	PlusIcon,
 	RefreshCcwIcon,
 	SquareArrowOutUpRightIcon,
-	LucideProps,
 	CogIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -40,37 +38,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CopyableInput } from "@/components/CopyableInput";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Money from "@/components/Money";
 import { ModeSwitcher } from "@/components/ModeSwitcher";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import SheetsSetupBanner from "@/components/SheetsSetupBanner";
 
 import { AddTransactionForm } from "./AddTransactionForm";
 import { Transaction } from "../transactions";
 import getSheetsData from "../sheets";
+import { useApp } from "@/contexts/AppContext";
+import { cn } from "@/lib/utils";
 
-export function TransactionsView<TData, TValue>({
-	spreadsheetId,
+export function TransactionsView({
 	isDemoWarningClosed,
 	columns,
-	setStartDate,
-	setStartAmount,
-	transactions,
-	setTransactions,
 	pagination,
 	setPagination,
 }: {
-	spreadsheetId: string | null;
 	isDemoWarningClosed: boolean;
-	columns: ColumnDef<TData, TValue>[];
-	setStartDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
-	setStartAmount: React.Dispatch<React.SetStateAction<number>>;
-	transactions: TData[];
-	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
+	columns: ColumnDef<Transaction, any>[];
 	pagination: PaginationState;
 	setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
 }) {
+	const { spreadsheetId, transactions, setTransactions, setStartDate, setStartAmount } = useApp();
 	const [pullSheetsLoading, setPullSheetsLoading] = React.useState(false);
 
 	const { data: session } = useSession();
@@ -105,77 +94,11 @@ export function TransactionsView<TData, TValue>({
 
 	return (
 		<>
-			<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">
+			<div className="flex flex-col max-w-5xl px-2 pt-4 pb-4 mx-auto gap-4 md:px-4">
 				{/* Sheets setup / demo warning info banner */}
-				{!spreadsheetId && !isDemoWarningClosed && (
-					<Card>
-						<CardHeader>
-							<CardTitle className="text-sm font-medium">{session ? "Google Sheets setup" : "Demo Mode"}</CardTitle>
-						</CardHeader>
-
-						<CardContent>
-							<div className="prose flex flex-col items-center gap-4">
-								{!session ? (
-									<>
-										<p className="text-center">
-											You are in demo mode. <span className="font-bold">Data will not save.</span>
-										</p>
-										<p className="text-center">Set up with Google Sheets to store your transactions:</p>
-										<SetUpWithGoogleSheetsButton />
-									</>
-								) : (
-									<>
-										<p className="text-muted-foreground">⚠️ Data will not save until setup is complete.</p>
-										<p className="text-muted-foreground">
-											❗️ Make sure you are signed in to the same Google Account across green and Sheets.
-										</p>
-										<div className="prose">
-											<ol className="marker:text-muted-foreground list-decimal list-inside space-y-4">
-												<li>
-													Copy the email to share with:
-													<code className="text-muted-foreground">
-														<CopyableInput value="green-330@green-456901.iam.gserviceaccount.com" />
-													</code>
-												</li>
-												<li>
-													<a
-														href="https://docs.google.com/spreadsheets/create"
-														target="_blank"
-														rel="noopener"
-														className="inline-flex items-baseline"
-													>
-														<SquareArrowOutUpRightIcon size={18} className="self-center" />
-														<span className="pl-1">Create a Sheet (and name it)</span>
-													</a>
-												</li>
-												<li>
-													Share it
-													<div className="flex flex-col items-center">
-														<Image
-															src="/assets/sheets-setup-step-1.png"
-															alt="Sheets Setup Step 1"
-															width={600}
-															height={600}
-														/>
-														<Image
-															src="/assets/sheets-setup-step-2.png"
-															alt="Sheets Setup Step 2"
-															width={300}
-															height={300}
-														/>
-													</div>
-												</li>
-												<li>Refresh this page 🎉</li>
-											</ol>
-										</div>
-									</>
-								)}
-							</div>
-						</CardContent>
-					</Card>
-				)}
+				<SheetsSetupBanner isDemoWarningClosed={isDemoWarningClosed} />
 				<div className="flex gap-4">
-					<AddTransaction {...{ spreadsheetId, setTransactions }} />
+					<AddTransaction />
 					<Input
 						placeholder="Search..."
 						value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -231,7 +154,7 @@ export function TransactionsView<TData, TValue>({
 							}}
 						>
 							<RefreshCcwIcon
-								className={`transition-transform duration-200 ${pullSheetsLoading ? "animate-spin" : ""}`}
+								className={cn("transition-transform duration-200", pullSheetsLoading && "animate-spin")}
 							/>
 							<span className="hidden md:block">Pull Sheets Changes</span>
 							<span className="sr-only">Sync from Google Sheets</span>
@@ -272,7 +195,7 @@ export function TransactionsView<TData, TValue>({
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
-				<div className="rounded-xl border bg-card">
+				<div className="border bg-card rounded-xl">
 					<Table>
 						<TableHeader>
 							{table.getHeaderGroups().map((headerGroup) => (
@@ -289,12 +212,14 @@ export function TransactionsView<TData, TValue>({
 						</TableHeader>
 						<TableBody>
 							{table.getRowModel().rows?.length ? (
-								table.getRowModel().rows.map((row, i) => <HoverableRow key={`row:${i}`} {...{ row, index: i }} />)
+								table
+									.getRowModel()
+									.rows.map((row, i) => <HoverableRow key={`row:${row.original.id}`} {...{ row, index: i }} />)
 							) : (
 								<TableRow>
 									<TableCell
 										colSpan={columns.length}
-										className="h-24 text-center min-w-[970px]" // cheaphax: match empty table width with the dynamic computed width of the columns so the table doesn't change size when searching
+										className="h-24 min-w-[970px] text-center" // cheaphax: match empty table width with the dynamic computed width of the columns so the table doesn't change size when searching
 									>
 										No results.
 									</TableCell>
@@ -303,7 +228,7 @@ export function TransactionsView<TData, TValue>({
 						</TableBody>
 					</Table>
 				</div>
-				<div className="w-full flex items-center justify-between">
+				<div className="flex items-center justify-between w-full">
 					<span className="flex-1 text-sm text-muted-foreground">
 						Showing {startRow}–{endRow} of {totalRows}
 					</span>
@@ -313,17 +238,24 @@ export function TransactionsView<TData, TValue>({
 							size="sm"
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
+							aria-label="Go to previous page"
 						>
 							<ChevronLeftIcon />
 						</Button>
-						<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => table.nextPage()}
+							disabled={!table.getCanNextPage()}
+							aria-label="Go to next page"
+						>
 							<ChevronRightIcon />
 						</Button>
 					</div>
 				</div>
 
 				{/* settings cog (night mode toggle/sign out) */}
-				<div className="mt-4 self-end">
+				<div className="self-end mt-4">
 					<Popover>
 						<PopoverTrigger asChild>
 							<Button variant="outline" className="text-muted-foreground">
@@ -331,9 +263,9 @@ export function TransactionsView<TData, TValue>({
 								App Settings
 							</Button>
 						</PopoverTrigger>
-						<PopoverContent className="w-fit flex flex-col gap-4 justify-center">
+						<PopoverContent className="flex flex-col justify-center w-fit gap-4">
 							<ModeSwitcher />
-							<div className="flex flex-col gap-4 mx-auto">
+							<div className="flex flex-col mx-auto gap-4">
 								{session ? (
 									<>
 										<span className="text-sm text-muted-foreground">Signed in to {session.user?.email}</span>
@@ -360,33 +292,25 @@ export function TransactionsView<TData, TValue>({
 	);
 }
 
-function AddTransaction({
-	spreadsheetId,
-	setTransactions,
-}: {
-	spreadsheetId: string | null;
-	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-}) {
-	return (
-		<Dialog modal>
-			<DialogTrigger asChild>
-				<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
-					<PlusIcon />
-					<span className="hidden md:block">Add transaction</span>
-					<span className="sr-only">Add transaction</span>
-				</Button>
-			</DialogTrigger>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Add transaction</DialogTitle>
-				</DialogHeader>
-				<AddTransactionForm {...{ spreadsheetId, setTransactions }} />
-			</DialogContent>
-		</Dialog>
-	);
-}
+const AddTransaction = () => (
+	<Dialog modal>
+		<DialogTrigger asChild>
+			<Button className="tour-add-transaction" variant="outline" style={{ width: "fit-content" }}>
+				<PlusIcon />
+				<span className="hidden md:block">Add transaction</span>
+				<span className="sr-only">Add transaction</span>
+			</Button>
+		</DialogTrigger>
+		<DialogContent>
+			<DialogHeader>
+				<DialogTitle>Add transaction</DialogTitle>
+			</DialogHeader>
+			<AddTransactionForm />
+		</DialogContent>
+	</Dialog>
+);
 
-function HoverableRow<TData>({ row, index }: { row: Row<TData>; index: number }) {
+function HoverableRow({ row, index }: { row: Row<Transaction>; index: number }) {
 	// Keep pointer event in state to detect hovering
 	// When hovering, the inline editing UI is shown
 	const [isRowHovered, setIsRowHovered] = React.useState(false);
@@ -475,39 +399,6 @@ export function SetUpWithGoogleSheetsButton() {
 				</div>
 				<span className="pl-1">Sign in with Google</span>
 			</Button>
-		</div>
-	);
-}
-
-function StatsBox({
-	title,
-	Icon,
-	annually,
-}: {
-	title: "Incoming" | "Outgoing" | "Net";
-	Icon: React.ForwardRefExoticComponent<LucideProps>;
-	annually: number;
-}) {
-	const monthly = annually / 12;
-	const daily = annually / 365;
-
-	const StatsRow = ({ unit, amount }: { unit: string; amount: number }) => (
-		<>
-			<div className="font-bold text-right text-2xl">
-				<Money {...{ amount }} />
-			</div>
-
-			<div className="text-muted-foreground text-lg">{unit}</div>
-		</>
-	);
-
-	return (
-		<div className="bg-card rounded-xl border">
-			<Icon size={16} />
-			{title}
-
-			<StatsRow unit="/day" amount={daily} />
-			<StatsRow unit="/mo" amount={monthly} />
 		</div>
 	);
 }

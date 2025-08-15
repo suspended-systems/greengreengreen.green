@@ -14,10 +14,6 @@ export const formatMoney = (amount: number) =>
 		currency: "USD",
 	}).format(amount);
 
-export const formatDateToSheets = (date: Date) =>
-	// date is sent in a locale format
-	date.toLocaleDateString();
-
 export function letterToIndex(ch: string): number {
 	if (ch.length !== 1) {
 		throw new Error("Expected a single character");

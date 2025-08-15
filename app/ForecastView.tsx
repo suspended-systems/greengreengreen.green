@@ -7,11 +7,13 @@ import { format, addDays, startOfDay } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import Money from "@/components/Money";
+import ForecastStatsCards from "@/components/ForecastStatsCards";
 
-import { Transaction, calcProjectedValue } from "./transactions";
+import { calcProjectedValue } from "./transactions";
 import { formatMoney, GreenColor } from "./utils";
 import { partition } from "lodash";
 import { PlusIcon, MinusIcon, DiffIcon } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
 
 const chartConfig = {
 	positiveBalance: {
@@ -24,15 +26,8 @@ const chartConfig = {
 	},
 };
 
-export default function ForecastView({
-	startAmount,
-	startDate,
-	transactions,
-}: {
-	startAmount: number;
-	startDate?: Date;
-	transactions: Transaction[];
-}) {
+export default function ForecastView() {
+	const { startAmount, startDate, transactions } = useApp();
 	const forecastData = useMemo(() => {
 		if (!startDate) return [];
 
@@ -86,65 +81,39 @@ export default function ForecastView({
 	}
 
 	/**
-	 * Stats
+	 * Stats - Memoized for performance
 	 */
+	const { annualIncomingAverage, annualOutgoingAverage, annualNetAverage } = useMemo(() => {
+		const [incomingTxs, outgoingTxs] = partition(transactions ?? [], (tx) => tx.amount >= 0);
+		const startOfYear = new Date(Date.UTC(new Date().getFullYear(), 0, 1, 0, 0, 0, 0));
+		const endOfYear = new Date(Date.UTC(new Date().getFullYear(), 11, 31, 23, 59, 59, 999));
 
-	const [incomingTxs, outgoingTxs] = partition((transactions as Transaction[]) ?? [], (tx) => tx.amount >= 0);
-	const startOfYear = new Date(Date.UTC(new Date().getFullYear(), 0, 1, 0, 0, 0, 0));
-	const endOfYear = new Date(Date.UTC(new Date().getFullYear(), 11, 31, 23, 59, 59, 999));
+		const annualIncomingAverage = calcProjectedValue({
+			startValue: 0,
+			startDate: startOfYear,
+			endDate: endOfYear,
+			transactions: incomingTxs,
+		});
 
-	const annualIncomingAverage = calcProjectedValue({
-		startValue: 0,
-		startDate: startOfYear,
-		endDate: endOfYear,
-		transactions: incomingTxs ?? [],
-	});
+		const annualOutgoingAverage = calcProjectedValue({
+			startValue: 0,
+			startDate: startOfYear,
+			endDate: endOfYear,
+			transactions: outgoingTxs,
+		});
 
-	const annualOutgoingAverage = calcProjectedValue({
-		startValue: 0,
-		startDate: startOfYear,
-		endDate: endOfYear,
-		transactions: outgoingTxs ?? [],
-	});
+		const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
 
-	const annualNetAverage = annualIncomingAverage + annualOutgoingAverage;
+		return {
+			annualIncomingAverage,
+			annualOutgoingAverage,
+			annualNetAverage,
+		};
+	}, [transactions]);
 
 	return (
-		<div className="max-w-5xl mx-auto flex flex-col gap-4 pb-4 pt-4 px-2 md:px-4">
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium whitespace-nowrap">Today's Projected Balance</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold" style={{ color: stats.current < 0 ? "red" : GreenColor }}>
-							{formatMoney(stats.current)}
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected 90-Day Change</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className={`text-2xl font-bold`}>
-							<Money amount={stats.change} />
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="pb-2">
-						<CardTitle className="text-sm font-medium whitespace-nowrap">Projected 90-Day Balance</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className={`text-2xl font-bold`}>
-							<Money hidePlus amount={stats.projected} />
-						</div>
-					</CardContent>
-				</Card>
-			</div>
+		<div className="flex flex-col max-w-5xl px-2 pt-4 pb-4 mx-auto gap-4 md:px-4">
+			<ForecastStatsCards {...{ stats }} />
 
 			{/* Timeline Chart */}
 			<Card>
@@ -214,39 +183,39 @@ export default function ForecastView({
 						style={{ gridTemplateColumns: "auto minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)" }}
 					>
 						<div>{/* empty first table cell */}</div>
-						<div className="font-semibold text-right text-xs md:text-base">Daily</div>
-						<div className="font-semibold text-right text-xs md:text-base">Monthly</div>
-						<div className="font-semibold text-right text-xs md:text-base">Calendar Year</div>
+						<div className="text-xs font-semibold text-right md:text-base">Daily</div>
+						<div className="text-xs font-semibold text-right md:text-base">Monthly</div>
+						<div className="text-xs font-semibold text-right md:text-base">Calendar Year</div>
 
-						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+						<div className="flex items-start font-semibold gap-1 whitespace-nowrap">
 							<PlusIcon className="mt-1" size={16} />
 							<span className="hidden md:inline">Incoming</span>
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-xs font-semibold text-right md:text-base">
 							<Money amount={annualIncomingAverage / 365} />
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-xs font-semibold text-right md:text-base">
 							<Money amount={annualIncomingAverage / 12} />
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-xs font-semibold text-right md:text-base">
 							<Money amount={annualIncomingAverage} />
 						</div>
 
-						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+						<div className="flex items-start font-semibold gap-1 whitespace-nowrap">
 							<MinusIcon className="mt-1" size={16} />
 							<span className="hidden md:inline">Outgoing</span>
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-xs font-semibold text-right md:text-base">
 							<Money amount={annualOutgoingAverage / 365} />
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-xs font-semibold text-right md:text-base">
 							<Money amount={annualOutgoingAverage / 12} />
 						</div>
-						<div className="self-center font-semibold text-right text-xs md:text-base">
+						<div className="self-center text-xs font-semibold text-right md:text-base">
 							<Money amount={annualOutgoingAverage} />
 						</div>
 
-						<div className="font-semibold flex items-start gap-1 whitespace-nowrap">
+						<div className="flex items-start font-semibold gap-1 whitespace-nowrap">
 							<DiffIcon className="mt-1" size={16} />
 							<span className="hidden md:inline">Net</span>
 						</div>

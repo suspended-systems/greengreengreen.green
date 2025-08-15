@@ -25,8 +25,7 @@ import NumericInput from "@/components/NumericInput";
 import { GreenColor } from "../utils";
 import { TRANSACTION_FIELDS } from "../transactionSchema";
 import { Transaction } from "../transactions";
-import { transactionToSheetsRow } from "../transactionSchema";
-import { appendSheetsRow } from "../sheets";
+import { useTransactionActions } from "@/hooks/useTransactionActions";
 
 const FormSchema = z.object({
 	txname: z.string().nonempty("Name can't be empty."),
@@ -51,17 +50,13 @@ const FormSchema = z.object({
 		}),
 });
 
-export function AddTransactionForm({
-	spreadsheetId,
-	setTransactions,
-}: {
-	spreadsheetId: string | null;
-	setTransactions: React.Dispatch<React.SetStateAction<Transaction[]>>;
-}) {
+export function AddTransactionForm() {
 	// This flag toggles whenever you reset the form.
 	// Used to key an input for resetting the form fully.
 	const [resetCounter, setResetCounter] = useState(0);
 	const [isRecurring, setIsRecurring] = useState(false);
+
+	const { addTransaction } = useTransactionActions();
 
 	const form = useForm<z.infer<typeof FormSchema>>({
 		resolver: zodResolver(FormSchema),
@@ -86,11 +81,7 @@ export function AddTransactionForm({
 			}),
 		};
 
-		setTransactions((value) => [transaction, ...value]);
-
-		if (spreadsheetId) {
-			await appendSheetsRow(spreadsheetId, transactionToSheetsRow(transaction));
-		}
+		await addTransaction(transaction);
 
 		form.reset();
 
@@ -101,7 +92,7 @@ export function AddTransactionForm({
 
 	return (
 		<Form {...form}>
-			<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex flex-col">
+			<form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-6">
 				<FormField
 					control={form.control}
 					name="txname"
@@ -127,7 +118,7 @@ export function AddTransactionForm({
 										<Button
 											variant="outline"
 											className={cn(
-												"justify-start text-left font-normal text-md md:text-sm",
+												"text-md justify-start text-left font-normal md:text-sm",
 												!field.value && "text-muted-foreground",
 											)}
 										>
@@ -191,7 +182,7 @@ export function AddTransactionForm({
 													<Button
 														variant="outline"
 														className={cn(
-															"justify-start font-normal text-md md:text-sm",
+															"text-md justify-start font-normal md:text-sm",
 															!field.value && "text-muted-foreground",
 														)}
 														style={{ width: 90 }}
@@ -201,10 +192,10 @@ export function AddTransactionForm({
 														</span>
 													</Button>
 												</DropdownMenuTrigger>
-												<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: 155 }}>
-													{TRANSACTION_FIELDS.freq.options.map((option, i) => (
+												<DropdownMenuContent className="justify-start font-normal text-left" style={{ width: 155 }}>
+													{TRANSACTION_FIELDS.freq.options.map((option) => (
 														<DropdownMenuItem
-															key={`freq-dropdown-item:${i}`}
+															key={`freq-dropdown-item:${option.label}`}
 															onClick={() => field.onChange(option.label)}
 														>
 															{option.label}
@@ -246,11 +237,11 @@ export function AddTransactionForm({
 													Number(field.value.replaceAll(",", "")) > 0
 														? GreenColor
 														: Number(field.value.replaceAll(",", "")) < 0
-														? "red"
-														: "inherit",
+															? "red"
+															: "inherit",
 											}}
 											placeholder="-80"
-											className="justify-start text-left font-normal !w-[210px] md:!w-[260px]" // width to line up with others and not expand the modal width
+											className="!w-[210px] justify-start text-left font-normal md:!w-[260px]" // width to line up with others and not expand the modal width
 											onValidatedChange={(amount) => field.onChange({ target: { value: String(amount) } })}
 											{...field}
 										/>
@@ -269,7 +260,7 @@ export function AddTransactionForm({
 				>
 					{form.formState.isSubmitting ? (
 						<>
-							<Loader2 className="mr-2 h-4 w-4 animate-spin" /> {/* spinner */}
+							<Loader2 className="w-4 h-4 mr-2 animate-spin" /> {/* spinner */}
 							Submitting…
 						</>
 					) : (
