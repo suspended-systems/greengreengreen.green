@@ -92,7 +92,7 @@ const ChatWindow = ({
 
 	return (
 		<div className="flex h-120 w-80 flex-col bg-white shadow-lg dark:bg-[#1A1E1B]">
-			<div className="flex-1 overflow-x-hidden overflow-y-auto p-2">
+			<div className="flex-1 p-2 overflow-x-hidden overflow-y-auto">
 				{messages
 					.filter((m) => m.role !== "system")
 					.map((m, i, arr) => {
@@ -147,7 +147,7 @@ const ChatWindow = ({
 													</button>
 													<div className="mt-1 text-xs text-gray-800 dark:text-gray-200">
 														<div className="font-semibold">Tradeoffs:</div>
-														<ul className="list-inside list-disc text-xs">
+														<ul className="text-xs list-disc list-inside">
 															{alt.cons.map((con) => (
 																<li key={`con:${con}`}>{con}</li>
 															))}
@@ -161,7 +161,7 @@ const ChatWindow = ({
 							</div>
 						);
 					})}
-				{loading && <div className="text-center text-sm text-gray-500 dark:text-gray-400">Assistant is typing...</div>}
+				{loading && <div className="text-sm text-center text-gray-500 dark:text-gray-400">Assistant is typing...</div>}
 			</div>
 
 			<div className="flex border-t border-gray-200 p-2 dark:border-[#519c6b]/40">
@@ -184,7 +184,7 @@ const ChatWindow = ({
 					<ArrowUpIcon />
 				</button>
 			</div>
-			<p className="text-muted-foreground pointer-events-none inline-flex items-center gap-1 p-2 text-sm">
+			<p className="inline-flex items-center p-2 text-sm pointer-events-none text-muted-foreground gap-1">
 				<TriangleAlertIcon size={14} />
 				Chat recommendations are in beta
 			</p>

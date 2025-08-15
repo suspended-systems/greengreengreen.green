@@ -22,9 +22,9 @@ export default function CalendarView({
 	const enabledTransactions = transactions.filter((tx) => !tx.disabled);
 
 	return (
-		<div className="mx-auto flex w-fit max-w-full flex-col px-2 pt-4 pb-4 md:flex-row md:gap-8 md:px-4">
+		<div className="flex flex-col max-w-full px-2 pt-4 pb-4 mx-auto w-fit md:flex-row md:gap-8 md:px-4">
 			{/* left panel */}
-			<div className="tour-calendar-selected-day-details order-last contents flex-col items-center gap-4 md:order-first md:flex">
+			<div className="flex-col items-center order-last tour-calendar-selected-day-details contents gap-4 md:order-first md:flex">
 				<StartingValuesPanel />
 				{/* selected day transactions */}
 				<SelectedDayDetails />
@@ -35,7 +35,7 @@ export default function CalendarView({
 				mode="single"
 				selected={endDate}
 				onSelect={setEndDate}
-				className="tour-calendar bg-card mt-4 rounded-xl border md:mt-0"
+				className="mt-4 border tour-calendar bg-card rounded-xl md:mt-0"
 			/>
 		</div>
 	);

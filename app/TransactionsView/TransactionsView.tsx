@@ -94,7 +94,7 @@ export function TransactionsView({
 
 	return (
 		<>
-			<div className="mx-auto flex max-w-5xl flex-col gap-4 px-2 pt-4 pb-4 md:px-4">
+			<div className="flex flex-col max-w-5xl px-2 pt-4 pb-4 mx-auto gap-4 md:px-4">
 				{/* Sheets setup / demo warning info banner */}
 				<SheetsSetupBanner isDemoWarningClosed={isDemoWarningClosed} />
 				<div className="flex gap-4">
@@ -195,7 +195,7 @@ export function TransactionsView({
 						</DropdownMenuContent>
 					</DropdownMenu>
 				</div>
-				<div className="bg-card rounded-xl border">
+				<div className="border bg-card rounded-xl">
 					<Table>
 						<TableHeader>
 							{table.getHeaderGroups().map((headerGroup) => (
@@ -228,8 +228,8 @@ export function TransactionsView({
 						</TableBody>
 					</Table>
 				</div>
-				<div className="flex w-full items-center justify-between">
-					<span className="text-muted-foreground flex-1 text-sm">
+				<div className="flex items-center justify-between w-full">
+					<span className="flex-1 text-sm text-muted-foreground">
 						Showing {startRow}–{endRow} of {totalRows}
 					</span>
 					<div className="flex items-center space-x-2">
@@ -255,7 +255,7 @@ export function TransactionsView({
 				</div>
 
 				{/* settings cog (night mode toggle/sign out) */}
-				<div className="mt-4 self-end">
+				<div className="self-end mt-4">
 					<Popover>
 						<PopoverTrigger asChild>
 							<Button variant="outline" className="text-muted-foreground">
@@ -263,12 +263,12 @@ export function TransactionsView({
 								App Settings
 							</Button>
 						</PopoverTrigger>
-						<PopoverContent className="flex w-fit flex-col justify-center gap-4">
+						<PopoverContent className="flex flex-col justify-center w-fit gap-4">
 							<ModeSwitcher />
-							<div className="mx-auto flex flex-col gap-4">
+							<div className="flex flex-col mx-auto gap-4">
 								{session ? (
 									<>
-										<span className="text-muted-foreground text-sm">Signed in to {session.user?.email}</span>
+										<span className="text-sm text-muted-foreground">Signed in to {session.user?.email}</span>
 										<Button
 											variant="outline"
 											className="w-fit"

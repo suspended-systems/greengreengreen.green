@@ -192,7 +192,7 @@ export function AddTransactionForm() {
 														</span>
 													</Button>
 												</DropdownMenuTrigger>
-												<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: 155 }}>
+												<DropdownMenuContent className="justify-start font-normal text-left" style={{ width: 155 }}>
 													{TRANSACTION_FIELDS.freq.options.map((option) => (
 														<DropdownMenuItem
 															key={`freq-dropdown-item:${option.label}`}
@@ -260,7 +260,7 @@ export function AddTransactionForm() {
 				>
 					{form.formState.isSubmitting ? (
 						<>
-							<Loader2 className="mr-2 h-4 w-4 animate-spin" /> {/* spinner */}
+							<Loader2 className="w-4 h-4 mr-2 animate-spin" /> {/* spinner */}
 							Submitting…
 						</>
 					) : (

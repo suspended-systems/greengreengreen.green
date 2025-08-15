@@ -24,7 +24,7 @@ export function CopyButton({ value, ...props }: CopyButtonProps) {
 			}}
 			{...props}
 		>
-			{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+			{copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
 		</Button>
 	);
 }

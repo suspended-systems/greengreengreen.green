@@ -131,7 +131,7 @@ function CalendarCustomized({
 								)}
 							</div>
 							{/* Stats */}
-							<div className="flex gap-4 mt-1">
+							<div className="flex mt-1 gap-4">
 								<StatsColumn
 									label={{ desktop: "Incoming", mobile: "In" }}
 									total={totalIncoming}
@@ -226,7 +226,7 @@ function CalendarCustomized({
 							>
 								{projectedValue && (
 									// hidden on mobile
-									<div className="hidden md:block text-xs">{formatMoney(projectedValue)}</div>
+									<div className="hidden text-xs md:block">{formatMoney(projectedValue)}</div>
 								)}
 
 								<div className="font-bold">
@@ -236,7 +236,7 @@ function CalendarCustomized({
 											<p className="block md:hidden text-[10px]" style={{ color: GreenColor }}>
 												{/* Round down income */}+{formatMoney(Math.floor(incomesTotal)).slice(0, -3)}
 											</p>
-											<p className="hidden md:block text-sm" style={{ color: GreenColor }}>
+											<p className="hidden text-sm md:block" style={{ color: GreenColor }}>
 												+{formatMoney(incomesTotal)}
 											</p>
 										</>
@@ -248,7 +248,7 @@ function CalendarCustomized({
 												{/* Round up expenses, because it's negative we do floor */}
 												{formatMoney(Math.floor(expensesTotal)).slice(0, -3)}
 											</p>
-											<p className="hidden md:block text-sm" style={{ color: "red" }}>
+											<p className="hidden text-sm md:block" style={{ color: "red" }}>
 												{formatMoney(expensesTotal)}
 											</p>
 										</>
@@ -277,20 +277,20 @@ function StatsColumn({
 }) {
 	return (
 		<div className="grid grid-rows-2 space-x-1" style={{ gridTemplateColumns: "auto 1fr" }}>
-			<p className="text-xs md:text-sm font-medium">
+			<p className="text-xs font-medium md:text-sm">
 				{/* Desktop */}
 				<span className="hidden md:inline">{label.desktop}:</span>
 				{/* Mobile - shorter label and omit decimals */}
-				<span className="md:hidden inline">{label.mobile}:</span>
+				<span className="inline md:hidden">{label.mobile}:</span>
 			</p>
 
-			<p className="text-xs md:text-sm font-bold">
+			<p className="text-xs font-bold md:text-sm">
 				{/* Desktop */}
 				<span className="hidden md:inline">
 					<Money amount={total} />
 				</span>
 				{/* Mobile - shorter label and omit decimals */}
-				<span className="md:hidden inline">
+				<span className="inline md:hidden">
 					<Money dropDecimals amount={total} />
 				</span>
 			</p>
@@ -304,7 +304,7 @@ function StatsColumn({
 					<span className="text-[10px]"> per day</span>
 				</span>
 				{/* Mobile - shorter label and omit decimals */}
-				<span className="md:hidden inline">
+				<span className="inline md:hidden">
 					<Money dropDecimals amount={dailyAverage} />
 					<span className="text-[10px]">/day</span>
 				</span>

@@ -11,7 +11,7 @@ export function CopyableInput({ value, label }: { value: string; label?: string 
 			{label && <label className="text-sm font-medium">{label}</label>}
 			<div className="relative">
 				<Input readOnly value={value} className={cn("pr-10" /* reserve space for the icon */)} />
-				<CopyButton value={value} className="absolute inset-y-0 right-0 mr-2 flex items-center" />
+				<CopyButton value={value} className="absolute inset-y-0 right-0 flex items-center mr-2" />
 			</div>
 		</div>
 	);

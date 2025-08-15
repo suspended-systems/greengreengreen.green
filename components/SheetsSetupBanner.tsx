@@ -27,7 +27,7 @@ export default function SheetsSetupBanner({ isDemoWarningClosed }: SheetsSetupBa
 			</CardHeader>
 
 			<CardContent>
-				<div className="prose flex flex-col items-center gap-4">
+				<div className="flex flex-col items-center prose gap-4">
 					{!session ? (
 						<>
 							<p className="text-center">
@@ -43,7 +43,7 @@ export default function SheetsSetupBanner({ isDemoWarningClosed }: SheetsSetupBa
 								❗️ Make sure you are signed in to the same Google Account across green and Sheets.
 							</p>
 							<div className="prose">
-								<ol className="marker:text-muted-foreground list-inside list-decimal space-y-4">
+								<ol className="list-decimal list-inside marker:text-muted-foreground space-y-4">
 									<li>
 										Copy the email to share with:
 										<code className="text-muted-foreground">

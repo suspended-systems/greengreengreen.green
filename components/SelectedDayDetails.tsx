@@ -20,7 +20,7 @@ export default function SelectedDayDetails() {
 	const dayTransactions = endDate && getTransactionsOnDay(endDate, enabledTransactions);
 
 	return (
-		<div className="order-3 flex flex-col items-center justify-center py-4 md:order-2">
+		<div className="flex flex-col items-center justify-center order-3 py-4 md:order-2">
 			{endDate ? (
 				dayTransactions && dayTransactions.length > 0 ? (
 					<>
@@ -113,7 +113,7 @@ function ChatWindowPopover({ tx }: { tx: Transaction }) {
 			<PopoverTrigger asChild>
 				<Button
 					variant="ghost"
-					className="relative h-6 justify-start text-left text-xs font-normal"
+					className="relative justify-start h-6 text-xs font-normal text-left"
 					style={{ paddingInline: 4, marginLeft: 3, bottom: 3 }}
 				>
 					<BotMessageSquareIcon />

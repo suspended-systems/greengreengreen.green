@@ -285,7 +285,7 @@ function InlineFrequencyEditor({
 						</span>
 					</Button>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent className="justify-start text-left font-normal" style={{ width: "fit-content" }}>
+				<DropdownMenuContent className="justify-start font-normal text-left" style={{ width: "fit-content" }}>
 					{TRANSACTION_FIELDS.freq.options.map((option) => (
 						<DropdownMenuItem
 							key={`freq-dropdown-item:${option.label}`}
@@ -323,9 +323,9 @@ function HeaderWithSort({ column, title }: { column: Column<Transaction, unknown
 		>
 			{title ?? "‎ "}
 			{column.getIsSorted() === "asc" ? (
-				<ArrowUp className="ml-2 h-4 w-4" />
+				<ArrowUp className="w-4 h-4 ml-2" />
 			) : column.getIsSorted() === "desc" ? (
-				<ArrowDown className="ml-2 h-4 w-4" />
+				<ArrowDown className="w-4 h-4 ml-2" />
 			) : (
 				""
 			)}
