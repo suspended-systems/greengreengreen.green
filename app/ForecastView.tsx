@@ -113,7 +113,7 @@ export default function ForecastView() {
 
 	return (
 		<div className="flex flex-col max-w-5xl px-2 pt-4 pb-4 mx-auto gap-4 md:px-4">
-			<ForecastStatsCards stats={stats} />
+			<ForecastStatsCards {...{ stats }} />
 
 			{/* Timeline Chart */}
 			<Card>

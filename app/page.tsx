@@ -115,14 +115,7 @@ function HomeContent() {
 
 			{/* Content */}
 			<div className={cn("transition-opacity duration-700", showContent ? "opacity-100" : "opacity-0")}>
-				<AppTabs
-					month={month}
-					onMonthChange={onMonthChange}
-					isDemoWarningClosed={isDemoWarningClosed}
-					columns={columns}
-					pagination={pagination}
-					setPagination={setPagination}
-				/>
+				<AppTabs {...{ month, onMonthChange, isDemoWarningClosed, columns, pagination, setPagination }} />
 			</div>
 			<Toaster visibleToasts={1} position="bottom-center" />
 		</>

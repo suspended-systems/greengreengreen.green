@@ -63,8 +63,6 @@ export default function NumericInput({
 					"aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
 					className,
 				)}
-				style={style}
-				placeholder={placeholder}
 				value={draft}
 				onChange={handleChange}
 				onFocus={(e) => {
@@ -77,6 +75,7 @@ export default function NumericInput({
 					setDraft(value);
 					onBlur?.(e);
 				}}
+				{...{ style, placeholder }}
 			/>
 			{isFocused && (
 				<Button

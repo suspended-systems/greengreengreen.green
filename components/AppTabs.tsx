@@ -65,25 +65,20 @@ export default function AppTabs({
 			</TabsList>
 
 			<TabsContent value="calendar">
-				<ScrollablePanel tabValue="calendar" scrollPositions={scrollPositions} contentRefs={contentRefs}>
+				<ScrollablePanel tabValue="calendar" {...{ scrollPositions, contentRefs }}>
 					<CalendarView month={month} onMonthChange={onMonthChange} />
 				</ScrollablePanel>
 			</TabsContent>
 
 			<TabsContent value="forecast">
-				<ScrollablePanel tabValue="forecast" scrollPositions={scrollPositions} contentRefs={contentRefs}>
+				<ScrollablePanel tabValue="forecast" {...{ scrollPositions, contentRefs }}>
 					<ForecastView />
 				</ScrollablePanel>
 			</TabsContent>
 
 			<TabsContent value="transactions">
-				<ScrollablePanel tabValue="transactions" scrollPositions={scrollPositions} contentRefs={contentRefs}>
-					<TransactionsView
-						isDemoWarningClosed={isDemoWarningClosed}
-						columns={columns}
-						pagination={pagination}
-						setPagination={setPagination}
-					/>
+				<ScrollablePanel tabValue="transactions" {...{ scrollPositions, contentRefs }}>
+					<TransactionsView {...{ columns, pagination, setPagination, isDemoWarningClosed }} />
 				</ScrollablePanel>
 			</TabsContent>
 		</Tabs>
