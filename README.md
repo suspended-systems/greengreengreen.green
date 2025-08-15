@@ -12,9 +12,9 @@ Experimental Chat v2 → [ReplacementRecommender.ts](lib/ReplacementRecommender.
 
 # greengreengreen.green
 
-https://greengreengreen.green
-
 _green_ is a digital financial calendar for visually managing your finances. Intended to exist in the same category as RocketMoney.
+
+Visit today at https://greengreengreen.green
 
 # Dev setup
 
@@ -42,4 +42,26 @@ Hosted on vercel. `main` is production.
 
 # User flows
 
-Please ensure the onboarding user flow (tour -> sign in -> share sheet) and sheets bidirectional syncing are fully functioning when making related changes.
+Please keep in mind the following user flows when making changes:
+
+- **Onboarding**
+    
+    - complete tour
+    - sign in
+    - share sheet
+
+- **Transactions Syncing**
+
+    - edit transactions
+    - verify in sheet
+    - edit in sheet
+    - pull changes in app
+    - verify in transactions
+
+- **Chat**
+
+    - select a calendar day with a recurring transaction
+    - click chat robot icon
+    - respond to chat
+    - select a recommendation
+
