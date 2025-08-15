@@ -1,38 +1,3 @@
 {
-	"headwind.runOnSave": true,
-	"headwind.sortTailwindClasses": true,
-	"headwind.classRegex": {
-		"html": "\\bclass(Name)?=[\"']([^\"']*)[\"']",
-		"javascript": "\\bclass(Name)?\\s*[:=]\\s*[\"'`]([^\"'`]*)[\"'`]",
-		"typescript": "\\bclass(Name)?\\s*[:=]\\s*[\"'`]([^\"'`]*)[\"'`]",
-		"javascriptreact": "\\bclass(Name)?\\s*[:=]\\s*[\"'`]([^\"'`]*)[\"'`]",
-		"typescriptreact": "\\bclass(Name)?\\s*[:=]\\s*[\"'`]([^\"'`]*)[\"'`]"
-	},
-	"headwind.defaultSortOrder": [
-		"container",
-		"relative", "absolute", "fixed", "sticky",
-		"inset", "top", "right", "bottom", "left", "z-",
-		"col", "row",
-		"m-", "mx-", "my-", "mt-", "mr-", "mb-", "ml-",
-		"p-", "px-", "py-", "pt-", "pr-", "pb-", "pl-",
-		"w-", "min-w-", "max-w-", "h-", "min-h-", "max-h-",
-		"flex", "inline-flex", "grid", "inline-grid", "block", "inline-block", "inline", "hidden",
-		"flex-row", "flex-col", "flex-wrap", "flex-nowrap",
-		"items-", "justify-", "self-", "content-",
-		"gap-", "space-",
-		"overflow-", "overscroll-",
-		"text-", "font-", "leading-", "tracking-", "whitespace-",
-		"bg-", "from-", "via-", "to-",
-		"border", "border-", "divide-", "outline-", "ring-",
-		"rounded-", "shadow-",
-		"opacity-", "mix-blend-",
-		"transition-", "duration-", "ease-", "delay-", "animate-",
-		"transform", "scale-", "rotate-", "translate-", "skew-",
-		"origin-",
-		"cursor-", "select-", "pointer-events-",
-		"sr-only", "not-sr-only",
-		"focus:", "hover:", "active:", "disabled:", "visited:",
-		"sm:", "md:", "lg:", "xl:", "2xl:",
-		"dark:"
-	]
+	"headwind.runOnSave": true
 }
