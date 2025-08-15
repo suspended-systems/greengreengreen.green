@@ -103,8 +103,10 @@ export const transactionToSheetsRow = (tx: Transaction) =>
 	Object.entries(TRANSACTION_FIELDS)
 		.filter(([field, schema]) => "header" in schema) // headers only
 		.map(([field, schema]) => {
-			// Special case for freq where we add on interval too. 2 values, 1 column ;)
-			if (field === "freq" && tx.freq) return txRRule(tx).toText();
+			// special case for freq in tandem with interval
+			if (field === "freq") {
+				return tx.freq == null ? "" : txRRule(tx).toText();
+			}
 
 			const fieldValue = tx[field as keyof typeof tx];
 
@@ -120,22 +122,19 @@ export const transactionToSheetsRow = (tx: Transaction) =>
 			return fieldValue;
 		}) as SheetsRow;
 
-export const sheetsRowToTransaction = (row: SheetsRow) =>
+export const sheetsRowToTransaction = (row: SheetsRow, timezone: string) =>
 	Object.entries(TRANSACTION_FIELDS)
-		.filter(([field, schema]) => "header" in schema) // headers only, we'll have a special case for `interval`
+		.filter(([field, schema]) => "header" in schema) // headers only
 		.reduce((tx, [field, schema], i) => {
-			const value = row[i];
+			const fieldValue = row[i];
 
 			return {
 				...tx,
 
-				[field]:
-					"fromSheets" in schema
-						? (schema.fromSheets as (value: string | number | boolean | undefined) => string | number | boolean)(value)
-						: value,
+				[field]: "fromSheets" in schema ? schema.fromSheets(fieldValue, timezone) : fieldValue,
 
-				// grab the `interval` at the same time as the `freq`
-				...(field === "freq" && { interval: TRANSACTION_FIELDS.interval.fromSheets(value as string) }),
+				// special case for freq in tandem with interval
+				...(field === "freq" && { interval: TRANSACTION_FIELDS.interval.fromSheets(fieldValue) }),
 			};
 		}, {}) as Transaction;
 

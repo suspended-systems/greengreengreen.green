@@ -163,7 +163,7 @@ export default async function getSheetsData({ tz }: { tz: string }) {
 				row[enabledIndex] = await assignEnabled({ rowUUID: row[uuidIndex] as string, spreadsheetId: sheetFile.id! });
 			}
 
-			return sheetsRowToTransaction(row);
+			return sheetsRowToTransaction(row, tz);
 		},
 		pMapConfig,
 	);
