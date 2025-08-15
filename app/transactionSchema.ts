@@ -104,7 +104,7 @@ export const transactionToSheetsRow = (tx: Transaction) =>
 		.filter(([field, schema]) => "header" in schema) // headers only
 		.map(([field, schema]) => {
 			// Special case for freq where we add on interval too. 2 values, 1 column ;)
-			if (field === "freq") return txRRule(tx).toText();
+			if (field === "freq" && tx.freq) return txRRule(tx).toText();
 
 			const fieldValue = tx[field as keyof typeof tx];
 
