@@ -16,6 +16,7 @@ export const useTransactionActions = () => {
 
 			if (spreadsheetId) {
 				try {
+					// we expect an object containing a single key-value pair
 					let [[field, value]] = Object.entries(updates) as [
 						keyof typeof TRANSACTION_FIELDS,
 						Transaction[keyof Transaction],

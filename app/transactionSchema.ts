@@ -69,7 +69,7 @@ export const TRANSACTION_FIELDS = {
 		sheetsColumnLetter: "F",
 		sheetsSchema: z.string().uuid(),
 	},
-} as const;
+} as const satisfies Record<keyof Transaction, unknown>;
 
 /**
  * Special Zod Schema to handle case where any of Recurrence, Enabled, and/or UUID are missing in the row.
@@ -93,7 +93,7 @@ export const TransactionRowSchema = z.union([
 	] as const),
 ]);
 
-export type SheetsRow = [string, number, string, string, string, string];
+export type SheetsRow = [string, string, string, string, string, string];
 
 // Helper to create RRule for transaction
 export const txRRule = (tx: Transaction) =>
@@ -122,7 +122,7 @@ export const transactionToSheetsRow = (tx: Transaction) =>
 
 export const sheetsRowToTransaction = (row: SheetsRow) =>
 	Object.entries(TRANSACTION_FIELDS)
-		.filter(([field, schema]) => "header" in schema) // headers only, we'll hardcode interval
+		.filter(([field, schema]) => "header" in schema) // headers only, we'll have a special case for `interval`
 		.reduce((tx, [field, schema], i) => {
 			const value = row[i];
 
@@ -134,7 +134,7 @@ export const sheetsRowToTransaction = (row: SheetsRow) =>
 						? (schema.fromSheets as (value: string | number | boolean | undefined) => string | number | boolean)(value)
 						: value,
 
-				// grab the interval at the same time as the freq
+				// grab the `interval` at the same time as the `freq`
 				...(field === "freq" && { interval: TRANSACTION_FIELDS.interval.fromSheets(value as string) }),
 			};
 		}, {}) as Transaction;
